@@ -1,0 +1,282 @@
+import React, { useEffect, useRef } from 'react';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import { useInView } from 'react-intersection-observer';
+import { ChevronDown, Brain, LineChart, Users, Laptop, Building, Award, BookOpen } from 'lucide-react';
+import Vishnu from '../assets/Prof._R_VishnuVardhan.jpg';
+import Reddy from '../assets/Prof._RajaSekharReddy.jpg';
+import Vasili from '../assets/Vasili.jpg';
+import Siva from '../assets/Siva.jpg';
+
+const Home = () => {
+  const mouseRef = useRef<HTMLDivElement>(null);
+  const [ref, inView] = useInView({
+    triggerOnce: true,
+    threshold: 0.1,
+  });
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!mouseRef.current) return;
+      
+      const { left, top, width, height } = mouseRef.current.getBoundingClientRect();
+      const x = (e.clientX - left - width / 2) / 25;
+      const y = (e.clientY - top - height / 2) / 25;
+      
+      mouseRef.current.style.transform = `rotateY(${x}deg) rotateX(${-y}deg)`;
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
+  const fadeIn = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 },
+  };
+
+  const { scrollYProgress } = useScroll();
+  const scale = useTransform(scrollYProgress, [0, 1], [1, 1.2]);
+
+  return (
+    <div className="relative">
+      {/* Hero Section */}
+      <section className="relative h-screen flex items-center justify-center overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-blue-900/20 to-black/80" />
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute w-full h-full object-cover"
+        >
+          <source
+            src="https://cdn.coverr.co/videos/coverr-abstract-digital-network-connections-2654/1080p.mp4"
+            type="video/mp4"
+          />
+        </video>
+        
+        <div className="relative z-10 text-center px-4 max-w-5xl mx-auto">
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent"
+          >
+            RAISE DS 2025: Shaping the Future of Data Science & Statistics
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3, duration: 0.8 }}
+            className="text-xl md:text-2xl text-gray-300 mb-8"
+          >
+            Join the most innovative minds in the world of Data Science and Statistics
+          </motion.p>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6, duration: 0.8 }}
+            className="flex flex-col sm:flex-row gap-4 justify-center"
+          >
+            <a
+              href="/signup"
+              className="px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full text-white font-semibold hover:opacity-90 transition-opacity"
+            >
+              Sign Up
+            </a>
+            <a
+              href="#about"
+              className="px-8 py-3 border border-blue-500 rounded-full text-blue-400 font-semibold hover:bg-blue-500/10 transition-colors"
+            >
+              Learn More
+            </a>
+          </motion.div>
+        </div>
+
+        <motion.div
+          animate={{
+            y: [0, 10, 0],
+          }}
+          transition={{
+            duration: 2,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+          className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
+        >
+          <ChevronDown className="w-8 h-8 text-white/60" />
+        </motion.div>
+      </section>
+
+      {/* About Conference Section */}
+      <section
+        id="about"
+        ref={ref}
+        className="py-20 px-4 bg-gradient-to-b from-black to-blue-900/20"
+      >
+        <div className="max-w-6xl mx-auto">
+          <motion.div
+            variants={fadeIn}
+            initial="hidden"
+            animate={inView ? "visible" : "hidden"}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-3xl md:text-4xl font-bold mb-6">
+              About the Conference
+            </h2>
+            <p className="text-gray-300 text-lg max-w-3xl mx-auto">
+              RAISE DS is an interdisciplinary conference bringing together top researchers,
+              practitioners, and students to discuss the latest breakthroughs in data
+              science and statistics.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {[
+              {
+                icon: Brain,
+                title: "Machine Learning",
+                description: "Cutting-edge ML algorithms and applications",
+              },
+              {
+                icon: LineChart,
+                title: "Data Visualization",
+                description: "Interactive and immersive data storytelling",
+              },
+              {
+                icon: Users,
+                title: "Networking",
+                description: "Connect with industry leaders and peers",
+              },
+              {
+                icon: Laptop,
+                title: "Workshops",
+                description: "Hands-on coding sessions and case studies",
+              },
+            ].map((item, index) => (
+              <motion.div
+                key={index}
+                variants={fadeIn}
+                initial="hidden"
+                animate={inView ? "visible" : "hidden"}
+                transition={{ delay: index * 0.2, duration: 0.8 }}
+                className="bg-white/5 backdrop-blur-lg rounded-xl p-6 hover:bg-white/10 transition-colors"
+              >
+                <item.icon className="w-12 h-12 text-blue-400 mb-4" />
+                <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
+                <p className="text-gray-400">{item.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* University Section */}
+      <section className="py-20 px-4 bg-black/40">
+        <div className="max-w-6xl mx-auto">
+          <div
+            ref={mouseRef}
+            style={{ perspective: 1000 }}
+            className="bg-gradient-to-br from-blue-900/30 to-purple-900/30 rounded-2xl p-8 transition-transform duration-200 ease-out"
+          >
+            <div className="grid md:grid-cols-2 gap-8 items-center">
+              <div>
+                <motion.h2 
+                  className="text-3xl font-bold mb-6"
+                  style={{ scale }}
+                >
+                  VIT AP University
+                </motion.h2>
+                <p className="text-gray-300 mb-4">
+                  A world leader in Data Science and Statistical Research, VIT AP University
+                  has been at the forefront of technological innovation for over a decade.
+                </p>
+                <div className="grid grid-cols-3 gap-4 mt-8">
+                  {[
+                    { icon: Building, title: "World-Class Facilities", value: "20+" },
+                    { icon: Award, title: "Research Centers", value: "50+" },
+                    { icon: BookOpen, title: "Publications", value: "1000+" },
+                  ].map((stat, index) => (
+                    <div key={index} className="text-center">
+                      <stat.icon className="w-8 h-8 text-blue-400 mx-auto mb-2" />
+                      <div className="text-2xl font-bold text-white">{stat.value}</div>
+                      <div className="text-sm text-gray-400">{stat.title}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="relative">
+                <img
+                  src="https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&q=80"
+                  alt="Stanford University Campus"
+                  className="rounded-lg shadow-2xl transform hover:scale-105 transition-transform duration-300"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent rounded-lg" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Speakers Section */}
+      <section className="py-20 px-4 bg-gradient-to-b from-blue-900/20 to-black">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">Featured Speakers</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              {
+                name: "Prof. P Raja Sekhar Reddy",
+                role: "Hon. President ISPS",
+                image: Reddy,
+                description: "Leading expert in quamitative research and data analysis",
+              },
+              {
+                name: "Prof. R Vishnu Vardhan",
+                role: "Data Doctor and Bio-Statistician",
+                image: Vishnu,
+                description: "Leading expert in deep learning and neural networks",
+              },
+              {
+                name: "Dr. Vasili B V Nagarjuna",
+                role: "Convener",
+                image: Vasili,
+                description: "Specialist in MLOps and scalable AI systems",
+              },
+              {
+                name: "Dr. Siva G",
+                role: "Org. Secretary",
+                image: Siva,
+                description: "Specialist in MLOps and scalable AI systems",
+              },
+            ].map((speaker, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.2 }}
+                className="bg-white/5 rounded-xl overflow-hidden hover:bg-white/10 transition-colors"
+              >
+                <div className="relative h-64">
+                  <img
+                    src={speaker.image}
+                    alt={speaker.name}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent" />
+                </div>
+                <div className="p-6">
+                  <h3 className="text-xl font-semibold mb-2">{speaker.name}</h3>
+                  <p className="text-blue-400 mb-2">{speaker.role}</p>
+                  <p className="text-gray-400">{speaker.description}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+};
+
+export default Home;
