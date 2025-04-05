@@ -1,21 +1,43 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Mail, Lock, User, Building } from 'lucide-react';
+import { Mail, User, Building, FileText, Phone } from 'lucide-react';
+import axios from 'axios';
 
 const SignUp = () => {
   const [formData, setFormData] = useState({
     name: '',
+    topic: '',
+    abstract: '',
     email: '',
-    password: '',
-    organization: '',
+    mobile: '',
+    institution: '',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle form submission
+    try {
+      const response = await axios.post('http://localhost/submit', formData);
+      console.log(response.data);
+      alert('Submission successful!');
+      setFormData({
+        name: '',
+        topic: '',
+        abstract: '',
+        email: '',
+        mobile: '',
+        institution: '',
+      });
+    } catch (error) {
+      console.error('Submission error:', error);
+      if (error.response && error.response.data.message) {
+        alert(error.response.data.message);
+      } else {
+        alert('An error occurred. Please try again.');
+      }
+    }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
@@ -31,10 +53,10 @@ const SignUp = () => {
           className="text-center mb-8"
         >
           <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-            Create Account
+            Submit Your Abstract
           </h1>
           <p className="text-gray-300">
-            Join RAISE DS 2025 and be part of the data science revolution
+            Join RAISE DS 2025 and share your work
           </p>
         </motion.div>
 
@@ -54,6 +76,20 @@ const SignUp = () => {
                 placeholder: 'John Doe',
               },
               {
+                icon: FileText,
+                name: 'topic',
+                label: 'Topic',
+                type: 'text',
+                placeholder: 'Your topic',
+              },
+              {
+                icon: FileText,
+                name: 'abstract',
+                label: 'Abstract',
+                type: 'textarea',
+                placeholder: 'Brief summary of your work',
+              },
+              {
                 icon: Mail,
                 name: 'email',
                 label: 'Email Address',
@@ -61,18 +97,18 @@ const SignUp = () => {
                 placeholder: 'john@example.com',
               },
               {
-                icon: Lock,
-                name: 'password',
-                label: 'Password',
-                type: 'password',
-                placeholder: '••••••••',
+                icon: Phone,
+                name: 'mobile',
+                label: 'Mobile Number',
+                type: 'tel',
+                placeholder: '+91XXXXXXXXXX',
               },
               {
                 icon: Building,
-                name: 'organization',
-                label: 'Organization',
+                name: 'institution',
+                label: 'Institution',
                 type: 'text',
-                placeholder: 'Company or Institution',
+                placeholder: 'Your institution',
               },
             ].map((field, index) => (
               <motion.div
@@ -86,15 +122,27 @@ const SignUp = () => {
                 </label>
                 <div className="relative">
                   <field.icon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <input
-                    type={field.type}
-                    name={field.name}
-                    placeholder={field.placeholder}
-                    value={formData[field.name as keyof typeof formData]}
-                    onChange={handleChange}
-                    className="w-full bg-white/10 rounded-lg pl-10 pr-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  />
+                  {field.type === 'textarea' ? (
+                    <textarea
+                      name={field.name}
+                      placeholder={field.placeholder}
+                      value={formData[field.name]}
+                      onChange={handleChange}
+                      className="w-full bg-white/10 rounded-lg pl-10 pr-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      rows={5}
+                      required
+                    />
+                  ) : (
+                    <input
+                      type={field.type}
+                      name={field.name}
+                      placeholder={field.placeholder}
+                      value={formData[field.name]}
+                      onChange={handleChange}
+                      className="w-full bg-white/10 rounded-lg pl-10 pr-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      required
+                    />
+                  )}
                 </div>
               </motion.div>
             ))}
@@ -106,23 +154,9 @@ const SignUp = () => {
               type="submit"
               className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 rounded-full font-medium hover:opacity-90 transition-opacity"
             >
-              Create Account
+              Submit
             </motion.button>
           </form>
-
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
-            className="mt-6 text-center"
-          >
-            <p className="text-gray-400">
-              Already have an account?{' '}
-              <a href="#login" className="text-blue-400 hover:text-blue-300">
-                Log in
-              </a>
-            </p>
-          </motion.div>
         </motion.div>
       </div>
     </div>

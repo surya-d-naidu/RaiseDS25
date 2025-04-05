@@ -41,10 +41,10 @@ const About = () => {
             </p>
             <div className="grid grid-cols-2 gap-4 mt-8">
               {[
-                { icon: Calendar, title: "Date", value: "June 15-17, 2025" },
-                { icon: Users, title: "Attendees", value: "2000+" },
-                { icon: Award, title: "Speakers", value: "50+" },
-                { icon: BookOpen, title: "Sessions", value: "100+" },
+                { icon: Calendar, title: "Date", value: "Dec 22-24, 2025" },
+                { icon: Users, title: "Attendees", value: "500+" },
+                // { icon: Award, title: "Speakers", value: "75+" },
+                // { icon: BookOpen, title: "Sessions", value: "100+" },
               ].map((stat, index) => (
                 <div key={index} className="flex items-center space-x-3">
                   <stat.icon className="w-6 h-6 text-blue-400" />
@@ -75,19 +75,88 @@ const About = () => {
         {/* Topics Section */}
         <div className="max-w-6xl mx-auto mb-20">
           <h2 className="text-3xl font-bold text-center mb-12">Conference Topics</h2>
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-4 gap-6">
             {[
               {
-                title: "Machine Learning & AI",
-                topics: ["Deep Learning", "Neural Networks", "Natural Language Processing", "Computer Vision"],
+                title: "Probability Theory",
               },
               {
-                title: "Statistical Analysis",
-                topics: ["Bayesian Statistics", "Time Series Analysis", "Experimental Design", "Causal Inference"],
+                title: "AI & Machine learning",
               },
               {
-                title: "Data Engineering",
-                topics: ["Big Data Processing", "Data Pipelines", "Cloud Computing", "Data Architecture"],
+                title: "Statistical Inference",
+              },
+              {
+                title: "Time Series Ananlysis",
+              },
+              {
+                title: "Survey Sampling",
+              },
+              {
+                title: "Planning and Experimental Designs",
+              },
+              {
+                title: "Statistics in Management",
+              },
+              {
+                title: "Statistical Quality Control",
+              },
+              {
+                title: "Geo-Spatial Statistics",
+              },
+              {
+                title: "Distribution Theory",
+              },
+              {
+                title: "Operations Research",
+              },
+              {
+                title: "Applied Mathematics",
+              },
+              {
+                title: "Population Studies",
+              },
+              {
+                title: "Data Science Techniques",
+              },
+              {
+                title: "Mathematical Modelling",
+              },
+              {
+                title: "Econometrics",
+              },
+              {
+                title: "Statistical Quality Control",
+              },
+              {
+                title: "Stochastic Modelling",
+              },
+              {
+                title: "Bayesian and Fuzzy statistics",
+              },
+              {
+                title: "Bio-Statistics",
+              },
+              {
+                title: "Agricultural Statistics",
+              },
+              {
+                title: "Environmental Statistics",
+              },
+              {
+                title: "Reliability and Survival Ananlysis",
+              },
+              {
+                title: "Applied Statistics",
+              },
+              {
+                title: "Multivariate Ananlysis",
+              },
+              {
+                title: "Actuarial Statistics",
+              },
+              {
+                title: "Multi-Disciplinary Research",
               },
             ].map((category, index) => (
               <motion.div
@@ -95,14 +164,9 @@ const About = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={inView ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.6, delay: index * 0.2 }}
-                className="bg-white/5 rounded-xl p-6 hover:bg-white/10 transition-colors"
+                className="bg-white/5 rounded-l p-6 hover:bg-white/10 transition-colors"
               >
                 <h3 className="text-xl font-semibold mb-4">{category.title}</h3>
-                <ul className="space-y-2">
-                  {category.topics.map((topic, i) => (
-                    <li key={i} className="text-gray-300">{topic}</li>
-                  ))}
-                </ul>
               </motion.div>
             ))}
           </div>
