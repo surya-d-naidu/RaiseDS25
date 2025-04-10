@@ -1,9 +1,8 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, Phone, MapPin, MessageSquare } from 'lucide-react';
 
 const Contact = () => {
-  const formRef = useRef<HTMLDivElement>(null);
   const [formStatus, setFormStatus] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -11,21 +10,6 @@ const Contact = () => {
     setFormStatus('Message sent successfully!');
     setTimeout(() => setFormStatus(''), 3000);
   };
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!formRef.current) return;
-      
-      const { left, top, width, height } = formRef.current.getBoundingClientRect();
-      const x = (e.clientX - left - width / 2) / 25;
-      const y = (e.clientY - top - height / 2) / 25;
-      
-      formRef.current.style.transform = `rotateY(${x}deg) rotateX(${-y}deg)`;
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] pt-20 px-4">
@@ -38,7 +22,7 @@ const Contact = () => {
           Contact Us
         </h1>
         <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-          Have questions? We're here to help you with anything related to Rise DS 2025
+          Have questions? We're here to help you with anything related to RAISE DS 2025
         </p>
       </motion.div>
 
@@ -56,19 +40,19 @@ const Contact = () => {
                 {
                   icon: Mail,
                   title: "Email",
-                  content: "info@riseds2025.com",
-                  link: "mailto:info@riseds2025.com",
+                  content: "info@raiseds2025.com",
+                  link: "mailto:info@raiseds2025.com",
                 },
                 {
                   icon: Phone,
                   title: "Phone",
-                  content: "+1 (555) 123-4567",
-                  link: "tel:+15551234567",
+                  content: "+91 7673944853",
+                  link: "tel:+917673944853",
                 },
                 {
                   icon: MapPin,
                   title: "Address",
-                  content: "Stanford University\n450 Serra Mall\nStanford, CA 94305",
+                  content: "VITAP University\nAmaravati, Andhra Pradesh",
                 },
                 {
                   icon: MessageSquare,
@@ -107,7 +91,7 @@ const Contact = () => {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.3 }}
-            className="bg-white/5 rounded-2xl p-8"
+            className="bg-gradient-to-br from-blue-900/30 to-purple-900/30 rounded-2xl p-8"
           >
             <h2 className="text-2xl font-bold mb-6">Follow Us</h2>
             <div className="flex space-x-4">
@@ -130,11 +114,9 @@ const Contact = () => {
 
         {/* Contact Form */}
         <motion.div
-          ref={formRef}
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           className="bg-gradient-to-br from-blue-900/30 to-purple-900/30 rounded-2xl p-8"
-          style={{ perspective: 1000 }}
         >
           <h2 className="text-2xl font-bold mb-6">Send us a Message</h2>
           <form onSubmit={handleSubmit} className="space-y-6">

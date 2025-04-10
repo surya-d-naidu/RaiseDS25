@@ -16,7 +16,7 @@ const SignUp = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost/submit', formData);
+      const response = await axios.post('https://websocket-server-sigma.vercel.app/submit', formData);
       console.log(response.data);
       alert('Submission successful!');
       setFormData({
@@ -86,7 +86,7 @@ const SignUp = () => {
                 icon: FileText,
                 name: 'abstract',
                 label: 'Abstract',
-                type: 'textarea',
+                type: 'text',
                 placeholder: 'Brief summary of your work',
               },
               {
