@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
-import { ChevronDown, Brain, LineChart, Users, Laptop, Building, Award, BookOpen, Ear } from 'lucide-react';
+import { ChevronDown, Brain, LineChart, Users, Laptop, Building, Award, BookOpen, FlaskConical, BookOpenCheck, Users2, Lightbulb } from 'lucide-react';
 import Vishnu from '../assets/Prof._R_VishnuVardhan.jpg';
 import Reddy from '../assets/Prof._RajaSekharReddy.jpg';
 import Vasili from '../assets/Vasili.jpg';
@@ -257,10 +257,16 @@ const Home = () => {
                 VITAP University
               </h2>
               <p className="text-gray-300 text-lg">
-                As a global leader in Data Science and Statistical Research, VITAP University
-                continues to push the boundaries of innovation and discovery. Our state-of-the-art
-                facilities and renowned faculty create the perfect environment for this
-                groundbreaking conference.
+              VIT-AP University, located in the city of Amaravati, Andhra Pradesh, is renowned for 
+              its  commitment to innovation and academic distinction. As part of the prestigious VIT 
+              group,  with a legacy spanning over 40 years, VIT-AP offers a unique blend of rigorous 
+              academics,  state-of-the-art facilities, and opportunities for holistic development. With a 
+              strong  emphasis on ethical values, sustainability, and inclusivity, the university 
+              nurtures well rounded individuals to make a positive impact on society. VIT-AP attracts 
+              students from across the globe, providing them with a vibrant and supportive  
+              environment. Guided by the motto Apply Knowledge. Improve Life!, VIT-AP 
+              University remains dedicated  to transforming education into a tool for societal 
+              advancement. Visit vitap.ac.in to learn more.
               </p>
               <div className="grid grid-cols-3 gap-6">
                 {[
@@ -330,6 +336,99 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      {/* School Section */}
+      <section className="relative py-24 px-6 bg-gradient-to-br from-black via-blue-950 to-blue-900 text-white overflow-hidden">
+      {/* Section Background Blurs */}
+      <div className="absolute top-0 left-0 w-72 h-72 bg-blue-600/30 rounded-full blur-[120px] -z-10" />
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-600/20 rounded-full blur-[140px] -z-10" />
+
+      <div className="max-w-7xl mx-auto">
+        {/* Heading and Intro */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          viewport={{ once: true }}
+          className="text-center mb-16"
+        >
+          <h2 className="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent mb-4">
+            School of Advanced Sciences
+          </h2>
+          <p className="text-gray-300 text-lg max-w-3xl mx-auto">
+            Empowering future scientists and innovators through interdisciplinary learning,
+            cutting-edge research, and a passion for discovery.
+          </p>
+        </motion.div>
+
+        {/* Two Column Layout */}
+        <div className="grid md:grid-cols-2 gap-12 items-center">
+          {/* Description */}
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+            className="text-gray-200 text-lg leading-relaxed"
+          >
+            <p className="mb-6">
+              The School of Advanced Sciences (SAS) at VIT-AP University is home to the 
+              Departments of Mathematics, Physics, and Chemistry, with a diverse faculty of 
+              over 110 members. SAS fosters a collaborative learning environment rooted in 
+              project-based learning (PBL), encouraging students to think critically, experiment, 
+              and lead with innovation.
+            </p>
+            <p>
+              Students gain a strong foundation in core sciences while exploring modern 
+              advancements in technology and statistics. SAS aims to shape future leaders in 
+              research and development, equipping them with skills to meet global challenges 
+              head-on.
+            </p>
+          </motion.div>
+
+          {/* Icon Highlights */}
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+            className="grid grid-cols-2 gap-6"
+          >
+            {[
+              {
+                icon: FlaskConical,
+                title: "Research-Driven",
+                desc: "Pioneering research in core and applied sciences.",
+              },
+              {
+                icon: BookOpenCheck,
+                title: "Project-Based Learning",
+                desc: "Hands-on approach to build real-world problem solvers.",
+              },
+              {
+                icon: Users2,
+                title: "Diverse Faculty",
+                desc: "110+ experts from academia and research industries.",
+              },
+              {
+                icon: Lightbulb,
+                title: "Innovation-Focused",
+                desc: "Encouraging creative exploration and new ideas.",
+              },
+            ].map((feature, index) => (
+              <div
+                key={index}
+                className="bg-white/5 p-5 rounded-xl shadow hover:bg-white/10 transition duration-300"
+              >
+                <feature.icon className="w-8 h-8 text-blue-400 mb-4" />
+                <h4 className="text-xl font-semibold mb-1">{feature.title}</h4>
+                <p className="text-sm text-gray-400">{feature.desc}</p>
+              </div>
+            ))}
+          </motion.div>
+        </div>
+      </div>
+    </section>
 
       {/* Speakers Section */}
       <section className="py-20 px-4 bg-gradient-to-b from-blue-900/20 to-black">

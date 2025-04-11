@@ -41,6 +41,7 @@ const Navbar = () => {
           </Link>
 
           {/* Desktop Navigation */}
+          
           <div className="hidden md:flex items-center space-x-8">
             {navLinks.map((link) => (
               <Link
@@ -54,10 +55,17 @@ const Navbar = () => {
               </Link>
             ))}
             <Link
+              to="/login"
+              className="px-4 py-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium text-sm hover:opacity-90 transition-opacity"
+            >
+              {`> Log In`}
+            </Link>
+
+            <Link
               to="/signup"
               className="px-4 py-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium text-sm hover:opacity-90 transition-opacity"
             >
-              Sign Up
+              {`> Sign Up`}
             </Link>
           </div>
 
