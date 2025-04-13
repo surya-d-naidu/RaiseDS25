@@ -11,6 +11,9 @@ import VitapSmall from '../assets/small.jpg';
 import Earth from '../assets/background.jpg';
 import VitLogo from '../assets/VIT-AP-1024x423.png';
 import ISPSLogo from '../assets/ISPS-LOGO-622x622.png';
+import Slider from 'react-slick';
+import 'slick-carousel/slick/slick.css'; // for styling
+import 'slick-carousel/slick/slick-theme.css'; // for theme
 
 const Home = () => {
   const [ref, inView] = useInView({
@@ -65,6 +68,42 @@ const Home = () => {
     }, 1000);
     return () => clearInterval(timer);
   }, []);
+
+  const settings = {
+    dots: true,
+    infinite: true,
+    speed: 500,
+    slidesToShow: 3, // Default setting for larger screens
+    slidesToScroll: 1,
+    autoplay: true,
+    autoplaySpeed: 2000,
+    responsive: [
+      {
+        breakpoint: 1024,
+        settings: {
+          slidesToShow: 3, // Keep the same number of slides to show on medium and large screens for consistency
+          slidesToScroll: 3,
+          infinite: true,
+          dots: true
+        }
+      },
+      {
+        breakpoint: 600,
+        settings: {
+          slidesToShow: 2, // Adjust to 2 on smaller screens
+          slidesToScroll: 2,
+          initialSlide: 2
+        }
+      },
+      {
+        breakpoint: 480,
+        settings: {
+          slidesToShow: 1, // Reduce to 1 for smallest screens
+          slidesToScroll: 1
+        }
+      }
+    ]
+  };
 
   return (
     <div className="relative">
@@ -432,60 +471,54 @@ const Home = () => {
 
       {/* Speakers Section */}
       <section className="py-20 px-4 bg-gradient-to-b from-blue-900/20 to-black">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">Featured Speakers</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                name: "Prof. P Raja Sekhar Reddy",
-                role: "Hon. President ISPS",
-                image: Reddy,
-                description: "Leading expert in quamitative research and data analysis",
-              },
-              {
-                name: "Prof. R Vishnu Vardhan",
-                role: "Data Doctor and Bio-Statistician",
-                image: Vishnu,
-                description: "Leading expert in deep learning and neural networks",
-              },
-              {
-                name: "Dr. Vasili B V Nagarjuna",
-                role: "Convener",
-                image: Vasili,
-                description: "Specialist in MLOps and scalable AI systems",
-              },
-              {
-                name: "Dr. Siva G",
-                role: "Org. Secretary",
-                image: Siva,
-                description: "Specialist in MLOps and scalable AI systems",
-              },
-            ].map((speaker, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.2 }}
-                className="bg-white/5 rounded-xl overflow-hidden hover:bg-white/10 transition-colors"
-              >
-                <div className="relative h-64">
-                  <img
-                    src={speaker.image}
-                    alt={speaker.name}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent" />
-                </div>
-                <div className="p-6">
-                  <h3 className="text-xl font-semibold mb-2">{speaker.name}</h3>
-                  <p className="text-blue-400 mb-2">{speaker.role}</p>
-                  <p className="text-gray-400">{speaker.description}</p>
-                </div>
-              </motion.div>
-            ))}
+  <div className="max-w-6xl mx-auto">
+    <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">Featured Speakers</h2>
+    <div className="-mx-4"> {/* Ensures consistent spacing between slides */}
+      <Slider {...settings}>
+        {[
+          {
+            name: "Prof. P Raja Sekhar Reddy",
+            role: "Hon. President ISPS",
+            image: Reddy,
+            description: "Leading expert in quantitative research and data analysis"
+          },
+          {
+            name: "Prof. R Vishnu Vardhan",
+            role: "Data Doctor and Bio-Statistician",
+            image: Vishnu,
+            description: "Leading expert in deep learning and neural networks"
+          },
+          {
+            name: "Dr. Vasili B V Nagarjuna",
+            role: "Convener",
+            image: Vasili,
+            description: "Specialist in MLOps and scalable AI systems"
+          },
+          {
+            name: "Dr. Siva G",
+            role: "Org. Secretary",
+            image: Siva,
+            description: "Specialist in MLOps and scalable AI systems"
+          }
+        ].map((speaker, index) => (
+          <div key={index} className="px-4">
+            <div className="bg-white/5 rounded-xl overflow-hidden hover:bg-white/10 transition-colors">
+              <div className="relative h-64">
+                <img src={speaker.image} alt={speaker.name} className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent" />
+              </div>
+              <div className="p-6">
+                <h3 className="text-xl font-semibold mb-2">{speaker.name}</h3>
+                <p className="text-blue-400 mb-2">{speaker.role}</p>
+                <p className="text-gray-400">{speaker.description}</p>
+              </div>
+            </div>
           </div>
-        </div>
-      </section>
+        ))}
+      </Slider>
+    </div>
+  </div>
+</section>
 
       {/* Strategic Partners Section (at Bottom) */}
       <section className="py-12 px-4 bg-black">
