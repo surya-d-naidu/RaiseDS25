@@ -7,6 +7,7 @@ import Register from './pages/Register';
 import Contact from './pages/Contact';
 import SignUp from './pages/SignUp';
 import Login from './pages/Login';
+import CallForPapers from './pages/CallForPapers';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/call-for-papers" element={<CallForPapers />} />
         </Routes>
       </div>
     </Router>
