@@ -93,7 +93,7 @@ const About = () => {
                 title: "Survey Sampling",
               },
               {
-                title: "Planning and Experimental Designs",
+                title: "Design of experiments",
               },
               {
                 title: "Statistics in Management",
@@ -164,7 +164,7 @@ const About = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={inView ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.6, delay: index * 0.2 }}
-                className="bg-white/5 rounded-l p-6 hover:bg-white/10 transition-colors"
+                className="bg-white/5 rounded-xl p-6 hover:bg-white/10 transition-colors"
               >
                 <h3 className="text-xl font-semibold mb-4">{category.title}</h3>
               </motion.div>

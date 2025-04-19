@@ -20,6 +20,9 @@ const Navbar = () => {
   const navLinks = [
     { name: 'Home', path: '/' },
     { name: 'About', path: '/about' },
+    { name: 'Call for papers', path: '/call-for-papers'},
+    { name: 'Research Awards', path: '/' },
+    { name: 'Accomodation', path: '/' },
     { name: 'Contact', path: '/contact' },
   ];
 
@@ -55,17 +58,10 @@ const Navbar = () => {
               </Link>
             ))}
             <Link
-              to="/login"
+              to="/register"
               className="px-4 py-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium text-sm hover:opacity-90 transition-opacity"
             >
-              {`> Log In`}
-            </Link>
-
-            <Link
-              to="/signup"
-              className="px-4 py-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium text-sm hover:opacity-90 transition-opacity"
-            >
-              {`> Sign Up`}
+              {`Register for Conference`}
             </Link>
           </div>
 

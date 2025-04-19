@@ -26,12 +26,12 @@ const Register: React.FC = () => {
     institution: '',
   });
 
-  useEffect(() => {
+  /*useEffect(() => {
     const token = localStorage.getItem('jwtToken');
     if (!token) {
       navigate('/login');
     }
-  }, [navigate]);
+  }, [navigate]);*/
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
