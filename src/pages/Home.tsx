@@ -221,7 +221,7 @@ const Home = () => {
     
 
       {/* About Conference Section */}
-      <section id="about" ref={ref} className="py-20 px-4 bg-gradient-to-b from-black to-blue-900/20">
+      <section id="about" ref={ref} className="py-20 px-4 bg-gradient-to-b from-black to-yellow-900/20">
         <div className="max-w-6xl mx-auto">
           <motion.div
             variants={fadeIn}
