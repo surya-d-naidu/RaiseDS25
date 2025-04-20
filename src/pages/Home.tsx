@@ -169,7 +169,7 @@ const Home = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5, duration: 0.8 }}
-        className="flex justify-center space-x-4 text-white font-mono text-lg mb-8"
+        className="flex justify-center space-x-4 text-white font-mono text-3xl mb-8"
       >
         <div>
           <span className="block">{timeLeft.days || 0}</span>

@@ -1,16 +1,41 @@
-import React, { useState, useEffect, ChangeEvent, FormEvent } from 'react';
+import React, { useState, ChangeEvent, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mail, User, Building, FileText, Phone, Icon as LucideIcon } from 'lucide-react';
+import {
+  Mail,
+  User,
+  Briefcase,
+  Building,
+  BookOpen,
+  AlignLeft,
+  MapPin,
+  Phone,
+  GraduationCap,
+  Icon as LucideIcon,
+} from 'lucide-react';
 import axios, { AxiosResponse } from 'axios';
 import Earth from '../assets/background.jpg';
 
+// List of Indian states for the dropdown
+const states = [
+  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh",
+  "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka",
+  "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram",
+  "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu",
+  "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"
+];
+
 interface FormData {
-  name: string;
+  title: string;
+  fullName: string;
+  designation: string;
+  department: string;
   topic: string;
   abstract: string;
+  state: string;
   email: string;
-  mobile: string;
+  mobileCountryCode: string;
+  mobileNumber: string;
   institution: string;
 }
 
@@ -18,20 +43,18 @@ const Register: React.FC = () => {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState<FormData>({
-    name: '',
+    title: '',
+    fullName: '',
+    designation: 'Professor',
+    department: '',
     topic: '',
     abstract: '',
+    state: '',
     email: '',
-    mobile: '',
+    mobileCountryCode: '+91',
+    mobileNumber: '',
     institution: '',
   });
-
-  /*useEffect(() => {
-    const token = localStorage.getItem('jwtToken');
-    if (!token) {
-      navigate('/login');
-    }
-  }, [navigate]);*/
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -49,11 +72,16 @@ const Register: React.FC = () => {
       console.log(response.data);
       alert('Registration successful!');
       setFormData({
-        name: '',
+        title: '',
+        fullName: '',
+        designation: 'Professor',
+        department: '',
         topic: '',
         abstract: '',
+        state: '',
         email: '',
-        mobile: '',
+        mobileCountryCode: '+91',
+        mobileNumber: '',
         institution: '',
       });
     } catch (error: any) {
@@ -64,7 +92,9 @@ const Register: React.FC = () => {
     }
   };
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
@@ -73,53 +103,30 @@ const Register: React.FC = () => {
 
   const fields: {
     icon: LucideIcon;
-    name: keyof FormData;
+    name: keyof FormData | 'phone';
     label: string;
     type: string;
-    placeholder: string;
+    placeholder?: string;
+    options?: string[];
   }[] = [
-    {
-      icon: User,
-      name: 'name',
-      label: 'Full Name',
-      type: 'text',
-      placeholder: 'John Doe',
+    { icon: User,        name: 'title',       label: 'Title',             type: 'select', options: ['Mr.', 'Mrs.', 'Dr.', 'Prof.'] },
+    { icon: User,        name: 'fullName',    label: 'Full Name',         type: 'text',   placeholder: 'John Doe' },
+    { icon: Briefcase,   name: 'designation', label: 'Designation',       type: 'select', options: ['Student', 'Assistant Professor', 'Associate Professor', 'Professor'] },
+    { icon: Building,    name: 'department',  label: 'Department/School', type: 'text',   placeholder: 'Department Name' },
+    { icon: BookOpen,    name: 'topic',       label: 'Topic',             type: 'select', options: [
+        'Descriptive Statistics',
+        'Inferential Statistics',
+        'Probability Theory',
+        'Regression Analysis',
+        'Statistical Inference',
+        'Data Mining',
+      ]
     },
-    {
-      icon: FileText,
-      name: 'topic',
-      label: 'Topic',
-      type: 'text',
-      placeholder: 'Your topic',
-    },
-    {
-      icon: FileText,
-      name: 'abstract',
-      label: 'Abstract',
-      type: 'text',
-      placeholder: 'Brief summary of your work',
-    },
-    {
-      icon: Mail,
-      name: 'email',
-      label: 'Email Address',
-      type: 'email',
-      placeholder: 'john@example.com',
-    },
-    {
-      icon: Phone,
-      name: 'mobile',
-      label: 'Mobile Number',
-      type: 'tel',
-      placeholder: '+91XXXXXXXXXX',
-    },
-    {
-      icon: Building,
-      name: 'institution',
-      label: 'Institution',
-      type: 'text',
-      placeholder: 'Your institution',
-    },
+    { icon: AlignLeft,   name: 'abstract',    label: 'Abstract',          type: 'text',   placeholder: 'Brief summary of your work' },
+    { icon: MapPin,      name: 'state',       label: 'State',             type: 'select', options: states },
+    { icon: Mail,        name: 'email',       label: 'Email Address',     type: 'email',  placeholder: 'john@example.com' },
+    { icon: Phone,       name: 'phone',       label: 'Phone Number',      type: 'phone' },
+    { icon: GraduationCap, name: 'institution', label: 'Institution',     type: 'text',   placeholder: 'Your institution' },
   ];
 
   return (
@@ -149,28 +156,82 @@ const Register: React.FC = () => {
           className="bg-gradient-to-br from-blue-900/30 to-purple-900/30 rounded-2xl p-8"
         >
           <form onSubmit={handleSubmit} className="space-y-6">
-            {fields.map((field, index) => (
+            {fields.map((field, idx) => (
               <motion.div
-                key={field.name}
+                key={field.name + idx}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
+                transition={{ delay: idx * 0.1 }}
               >
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  {field.label}
-                </label>
-                <div className="relative">
-                  <field.icon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <input
-                    type={field.type}
-                    name={field.name}
-                    placeholder={field.placeholder}
-                    value={formData[field.name]}
-                    onChange={handleChange}
-                    className="w-full bg-white/10 rounded-lg pl-10 pr-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  />
-                </div>
+                {field.name === 'phone' ? (
+                  <>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      {field.label}
+                    </label>
+                    <div className="flex space-x-2 relative">
+                      <input
+                        type="text"
+                        name="mobileCountryCode"
+                        value={formData.mobileCountryCode}
+                        disabled
+                        className="w-1/4 bg-white/10 rounded-lg pl-4 pr-2 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <input
+                        type="tel"
+                        name="mobileNumber"
+                        placeholder="10‑digit number"
+                        value={formData.mobileNumber}
+                        onChange={handleChange}
+                        className="w-3/4 bg-white/10 rounded-lg pl-4 pr-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        required
+                      />
+                      <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    </div>
+                  </>
+                ) : field.type === 'select' ? (
+                  <>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      {field.label}
+                    </label>
+                    <div className="relative">
+                      <select
+                        name={field.name}
+                        value={(formData as any)[field.name]}
+                        onChange={handleChange}
+                        className="w-full bg-white/10 rounded-lg pl-10 pr-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        required
+                      >
+                        <option value="" disabled>
+                          Select {field.label}
+                        </option>
+                        {field.options!.map(opt => (
+                          <option key={opt} value={opt}>
+                            {opt}
+                          </option>
+                        ))}
+                      </select>
+                      <field.icon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      {field.label}
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={field.type}
+                        name={field.name as string}
+                        placeholder={field.placeholder}
+                        value={(formData as any)[field.name]}
+                        onChange={handleChange}
+                        className="w-full bg-white/10 rounded-lg pl-10 pr-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        required
+                      />
+                      <field.icon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    </div>
+                  </>
+                )}
               </motion.div>
             ))}
 

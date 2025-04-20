@@ -20,9 +20,9 @@ const Navbar = () => {
   const navLinks = [
     { name: 'Home', path: '/' },
     { name: 'About', path: '/about' },
-    { name: 'Call for papers', path: '/call-for-papers'},
-    { name: 'Research Awards', path: '/' },
-    { name: 'Accomodation', path: '/' },
+    { name: 'Call for papers', path: '/call-for-papers' },
+    { name: 'Research Awards', path: '/research-awards' },
+    { name: 'Accomodation', path: '/accomodation' },
     { name: 'Contact', path: '/contact' },
   ];
 
@@ -44,14 +44,15 @@ const Navbar = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          
           <div className="hidden md:flex items-center space-x-8">
             {navLinks.map((link) => (
               <Link
                 key={link.name}
                 to={link.path}
                 className={`text-sm font-medium transition-colors duration-200 hover:text-blue-400 ${
-                  location.pathname === link.path ? 'text-blue-500' : 'text-gray-300'
+                  location.pathname === link.path
+                    ? 'text-blue-500'
+                    : 'text-gray-300'
                 }`}
               >
                 {link.name}
