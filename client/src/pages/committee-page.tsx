@@ -99,7 +99,7 @@ export default function CommitteePage() {
               <Loader2 className="h-10 w-10 animate-spin text-primary" />
             </div>
           ) : (
-            <Tabs defaultValue="organizing" className="w-full">
+            <Tabs defaultValue="chief_patrons" className="w-full">
               <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="chief_patrons">Chief Patrons</TabsTrigger>
                 <TabsTrigger value="organizing">Organizing</TabsTrigger>

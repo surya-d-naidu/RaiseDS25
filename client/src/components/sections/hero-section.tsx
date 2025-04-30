@@ -1,9 +1,13 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
+import CountdownTimer from "@/components/ui/countdown-timer";
 
 export default function HeroSection() {
   const { user } = useAuth();
+  
+  // Conference date: December 22-24, 2025
+  const conferenceDate = new Date("December 22, 2025 09:00:00");
 
   return (
     <div className="relative bg-white overflow-hidden">
@@ -31,6 +35,11 @@ export default function HeroSection() {
               <p className="mt-2 text-base text-gray-700 font-semibold sm:mt-3 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-3 md:text-xl lg:mx-0">
                 December 22-24, 2025 | VIT-AP University, Vijayawada
               </p>
+              
+              <div className="mt-6 mb-8 sm:mt-8 sm:mb-10 max-w-xl sm:mx-auto lg:mx-0">
+                <CountdownTimer targetDate={conferenceDate} />
+              </div>
+              
               <div className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
                 <div className="rounded-md shadow">
                   <Link href="/register">
@@ -40,11 +49,11 @@ export default function HeroSection() {
                   </Link>
                 </div>
                 <div className="mt-3 sm:mt-0 sm:ml-3">
-                  <Link href={user ? "/abstracts/submit" : "/auth"}>
+                  <a href="/api/brochure" target="_blank" rel="noopener noreferrer">
                     <Button size="lg" variant="outline" className="w-full">
-                      Submit Abstract
+                      Download Brochure
                     </Button>
-                  </Link>
+                  </a>
                 </div>
               </div>
             </div>
