@@ -30,8 +30,6 @@ export default function CommitteePage() {
   };
 
   const membersByCategory = {
-    chief_patron: allMembers?.filter(m => m.category === "chief_patron") || [],
-    patron: allMembers?.filter(m => m.category === "patron") || [],
     organizing_committee: allMembers?.filter(m => m.category === "organizing_committee") || [],
     advisory_committee: allMembers?.filter(m => m.category === "advisory_committee") || [],
     isps_executive: allMembers?.filter(m => m.category === "isps_executive") || [],
@@ -64,10 +62,8 @@ export default function CommitteePage() {
             </div>
           ) : (
             <Tabs defaultValue="organizing" className="w-full">
-              <TabsList className="grid w-full grid-cols-5">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="organizing">Organizing</TabsTrigger>
-                <TabsTrigger value="chief_patrons">Chief Patrons</TabsTrigger>
-                <TabsTrigger value="patrons">Patrons</TabsTrigger>
                 <TabsTrigger value="advisory">Advisory</TabsTrigger>
                 <TabsTrigger value="isps">ISPS Executive</TabsTrigger>
               </TabsList>
@@ -157,69 +153,7 @@ export default function CommitteePage() {
                 </Card>
               </TabsContent>
               
-              <TabsContent value="chief_patrons" className="mt-6">
-                <Card>
-                  <CardContent className="p-6">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-6">Chief Patrons</h2>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                      {membersByCategory.chief_patron.length > 0 ? (
-                        membersByCategory.chief_patron.map((member) => (
-                          <div key={member.id} className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
-                            <div className="flex flex-col items-center text-center">
-                              <Avatar className="h-20 w-20 bg-primary-100 text-primary-800">
-                                <AvatarFallback>{getInitials(member.name)}</AvatarFallback>
-                              </Avatar>
-                              <h3 className="mt-4 text-lg font-medium text-gray-900">{member.name}</h3>
-                              <p className="text-sm text-gray-500">{member.role}</p>
-                              {member.institution && (
-                                <p className="mt-2 text-sm text-gray-600">{member.institution}</p>
-                              )}
-                            </div>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="col-span-4 text-center py-12 text-gray-500">
-                          <p>No chief patrons to display</p>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              
-              <TabsContent value="patrons" className="mt-6">
-                <Card>
-                  <CardContent className="p-6">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-6">Patrons</h2>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      {membersByCategory.patron.length > 0 ? (
-                        membersByCategory.patron.map((member) => (
-                          <div key={member.id} className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
-                            <div className="flex items-center">
-                              <Avatar className="h-12 w-12 bg-secondary-100 text-secondary-800">
-                                <AvatarFallback>{getInitials(member.name)}</AvatarFallback>
-                              </Avatar>
-                              <div className="ml-4">
-                                <h3 className="text-lg font-medium text-gray-900">{member.name}</h3>
-                                <p className="text-sm text-gray-500">{member.role}</p>
-                              </div>
-                            </div>
-                            {member.institution && (
-                              <p className="mt-3 text-sm text-gray-600">{member.institution}</p>
-                            )}
-                          </div>
-                        ))
-                      ) : (
-                        <div className="col-span-3 text-center py-12 text-gray-500">
-                          <p>No patrons to display</p>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
+
               
               <TabsContent value="advisory" className="mt-6">
                 <Card>
