@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { CommitteeMember } from "@shared/schema";
-import { Loader2, Users } from "lucide-react";
+import { Loader2, Users, Award } from "lucide-react";
 
 export default function CommitteePage() {
   useEffect(() => {
@@ -30,10 +30,48 @@ export default function CommitteePage() {
   };
 
   const membersByCategory = {
+    chief_patron: allMembers?.filter(m => m.category === "chief_patron") || [],
+    patron: allMembers?.filter(m => m.category === "patron") || [],
     organizing_committee: allMembers?.filter(m => m.category === "organizing_committee") || [],
     advisory_committee: allMembers?.filter(m => m.category === "advisory_committee") || [],
     isps_executive: allMembers?.filter(m => m.category === "isps_executive") || [],
   };
+  
+  // Hardcoded chief patrons in case there are none in the database
+  const defaultChiefPatrons = [
+    {
+      id: -1,
+      name: "Dr. G. Viswanathan",
+      role: "Founder & Chancellor",
+      institution: "Vellore Institute of Technology",
+      country: "India",
+      category: "chief_patron"
+    },
+    {
+      id: -2,
+      name: "Mr. Sankar Viswanathan",
+      role: "Vice President",
+      institution: "VIT University",
+      country: "India",
+      category: "chief_patron"
+    },
+    {
+      id: -3,
+      name: "Dr. Sekar Viswanathan",
+      role: "Vice President",
+      institution: "VIT University",
+      country: "India",
+      category: "chief_patron"
+    },
+    {
+      id: -4,
+      name: "Dr. G. V. Selvam",
+      role: "Vice President",
+      institution: "VIT University",
+      country: "India",
+      category: "chief_patron"
+    }
+  ];
 
   return (
     <>
@@ -62,11 +100,73 @@ export default function CommitteePage() {
             </div>
           ) : (
             <Tabs defaultValue="organizing" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="chief_patrons">Chief Patrons</TabsTrigger>
                 <TabsTrigger value="organizing">Organizing</TabsTrigger>
                 <TabsTrigger value="advisory">Advisory</TabsTrigger>
                 <TabsTrigger value="isps">ISPS Executive</TabsTrigger>
               </TabsList>
+              
+              <TabsContent value="chief_patrons" className="mt-6">
+                <Card>
+                  <CardContent className="p-6">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                      <Award className="mr-2 h-6 w-6 text-red-700" />
+                      Chief Patrons
+                    </h2>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      {membersByCategory.chief_patron.length > 0 ? 
+                        membersByCategory.chief_patron.map((member) => (
+                          <div key={member.id} className="bg-white rounded-lg shadow-md p-6 border border-gray-200 transition-all hover:shadow-lg">
+                            <div className="flex flex-col items-center">
+                              <Avatar className="h-24 w-24 bg-red-50 text-red-700 mb-4">
+                                <AvatarFallback className="text-xl">{getInitials(member.name)}</AvatarFallback>
+                              </Avatar>
+                              <h3 className="text-xl font-bold text-gray-900 text-center">{member.name}</h3>
+                              <p className="text-md text-gray-600 text-center mt-1">{member.role}</p>
+                              {member.institution && (
+                                <p className="text-sm text-gray-500 text-center mt-2">{member.institution}</p>
+                              )}
+                            </div>
+                          </div>
+                        )) : 
+                        defaultChiefPatrons.map((patron) => (
+                          <div key={patron.id} className="bg-white rounded-lg shadow-md p-6 border border-gray-200 transition-all hover:shadow-lg">
+                            <div className="flex flex-col items-center">
+                              <Avatar className="h-24 w-24 bg-red-50 text-red-700 mb-4">
+                                <AvatarFallback className="text-xl">{getInitials(patron.name)}</AvatarFallback>
+                              </Avatar>
+                              <h3 className="text-xl font-bold text-gray-900 text-center">{patron.name}</h3>
+                              <p className="text-md text-gray-600 text-center mt-1">{patron.role}</p>
+                              {patron.institution && (
+                                <p className="text-sm text-gray-500 text-center mt-2">{patron.institution}</p>
+                              )}
+                            </div>
+                          </div>
+                        ))
+                      }
+                    </div>
+
+                    <div className="mt-12">
+                      <h3 className="text-xl font-semibold text-gray-900 mb-4">Contact Information</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="bg-gray-50 p-5 rounded-lg shadow-sm">
+                          <h4 className="font-semibold text-lg mb-2">Conference</h4>
+                          <p className="text-gray-700">raiseds25@vitap.ac.in</p>
+                          <p className="text-gray-700">www.raiseds25.com</p>
+                        </div>
+                        <div className="bg-gray-50 p-5 rounded-lg shadow-sm">
+                          <h4 className="font-semibold text-lg mb-2">Convener</h4>
+                          <p className="text-gray-700">Dr. Vasili B V Nagarjuna</p>
+                          <p className="text-gray-700">nagarjuna.vasili@vitap.ac.in</p>
+                          <p className="text-gray-700">+91-7673944853</p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
               
               <TabsContent value="organizing" className="mt-6">
                 <Card>
