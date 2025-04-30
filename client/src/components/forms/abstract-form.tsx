@@ -41,10 +41,8 @@ const categoryOptions = [
   "Other"
 ];
 
-// Extend the insert schema with file validation
-const abstractFormSchema = insertAbstractSchema.extend({
-  file: z.instanceof(FileList).optional().transform(fileList => fileList?.[0] ?? undefined),
-});
+// No file validation needed anymore
+const abstractFormSchema = insertAbstractSchema;
 
 type AbstractFormValues = z.infer<typeof abstractFormSchema>;
 
@@ -73,23 +71,12 @@ export default function AbstractForm({ abstract }: { abstract?: any }) {
   const abstractMutation = useMutation({
     mutationFn: async (data: AbstractFormValues) => {
       setIsSubmitting(true);
-      // Create a FormData instance to handle file upload
-      const formData = new FormData();
-      formData.append("title", data.title);
-      formData.append("category", data.category);
-      formData.append("content", data.content);
-      formData.append("keywords", data.keywords);
-      
-      if (data.file) {
-        formData.append("file", data.file);
-      }
-
-      // Use fetch directly for FormData
-      const response = await fetch(abstract ? `/api/abstracts/${abstract.id}` : "/api/abstracts", {
-        method: abstract ? "PUT" : "POST",
-        body: formData,
-        credentials: "include"
-      });
+      // Use the apiRequest function as we don't need FormData anymore
+      const response = await apiRequest(
+        abstract ? "PUT" : "POST", 
+        abstract ? `/api/abstracts/${abstract.id}` : "/api/abstracts", 
+        data
+      );
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -215,65 +202,7 @@ export default function AbstractForm({ abstract }: { abstract?: any }) {
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="file"
-          render={({ field: { value, onChange, ...fieldProps } }) => (
-            <FormItem>
-              <FormLabel>Upload Full Abstract (PDF)</FormLabel>
-              <FormControl>
-                <div className="flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-                  <div className="space-y-1 text-center">
-                    <svg
-                      className="mx-auto h-12 w-12 text-gray-400"
-                      stroke="currentColor"
-                      fill="none"
-                      viewBox="0 0 48 48"
-                      aria-hidden="true"
-                    >
-                      <path
-                        d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                    <div className="flex text-sm text-gray-600">
-                      <label
-                        htmlFor="file-upload"
-                        className="relative cursor-pointer bg-white rounded-md font-medium text-primary hover:text-primary-dark focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary"
-                      >
-                        <span>Upload a file</span>
-                        <input
-                          id="file-upload"
-                          type="file"
-                          accept=".pdf"
-                          className="sr-only"
-                          onChange={(e) => {
-                            onChange(e.target.files);
-                          }}
-                          {...fieldProps}
-                        />
-                      </label>
-                      <p className="pl-1">or drag and drop</p>
-                    </div>
-                    <p className="text-xs text-gray-500">PDF up to 10MB</p>
-                    {value && value[0] && (
-                      <div className="mt-2 flex items-center text-sm text-green-600">
-                        <FileText className="mr-1 h-4 w-4" />
-                        {value[0].name}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </FormControl>
-              <FormDescription>
-                Optionally upload a PDF version of your complete abstract.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+
 
         <Alert>
           <AlertTriangle className="h-4 w-4" />
