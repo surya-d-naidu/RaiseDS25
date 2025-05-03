@@ -104,6 +104,20 @@ export class MemStorage implements IStorage {
       committeeMember: 1,
       researchAward: 1
     };
+    
+    // Initialize with admin user
+    const adminUser = {
+      id: 1,
+      username: 'admin',
+      email: 'admin@raiseds25.com',
+      password: '$2b$10$K7L1OJ45/4Y2nIvhRVpCe.FSmhDdWoXehVzJptJ/op0lSsvqNu9Pm', // admin123
+      firstName: 'Admin',
+      lastName: 'User',
+      institution: 'VIT-AP University',
+      role: 'admin',
+      createdAt: new Date()
+    };
+    this.userStore.set(1, adminUser);
     this.sessionStore = new MemoryStore({
       checkPeriod: 86400000 // prune expired entries every 24h
     });
