@@ -42,14 +42,14 @@ export default function Navbar() {
             <div className="flex-shrink-0 flex items-center">
               <Link href="/">
                 <div className="flex items-center cursor-pointer">
-                  <div className="h-8 w-8 bg-primary rounded flex items-center justify-center mr-2">
-                    <BarChart2 className="h-5 w-5 text-white" />
+                  <div className="h-10 w-10 flex items-center justify-center mr-2 overflow-hidden">
+                    <img src="/logo.png" alt="RAISE DS Logo" className="h-full w-full object-contain" />
                   </div>
                   <span className="text-xl font-semibold text-gray-800">RAISE DS</span>
                 </div>
               </Link>
             </div>
-            <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
+            <div className="hidden md:ml-6 md:flex md:space-x-4 lg:space-x-8">
               <Link href="/">
                 <a className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
                   isActive("/") 
@@ -74,7 +74,7 @@ export default function Navbar() {
                     ? "border-primary text-gray-900" 
                     : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
                 }`}>
-                  Call for Papers
+                  Papers
                 </a>
               </Link>
               <Link href="/research-awards">
@@ -83,7 +83,7 @@ export default function Navbar() {
                     ? "border-primary text-gray-900" 
                     : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
                 }`}>
-                  Research Awards
+                  Awards
                 </a>
               </Link>
               <Link href="/committee">
@@ -106,7 +106,7 @@ export default function Navbar() {
               </Link>
             </div>
           </div>
-          <div className="hidden sm:ml-6 sm:flex sm:items-center">
+          <div className="hidden md:ml-6 md:flex md:items-center">
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -157,7 +157,7 @@ export default function Navbar() {
               </Link>
             )}
           </div>
-          <div className="-mr-2 flex items-center sm:hidden">
+          <div className="-mr-2 flex items-center md:hidden">
             <Button
               variant="ghost"
               size="icon"
@@ -172,7 +172,7 @@ export default function Navbar() {
       </div>
 
       {/* Mobile menu */}
-      <div className={`sm:hidden ${mobileMenuOpen ? 'block' : 'hidden'}`}>
+      <div className={`md:hidden ${mobileMenuOpen ? 'block' : 'hidden'}`}>
         <div className="pt-2 pb-3 space-y-1">
           <Link href="/">
             <a className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${

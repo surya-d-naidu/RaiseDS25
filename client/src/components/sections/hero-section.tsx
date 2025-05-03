@@ -2,6 +2,7 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import CountdownTimer from "@/components/ui/countdown-timer";
+import StatisticalBackground from "@/components/ui/statistical-background";
 
 export default function HeroSection() {
   const { user } = useAuth();
@@ -61,77 +62,9 @@ export default function HeroSection() {
         </div>
       </div>
       <div className="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2">
-        <svg
-          className="h-56 w-full object-cover sm:h-72 md:h-96 lg:w-full lg:h-full"
-          viewBox="0 0 1200 800"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <rect width="1200" height="800" fill="#0f172a" />
-          <g fill="#3b82f6" fillOpacity="0.5">
-            {/* Grid pattern */}
-            {Array.from({ length: 100 }).map((_, i) => (
-              <rect 
-                key={i} 
-                x={Math.random() * 1200} 
-                y={Math.random() * 800} 
-                width={Math.random() * 30 + 5} 
-                height={Math.random() * 30 + 5} 
-                opacity={Math.random() * 0.5 + 0.1}
-              />
-            ))}
-            
-            {/* Data points */}
-            {Array.from({ length: 50 }).map((_, i) => (
-              <circle 
-                key={`point-${i}`} 
-                cx={Math.random() * 1200} 
-                cy={Math.random() * 800} 
-                r={Math.random() * 4 + 2} 
-                opacity={Math.random() * 0.8 + 0.2}
-                fill="#60a5fa"
-              />
-            ))}
-            
-            {/* Lines connecting points */}
-            {Array.from({ length: 20 }).map((_, i) => (
-              <line 
-                key={`line-${i}`} 
-                x1={Math.random() * 1200} 
-                y1={Math.random() * 800} 
-                x2={Math.random() * 1200} 
-                y2={Math.random() * 800} 
-                stroke="#93c5fd"
-                strokeWidth="1"
-                opacity="0.3"
-              />
-            ))}
-            
-            {/* Chart bars */}
-            {Array.from({ length: 8 }).map((_, i) => {
-              const x = 150 + i * 120;
-              const height = Math.random() * 200 + 100;
-              return (
-                <rect 
-                  key={`bar-${i}`} 
-                  x={x} 
-                  y={600 - height} 
-                  width="80" 
-                  height={height} 
-                  fill="#60a5fa"
-                  opacity="0.7"
-                />
-              )
-            })}
-            
-            {/* Data curve */}
-            <path 
-              d="M100,600 Q300,200 500,400 T900,300" 
-              stroke="#dbeafe" 
-              strokeWidth="4" 
-              fill="none" 
-            />
-          </g>
-        </svg>
+        <div className="h-56 w-full sm:h-72 md:h-96 lg:w-full lg:h-full bg-gray-900 overflow-hidden">
+          <StatisticalBackground />
+        </div>
       </div>
     </div>
   );

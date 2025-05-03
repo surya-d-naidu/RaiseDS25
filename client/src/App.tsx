@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute, AdminRoute } from "@/lib/protected-route";
-import { StatisticalBackground, StatisticalCursor } from "@/components/ui/statistical-background";
+import AnimatedCursor from "@/components/ui/animated-cursor";
 
 // Pages
 import HomePage from "@/pages/home-page";
@@ -59,8 +59,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <TooltipProvider>
-          <StatisticalBackground />
-          <StatisticalCursor />
+          <AnimatedCursor />
           <Toaster />
           <Router />
         </TooltipProvider>
