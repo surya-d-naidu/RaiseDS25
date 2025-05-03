@@ -50,6 +50,7 @@ export function setupAuth(app: Express) {
       try {
         // Check if this is an email login
         const isEmail = username.includes('@');
+        console.log(`Login attempt - ${isEmail ? 'Email' : 'Username'}: ${username}`);
         
         let user;
         if (isEmail) {
@@ -58,11 +59,19 @@ export function setupAuth(app: Express) {
           user = await storage.getUserByUsername(username);
         }
         
-        if (!user || !(await comparePasswords(password, user.password))) {
+        if (!user) {
+          console.log('User not found');
           return done(null, false);
-        } else {
-          return done(null, user);
         }
+        
+        const passwordMatch = await comparePasswords(password, user.password);
+        if (!passwordMatch) {
+          console.log('Password mismatch');
+          return done(null, false);
+        }
+        
+        console.log('Login successful');
+        return done(null, user);
       } catch (error) {
         return done(error);
       }
