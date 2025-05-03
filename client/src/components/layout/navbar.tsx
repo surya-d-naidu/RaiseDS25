@@ -35,7 +35,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="bg-white shadow-sm sticky top-0 z-50">
+    <nav className="bg-gradient-to-r from-primary to-primary/80 text-white shadow-md sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex">
@@ -45,7 +45,7 @@ export default function Navbar() {
                   <div className="h-10 w-10 flex items-center justify-center mr-2 overflow-hidden">
                     <img src="/logo.png" alt="RAISE DS Logo" className="h-full w-full object-contain" />
                   </div>
-                  <span className="text-xl font-semibold text-gray-800">RAISE DS</span>
+                  <span className="text-xl font-semibold text-white">RAISE DS</span>
                 </div>
               </Link>
             </div>
@@ -53,8 +53,8 @@ export default function Navbar() {
               <Link href="/">
                 <a className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
                   isActive("/") 
-                    ? "border-primary text-gray-900" 
-                    : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                    ? "border-white text-white font-bold" 
+                    : "border-transparent text-white/80 hover:border-white/60 hover:text-white"
                 }`}>
                   Home
                 </a>
@@ -62,8 +62,8 @@ export default function Navbar() {
               <Link href="/about">
                 <a className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
                   isActive("/about") 
-                    ? "border-primary text-gray-900" 
-                    : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                    ? "border-white text-white font-bold" 
+                    : "border-transparent text-white/80 hover:border-white/60 hover:text-white"
                 }`}>
                   About
                 </a>
@@ -71,8 +71,8 @@ export default function Navbar() {
               <Link href="/call-for-papers">
                 <a className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
                   isActive("/call-for-papers") 
-                    ? "border-primary text-gray-900" 
-                    : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                    ? "border-white text-white font-bold" 
+                    : "border-transparent text-white/80 hover:border-white/60 hover:text-white"
                 }`}>
                   Papers
                 </a>
@@ -80,8 +80,8 @@ export default function Navbar() {
               <Link href="/research-awards">
                 <a className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
                   isActive("/research-awards") 
-                    ? "border-primary text-gray-900" 
-                    : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                    ? "border-white text-white font-bold" 
+                    : "border-transparent text-white/80 hover:border-white/60 hover:text-white"
                 }`}>
                   Awards
                 </a>
@@ -89,8 +89,8 @@ export default function Navbar() {
               <Link href="/committee">
                 <a className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
                   isActive("/committee") 
-                    ? "border-primary text-gray-900" 
-                    : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                    ? "border-white text-white font-bold" 
+                    : "border-transparent text-white/80 hover:border-white/60 hover:text-white"
                 }`}>
                   Committee
                 </a>
@@ -98,8 +98,8 @@ export default function Navbar() {
               <Link href="/register">
                 <a className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
                   isActive("/register") 
-                    ? "border-primary text-gray-900" 
-                    : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                    ? "border-white text-white font-bold" 
+                    : "border-transparent text-white/80 hover:border-white/60 hover:text-white"
                 }`}>
                   Register
                 </a>
