@@ -30,10 +30,10 @@ export default function HeroSection() {
                 <span className="block xl:inline">45th Annual Convention of</span>{" "}
                 <span className="block text-primary xl:inline">ISPS 2025</span>
               </h1>
-              <p className="mt-3 text-base text-gray-500 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
+              <p className="mt-3 text-base text-gray-700 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
                 International Conference on Recent Advances and Innovative Statistics with Enhancing Data Science (IC-RAISE DS)
               </p>
-              <p className="mt-2 text-base text-gray-700 font-semibold sm:mt-3 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-3 md:text-xl lg:mx-0">
+              <p className="mt-2 text-base text-primary-800 font-semibold sm:mt-3 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-3 md:text-xl lg:mx-0">
                 December 22-24, 2025 | VIT-AP University, Vijayawada
               </p>
               
@@ -62,7 +62,7 @@ export default function HeroSection() {
         </div>
       </div>
       <div className="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2">
-        <div className="h-56 w-full sm:h-72 md:h-96 lg:w-full lg:h-full bg-gray-900 overflow-hidden">
+        <div className="h-72 w-full sm:h-80 md:h-[400px] lg:w-full lg:h-full bg-[#14171f] overflow-hidden border-l-2 border-primary/20">
           <StatisticalBackground />
         </div>
       </div>
