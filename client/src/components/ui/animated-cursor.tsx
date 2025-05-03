@@ -1,42 +1,51 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 export default function AnimatedCursor() {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [clicked, setClicked] = useState(false);
   const [linkHovered, setLinkHovered] = useState(false);
-  const [trails, setTrails] = useState<Array<{ x: number; y: number; opacity: number }>>([]);
-
+  const [dataPoints, setDataPoints] = useState<Array<{ x: number; y: number; time: number }>>([]);
+  const lastPositionRef = useRef({ x: 0, y: 0 });
+  
   useEffect(() => {
-    const addTrailPoint = (x: number, y: number) => {
-      // Add new point
-      const newPoint = { x, y, opacity: 1 };
+    const maxDataPoints = 20; // Keep 20 points for the graph
+    
+    const addDataPoint = (x: number, y: number) => {
+      // Only add points when there's enough movement
+      const distance = Math.sqrt(
+        Math.pow(x - lastPositionRef.current.x, 2) + 
+        Math.pow(y - lastPositionRef.current.y, 2)
+      );
       
-      // Update all trails
-      setTrails(prevTrails => {
-        const updatedTrails = prevTrails.map(point => ({
-          ...point,
-          opacity: point.opacity - 0.1 // Decrease opacity
-        })).filter(point => point.opacity > 0); // Remove fully transparent
-        
-        return [...updatedTrails, newPoint].slice(-10); // Keep only last 10 points
-      });
+      if (distance < 5) return; // Skip small movements
+      
+      lastPositionRef.current = { x, y };
+      
+      // Add new data point with timestamp
+      const newPoint = { x, y, time: Date.now() };
+      
+      // Update data points, keeping only the latest ones
+      setDataPoints(prev => [...prev, newPoint].slice(-maxDataPoints));
     };
 
     const updatePosition = (e: MouseEvent) => {
       setPosition({ x: e.clientX, y: e.clientY });
       
-      // Only add trail point every few movements to avoid too many points
-      if (Math.random() > 0.7) {
-        addTrailPoint(e.clientX, e.clientY);
+      // Add data point with controlled frequency
+      if (Math.random() > 0.4) {
+        addDataPoint(e.clientX, e.clientY);
       }
     };
 
     const handleLinkHoverEvents = () => {
-      document.querySelectorAll('a, button, [role="button"], input, textarea, select, [data-cursor="pointer"]')
-        .forEach(el => {
-          el.addEventListener('mouseenter', () => setLinkHovered(true));
-          el.addEventListener('mouseleave', () => setLinkHovered(false));
-        });
+      const interactiveElements = document.querySelectorAll(
+        'a, button, [role="button"], input, textarea, select, [data-cursor="pointer"]'
+      );
+      
+      interactiveElements.forEach(el => {
+        el.addEventListener('mouseenter', () => setLinkHovered(true));
+        el.addEventListener('mouseleave', () => setLinkHovered(false));
+      });
     };
 
     document.addEventListener('mousemove', updatePosition);
@@ -61,8 +70,22 @@ export default function AnimatedCursor() {
     };
   }, []);
 
+  // Create SVG path from data points
+  const createPath = () => {
+    if (dataPoints.length < 2) return '';
+    
+    // Create a path string from the data points
+    let path = `M ${dataPoints[0].x} ${dataPoints[0].y}`;
+    
+    for (let i = 1; i < dataPoints.length; i++) {
+      path += ` L ${dataPoints[i].x} ${dataPoints[i].y}`;
+    }
+    
+    return path;
+  };
+
   const cursorDotClasses = `cursor-dot ${clicked ? 'scale-50' : ''} ${linkHovered ? 'scale-150' : ''}`;
-  const cursorOutlineClasses = `cursor-outline ${clicked ? 'scale-75' : ''} ${linkHovered ? 'scale-125' : ''}`;
+  const cursorOutlineClasses = `cursor-outline ${clicked ? 'scale-75' : ''} ${linkHovered ? 'scale-150' : ''}`;
 
   return (
     <>
@@ -75,22 +98,60 @@ export default function AnimatedCursor() {
       {/* Cursor outline */}
       <div 
         className={cursorOutlineClasses} 
-        style={{ left: `${position.x}px`, top: `${position.y}px` }}
+        style={{ 
+          left: `${position.x}px`, 
+          top: `${position.y}px`,
+        }}
       />
       
-      {/* Cursor trails */}
-      {trails.map((trail, index) => (
-        <div 
-          key={index}
-          className="cursor-trail"
-          style={{ 
-            left: `${trail.x}px`, 
-            top: `${trail.y}px`,
-            opacity: trail.opacity,
-            transform: `translate(-50%, -50%) scale(${trail.opacity})`
+      {/* Statistical graph trail */}
+      {dataPoints.length > 1 && (
+        <svg 
+          className="cursor-graph"
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            pointerEvents: 'none',
+            zIndex: 9990,
           }}
-        />
-      ))}
+        >
+          <path
+            d={createPath()}
+            fill="none"
+            stroke="hsla(var(--primary), 0.5)"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeDasharray="5,5"
+            style={{
+              transition: 'stroke 0.3s',
+            }}
+          />
+          
+          {/* Data point markers */}
+          {dataPoints.map((point, index) => {
+            const age = Date.now() - point.time;
+            const opacity = Math.max(0, 1 - age / 1000);
+            
+            return (
+              <circle
+                key={index}
+                cx={point.x}
+                cy={point.y}
+                r={3}
+                fill="hsla(var(--primary), 0.7)"
+                style={{
+                  opacity: opacity,
+                  transition: 'opacity 0.5s',
+                }}
+              />
+            );
+          })}
+        </svg>
+      )}
     </>
   );
 }

@@ -63,7 +63,7 @@ export default function CountdownTimer({ targetDate }: { targetDate: Date }) {
           <div className="bg-gradient-to-b from-white to-gray-100 w-16 h-16 sm:w-20 sm:h-20 rounded-lg flex items-center justify-center shadow-md border border-primary/10 relative overflow-hidden">
             <div className="absolute inset-0 bg-primary/5 rounded-lg"></div>
             <div className="absolute bottom-0 left-0 w-full h-1 bg-primary"></div>
-            <span className="text-2xl sm:text-3xl font-bold text-primary relative animate-pulse">{formatNumber(timeLeft.hours)}</span>
+            <span className="text-2xl sm:text-3xl font-bold text-primary relative">{formatNumber(timeLeft.hours)}</span>
           </div>
           <span className="text-xs mt-2 font-semibold text-gray-700">Hours</span>
         </div>
