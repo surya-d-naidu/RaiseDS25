@@ -110,7 +110,7 @@ export default function Navbar() {
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center gap-2">
+                  <Button variant="ghost" className="flex items-center gap-2 text-white hover:bg-primary-800/50">
                     <User size={18} />
                     <span>{user.firstName}</span>
                     <ChevronDown size={16} />
@@ -163,6 +163,7 @@ export default function Navbar() {
               size="icon"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-expanded={mobileMenuOpen}
+              className="text-white hover:bg-primary-800/50"
             >
               <span className="sr-only">Open main menu</span>
               <Menu className="h-6 w-6" />
@@ -172,13 +173,13 @@ export default function Navbar() {
       </div>
 
       {/* Mobile menu */}
-      <div className={`md:hidden ${mobileMenuOpen ? 'block' : 'hidden'}`}>
+      <div className={`md:hidden ${mobileMenuOpen ? 'block' : 'hidden'} bg-primary/95 text-white`}>
         <div className="pt-2 pb-3 space-y-1">
           <Link href="/">
             <a className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
               isActive("/") 
-                ? "bg-primary-50 border-primary text-primary-700" 
-                : "border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800"
+                ? "bg-primary-700/30 border-white text-white font-bold" 
+                : "border-transparent text-white/80 hover:bg-primary-800/20 hover:border-white/60 hover:text-white"
             }`}>
               Home
             </a>
@@ -186,8 +187,8 @@ export default function Navbar() {
           <Link href="/about">
             <a className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
               isActive("/about") 
-                ? "bg-primary-50 border-primary text-primary-700" 
-                : "border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800"
+                ? "bg-primary-700/30 border-white text-white font-bold" 
+                : "border-transparent text-white/80 hover:bg-primary-800/20 hover:border-white/60 hover:text-white"
             }`}>
               About
             </a>
@@ -195,8 +196,8 @@ export default function Navbar() {
           <Link href="/call-for-papers">
             <a className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
               isActive("/call-for-papers") 
-                ? "bg-primary-50 border-primary text-primary-700" 
-                : "border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800"
+                ? "bg-primary-700/30 border-white text-white font-bold" 
+                : "border-transparent text-white/80 hover:bg-primary-800/20 hover:border-white/60 hover:text-white"
             }`}>
               Call for Papers
             </a>
@@ -204,8 +205,8 @@ export default function Navbar() {
           <Link href="/research-awards">
             <a className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
               isActive("/research-awards") 
-                ? "bg-primary-50 border-primary text-primary-700" 
-                : "border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800"
+                ? "bg-primary-700/30 border-white text-white font-bold" 
+                : "border-transparent text-white/80 hover:bg-primary-800/20 hover:border-white/60 hover:text-white"
             }`}>
               Research Awards
             </a>
@@ -213,8 +214,8 @@ export default function Navbar() {
           <Link href="/committee">
             <a className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
               isActive("/committee") 
-                ? "bg-primary-50 border-primary text-primary-700" 
-                : "border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800"
+                ? "bg-primary-700/30 border-white text-white font-bold" 
+                : "border-transparent text-white/80 hover:bg-primary-800/20 hover:border-white/60 hover:text-white"
             }`}>
               Committee
             </a>
@@ -222,48 +223,48 @@ export default function Navbar() {
           <Link href="/register">
             <a className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
               isActive("/register") 
-                ? "bg-primary-50 border-primary text-primary-700" 
-                : "border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800"
+                ? "bg-primary-700/30 border-white text-white font-bold" 
+                : "border-transparent text-white/80 hover:bg-primary-800/20 hover:border-white/60 hover:text-white"
             }`}>
               Register
             </a>
           </Link>
         </div>
-        <div className="pt-4 pb-3 border-t border-gray-200">
+        <div className="pt-4 pb-3 border-t border-white/20">
           {user ? (
             <div className="space-y-1">
               <div className="px-4 py-3">
-                <p className="text-sm font-medium text-gray-500">Signed in as</p>
-                <p className="text-sm font-medium text-gray-800 truncate">{user.username}</p>
+                <p className="text-sm font-medium text-white/70">Signed in as</p>
+                <p className="text-sm font-medium text-white truncate">{user.username}</p>
               </div>
               <Link href="/profile">
-                <a className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">
+                <a className="block px-4 py-2 text-base font-medium text-white/80 hover:text-white hover:bg-primary-800/30">
                   Profile
                 </a>
               </Link>
               <Link href="/abstracts/submit">
-                <a className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">
+                <a className="block px-4 py-2 text-base font-medium text-white/80 hover:text-white hover:bg-primary-800/30">
                   Submit Abstract
                 </a>
               </Link>
               {user.role === "admin" && (
                 <Link href="/admin">
-                  <a className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">
+                  <a className="block px-4 py-2 text-base font-medium text-white/80 hover:text-white hover:bg-primary-800/30">
                     Admin Dashboard
                   </a>
                 </Link>
               )}
               <button
                 onClick={handleLogout}
-                className="block w-full text-left px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+                className="block w-full text-left px-4 py-2 text-base font-medium text-white/80 hover:text-white hover:bg-primary-800/30"
               >
                 Sign out
               </button>
             </div>
           ) : (
-            <div className="px-4">
+            <div className="px-4 py-3">
               <Link href="/auth">
-                <Button className="w-full">Sign In</Button>
+                <Button className="w-full bg-white text-primary hover:bg-white/90">Sign In</Button>
               </Link>
             </div>
           )}

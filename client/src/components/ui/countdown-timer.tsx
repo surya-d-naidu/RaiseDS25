@@ -49,31 +49,45 @@ export default function CountdownTimer({ targetDate }: { targetDate: Date }) {
 
   return (
     <div className="flex flex-col">
-      <p className="text-sm font-medium text-gray-600 mb-2">Conference Starts In:</p>
-      <div className="flex space-x-3 sm:space-x-4">
+      <p className="text-sm font-medium text-gray-700 mb-3 uppercase tracking-wide">Conference Starts In:</p>
+      <div className="flex space-x-3 sm:space-x-5">
         <div className="flex flex-col items-center">
-          <div className="bg-gray-100 w-16 h-16 sm:w-20 sm:h-20 rounded-lg flex items-center justify-center shadow-sm">
-            <span className="text-2xl sm:text-3xl font-bold text-primary-700">{formatNumber(timeLeft.days)}</span>
+          <div className="bg-gradient-to-b from-white to-gray-100 w-16 h-16 sm:w-20 sm:h-20 rounded-lg flex items-center justify-center shadow-md border border-primary/10 relative overflow-hidden">
+            <div className="absolute inset-0 bg-primary/5 rounded-lg"></div>
+            <div className="absolute bottom-0 left-0 w-full h-1 bg-primary"></div>
+            <span className="text-2xl sm:text-3xl font-bold text-primary relative">{formatNumber(timeLeft.days)}</span>
           </div>
-          <span className="text-xs mt-1 font-medium text-gray-500">Days</span>
+          <span className="text-xs mt-2 font-semibold text-gray-700">Days</span>
         </div>
         <div className="flex flex-col items-center">
-          <div className="bg-gray-100 w-16 h-16 sm:w-20 sm:h-20 rounded-lg flex items-center justify-center shadow-sm">
-            <span className="text-2xl sm:text-3xl font-bold text-primary-700">{formatNumber(timeLeft.hours)}</span>
+          <div className="bg-gradient-to-b from-white to-gray-100 w-16 h-16 sm:w-20 sm:h-20 rounded-lg flex items-center justify-center shadow-md border border-primary/10 relative overflow-hidden">
+            <div className="absolute inset-0 bg-primary/5 rounded-lg"></div>
+            <div className="absolute bottom-0 left-0 w-full h-1 bg-primary"></div>
+            <span className="text-2xl sm:text-3xl font-bold text-primary relative animate-pulse">{formatNumber(timeLeft.hours)}</span>
           </div>
-          <span className="text-xs mt-1 font-medium text-gray-500">Hours</span>
+          <span className="text-xs mt-2 font-semibold text-gray-700">Hours</span>
         </div>
         <div className="flex flex-col items-center">
-          <div className="bg-gray-100 w-16 h-16 sm:w-20 sm:h-20 rounded-lg flex items-center justify-center shadow-sm">
-            <span className="text-2xl sm:text-3xl font-bold text-primary-700">{formatNumber(timeLeft.minutes)}</span>
+          <div className="bg-gradient-to-b from-white to-gray-100 w-16 h-16 sm:w-20 sm:h-20 rounded-lg flex items-center justify-center shadow-md border border-primary/10 relative overflow-hidden">
+            <div className="absolute inset-0 bg-primary/5 rounded-lg"></div>
+            <div className="absolute bottom-0 left-0 w-full h-1 bg-primary"></div>
+            <span className="text-2xl sm:text-3xl font-bold text-primary relative">{formatNumber(timeLeft.minutes)}</span>
           </div>
-          <span className="text-xs mt-1 font-medium text-gray-500">Minutes</span>
+          <span className="text-xs mt-2 font-semibold text-gray-700">Minutes</span>
         </div>
         <div className="flex flex-col items-center">
-          <div className="bg-gray-100 w-16 h-16 sm:w-20 sm:h-20 rounded-lg flex items-center justify-center shadow-sm">
-            <span className="text-2xl sm:text-3xl font-bold text-primary-700">{formatNumber(timeLeft.seconds)}</span>
+          <div className="bg-gradient-to-b from-white to-gray-100 w-16 h-16 sm:w-20 sm:h-20 rounded-lg flex items-center justify-center shadow-md border border-primary/10 relative overflow-hidden">
+            <div className="absolute inset-0 bg-primary/5 rounded-lg"></div>
+            <div 
+              className="absolute bottom-0 left-0 h-1 bg-primary"
+              style={{ 
+                width: `${(timeLeft.seconds / 60) * 100}%`,
+                transition: 'width 1s linear'
+              }}
+            ></div>
+            <span className="text-2xl sm:text-3xl font-bold text-primary relative">{formatNumber(timeLeft.seconds)}</span>
           </div>
-          <span className="text-xs mt-1 font-medium text-gray-500">Seconds</span>
+          <span className="text-xs mt-2 font-semibold text-gray-700">Seconds</span>
         </div>
       </div>
     </div>
