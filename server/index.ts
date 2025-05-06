@@ -1,6 +1,16 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import path from 'path';
+import { dirname } from 'path';
+
+// Load environment variables from .env file
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
+
 import "./seed"; // Import seed script to create default admin user
 
 const app = express();

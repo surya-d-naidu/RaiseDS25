@@ -22,10 +22,34 @@ async function hashPassword(password: string) {
 }
 
 async function comparePasswords(supplied: string, stored: string) {
-  const [hashed, salt] = stored.split(".");
-  const hashedBuf = Buffer.from(hashed, "hex");
-  const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
-  return timingSafeEqual(hashedBuf, suppliedBuf);
+  try {
+    // Check if the stored password has the correct format
+    if (!stored || !stored.includes('.')) {
+      console.error('Invalid stored password format');
+      return false;
+    }
+    
+    const [hashed, salt] = stored.split(".");
+    
+    if (!hashed || !salt) {
+      console.error('Invalid stored password components');
+      return false;
+    }
+    
+    const hashedBuf = Buffer.from(hashed, "hex");
+    const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
+    
+    // Ensure both buffers have the same length before comparison
+    if (hashedBuf.length !== suppliedBuf.length) {
+      console.error(`Buffer length mismatch: stored=${hashedBuf.length}, supplied=${suppliedBuf.length}`);
+      return false;
+    }
+    
+    return timingSafeEqual(hashedBuf, suppliedBuf);
+  } catch (error) {
+    console.error('Error comparing passwords:', error);
+    return false;
+  }
 }
 
 export function setupAuth(app: Express) {
@@ -61,18 +85,29 @@ export function setupAuth(app: Express) {
         
         if (!user) {
           console.log('User not found');
-          return done(null, false);
+          return done(null, false, { message: 'User not found' });
         }
         
-        const passwordMatch = await comparePasswords(password, user.password);
-        if (!passwordMatch) {
-          console.log('Password mismatch');
-          return done(null, false);
+        if (!user.password) {
+          console.error('User has no password set');
+          return done(new Error('User account is not properly configured'));
         }
         
-        console.log('Login successful');
-        return done(null, user);
+        try {
+          const passwordMatch = await comparePasswords(password, user.password);
+          if (!passwordMatch) {
+            console.log('Password mismatch');
+            return done(null, false, { message: 'Incorrect password' });
+          }
+          
+          console.log('Login successful');
+          return done(null, user);
+        } catch (passwordError) {
+          console.error('Error during password comparison:', passwordError);
+          return done(new Error('Error verifying credentials'));
+        }
       } catch (error) {
+        console.error('Authentication error:', error);
         return done(error);
       }
     }),
@@ -136,11 +171,21 @@ export function setupAuth(app: Express) {
 
   app.post("/api/login", (req, res, next) => {
     passport.authenticate("local", (err, user, info) => {
-      if (err) return next(err);
-      if (!user) return res.status(401).json({ message: "Invalid username or password" });
+      if (err) {
+        console.error("Authentication error:", err);
+        return res.status(500).json({ message: err.message || "Internal server error during authentication" });
+      }
+      
+      if (!user) {
+        return res.status(401).json({ message: "Invalid username or password" });
+      }
       
       req.login(user, (loginErr) => {
-        if (loginErr) return next(loginErr);
+        if (loginErr) {
+          console.error("Login session error:", loginErr);
+          return res.status(500).json({ message: loginErr.message || "Error creating login session" });
+        }
+        
         const safeUser = { ...user };
         delete safeUser.password;
         return res.status(200).json(safeUser);

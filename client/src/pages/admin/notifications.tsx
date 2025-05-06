@@ -283,36 +283,40 @@ export default function AdminNotifications() {
 
           {/* Create Notification Dialog */}
           <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-            <DialogContent className="max-w-md">
+            <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Create Notification</DialogTitle>
                 <DialogDescription>
                   Create a new notification to display on the conference website
                 </DialogDescription>
               </DialogHeader>
-              <NotificationForm onSuccess={() => setCreateDialogOpen(false)} />
+              <div className="py-4">
+                <NotificationForm onSuccess={() => setCreateDialogOpen(false)} />
+              </div>
             </DialogContent>
           </Dialog>
 
           {/* Edit Notification Dialog */}
           <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-            <DialogContent className="max-w-md">
+            <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Edit Notification</DialogTitle>
                 <DialogDescription>
                   Update the notification details
                 </DialogDescription>
               </DialogHeader>
-              <NotificationForm
-                notification={selectedNotification}
-                onSuccess={() => setEditDialogOpen(false)}
-              />
+              <div className="py-4">
+                <NotificationForm
+                  notification={selectedNotification}
+                  onSuccess={() => setEditDialogOpen(false)}
+                />
+              </div>
             </DialogContent>
           </Dialog>
 
           {/* Delete Confirmation Dialog */}
           <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-            <DialogContent className="max-w-md">
+            <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Delete Notification</DialogTitle>
                 <DialogDescription>

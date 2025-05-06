@@ -30,7 +30,12 @@ import { Notification } from "@shared/schema";
 
 // Create a formatted schema for the notification form
 const notificationFormSchema = insertNotificationSchema.extend({
-  expiresAt: z.string().optional(),
+  expiresAt: z.union([
+    z.date(),
+    z.string().transform((val) => val ? new Date(val) : undefined),
+    z.null(),
+    z.undefined()
+  ]),
 });
 
 type NotificationFormValues = z.infer<typeof notificationFormSchema>;
@@ -119,10 +124,18 @@ export default function NotificationForm({
   });
 
   function onSubmit(values: NotificationFormValues) {
+    // Prepare data for submission
+    const formData = {
+      ...values,
+      // Convert empty string to null/undefined for the backend
+      expiresAt: values.expiresAt && values.expiresAt instanceof Date ? values.expiresAt : 
+                (values.expiresAt === "" ? undefined : values.expiresAt)
+    };
+    
     if (notification) {
-      updateMutation.mutate(values);
+      updateMutation.mutate(formData);
     } else {
-      createMutation.mutate(values);
+      createMutation.mutate(formData);
     }
   }
 

@@ -83,11 +83,14 @@ export const invitations = pgTable("invitations", {
   name: text("name").notNull(),
   token: text("token").notNull().unique(),
   role: text("role").notNull().default("user"),
+  type: text("type").notNull().default("account"), // account, attendance
   status: text("status").notNull().default("pending"), // pending, accepted, rejected
   message: text("message"),
   senderId: integer("sender_id").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   expiresAt: timestamp("expires_at"),
+  institution: text("institution"),
+  position: text("position"),
 });
 
 export const insertInvitationSchema = createInsertSchema(invitations).omit({ 

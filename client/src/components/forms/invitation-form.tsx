@@ -28,7 +28,12 @@ import { Loader2, Send } from "lucide-react";
 
 // Create a formatted schema for the invitation form
 const invitationFormSchema = insertInvitationSchema.extend({
-  expiresAt: z.string().optional(),
+  expiresAt: z.union([
+    z.date(),
+    z.string().transform((val) => val ? new Date(val) : undefined),
+    z.null(),
+    z.undefined()
+  ]),
 });
 
 type InvitationFormValues = z.infer<typeof invitationFormSchema>;
@@ -43,8 +48,11 @@ export default function InvitationForm({ onSuccess }: { onSuccess?: () => void }
       name: "",
       email: "",
       role: "user",
+      type: "account",
       message: "",
       expiresAt: "",
+      institution: "",
+      position: "",
     },
   });
 
@@ -72,7 +80,15 @@ export default function InvitationForm({ onSuccess }: { onSuccess?: () => void }
   });
 
   function onSubmit(values: InvitationFormValues) {
-    invitationMutation.mutate(values);
+    // Prepare data for submission
+    const formData = {
+      ...values,
+      // Convert empty string to null/undefined for the backend
+      expiresAt: values.expiresAt && values.expiresAt instanceof Date ? values.expiresAt : 
+                (values.expiresAt === "" ? undefined : values.expiresAt)
+    };
+    
+    invitationMutation.mutate(formData);
   }
 
   return (
@@ -115,31 +131,68 @@ export default function InvitationForm({ onSuccess }: { onSuccess?: () => void }
 
         <FormField
           control={form.control}
-          name="role"
+          name="type"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Invited Role</FormLabel>
+              <FormLabel>Invitation Type</FormLabel>
               <Select
-                onValueChange={field.onChange}
+                onValueChange={(value) => {
+                  field.onChange(value);
+                  // Reset role to user if type is attendance
+                  if (value === "attendance") {
+                    form.setValue("role", "guest");
+                  }
+                }}
                 defaultValue={field.value}
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a role" />
+                    <SelectValue placeholder="Select invitation type" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="user">Regular User</SelectItem>
-                  <SelectItem value="admin">Administrator</SelectItem>
+                  <SelectItem value="account">Account Registration</SelectItem>
+                  <SelectItem value="attendance">Attendance Confirmation</SelectItem>
                 </SelectContent>
               </Select>
               <FormDescription>
-                The role they will have upon accepting the invitation.
+                Account Registration: Invites to create an account on the platform.
+                Attendance Confirmation: Simple RSVP for delegates and guests.
               </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
+
+        {form.watch("type") === "account" && (
+          <FormField
+            control={form.control}
+            name="role"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Invited Role</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a role" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="user">Regular User</SelectItem>
+                    <SelectItem value="admin">Administrator</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormDescription>
+                  The role they will have upon accepting the invitation.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
         <FormField
           control={form.control}
@@ -161,6 +214,44 @@ export default function InvitationForm({ onSuccess }: { onSuccess?: () => void }
             </FormItem>
           )}
         />
+
+        {form.watch("type") === "attendance" && (
+          <>
+            <FormField
+              control={form.control}
+              name="institution"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Institution/Organization</FormLabel>
+                  <FormControl>
+                    <Input placeholder="University of Science" {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    The institution or organization the guest is affiliated with.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="position"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Position/Title</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Professor of Computer Science" {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    The guest's position or title at their institution.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </>
+        )}
 
         <FormField
           control={form.control}

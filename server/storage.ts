@@ -88,6 +88,17 @@ export class MemStorage implements IStorage {
   sessionStore: session.SessionStore;
 
   constructor() {
+    this.resetDatabase();
+    this.sessionStore = new MemoryStore({
+      checkPeriod: 86400000 // prune expired entries every 24h
+    });
+  }
+  
+  // Method to reset the database and recreate the admin user
+  resetDatabase() {
+    console.log("Resetting in-memory database...");
+    
+    // Clear all stores
     this.userStore = new Map();
     this.profileStore = new Map();
     this.abstractStore = new Map();
@@ -95,6 +106,8 @@ export class MemStorage implements IStorage {
     this.notificationStore = new Map();
     this.committeeMemberStore = new Map();
     this.researchAwardStore = new Map();
+    
+    // Reset IDs
     this.currentId = {
       user: 1,
       profile: 1,
@@ -105,12 +118,14 @@ export class MemStorage implements IStorage {
       researchAward: 1
     };
     
-    // Initialize with admin user
+    // Create admin user
+    console.log("Creating admin user...");
     const adminUser = {
       id: 1,
       username: 'admin',
       email: 'admin@raiseds25.com',
-      password: '$2b$10$K7L1OJ45/4Y2nIvhRVpCe.FSmhDdWoXehVzJptJ/op0lSsvqNu9Pm', // admin123
+      // Using properly generated scrypt hash for "admin123"
+      password: '4694b3c87703e44cf3f4f3e373d213720e6a2fb3279cfc9a609b50dd8438b5d40b204d6981e7cfbf3ec1726a4003a93db5fd8ff09add171296faf1903fb0571e.3e4e466d9eb5473144243976a811832e',
       firstName: 'Admin',
       lastName: 'User',
       institution: 'VIT-AP University',
@@ -118,9 +133,24 @@ export class MemStorage implements IStorage {
       createdAt: new Date()
     };
     this.userStore.set(1, adminUser);
-    this.sessionStore = new MemoryStore({
-      checkPeriod: 86400000 // prune expired entries every 24h
-    });
+    
+    // Create admin profile
+    const adminProfile = {
+      id: 1,
+      userId: 1,
+      bio: "Conference administrator",
+      position: "Administrator",
+      department: "Conference Management",
+      country: "India",
+      isPresenter: false,
+      isCommitteeMember: true,
+      socialLinks: {}
+    };
+    this.profileStore.set(1, adminProfile);
+    
+    console.log("Admin user created successfully!");
+    console.log("Username: admin");
+    console.log("Password: admin123");
   }
 
   // Users

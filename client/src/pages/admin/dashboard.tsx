@@ -200,24 +200,27 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={[
-                        { name: 'Pending', value: stats.pendingAbstracts },
-                        { name: 'Accepted', value: stats.acceptedAbstracts },
-                        { name: 'Rejected', value: stats.rejectedAbstracts },
-                      ]}
-                      margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                      <XAxis dataKey="name" />
-                      <YAxis allowDecimals={false} />
-                      <Tooltip 
-                        contentStyle={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '0.5rem', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' }}
-                      />
-                      <Bar dataKey="value" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  {/* Ensure ResponsiveContainer has a parent with defined dimensions */}
+                  <div style={{ width: '100%', height: '100%' }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <RechartsBarChart
+                        data={[
+                          { name: 'Pending', value: stats.pendingAbstracts },
+                          { name: 'Accepted', value: stats.acceptedAbstracts },
+                          { name: 'Rejected', value: stats.rejectedAbstracts },
+                        ]}
+                        margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                        <XAxis dataKey="name" />
+                        <YAxis allowDecimals={false} />
+                        <Tooltip 
+                          contentStyle={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '0.5rem', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' }}
+                        />
+                        <Bar dataKey="value" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                      </RechartsBarChart>
+                    </ResponsiveContainer>
+                  </div>
                 </div>
               </CardContent>
               <CardFooter className="border-t px-6 py-4">
@@ -258,28 +261,30 @@ export default function AdminDashboard() {
               <CardContent>
                 <div className="h-64 flex items-center justify-center">
                   {stats.totalInvitations > 0 ? (
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={invitationStatusData}
-                          cx="50%"
-                          cy="50%"
-                          labelLine={false}
-                          outerRadius={80}
-                          fill="#8884d8"
-                          dataKey="value"
-                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                        >
-                          {invitationStatusData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip 
-                          formatter={(value) => [`${value} invitations`, 'Count']}
-                          contentStyle={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '0.5rem', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' }}
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
+                    <div style={{ width: '100%', height: '100%' }}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={invitationStatusData}
+                            cx="50%"
+                            cy="50%"
+                            labelLine={false}
+                            outerRadius={80}
+                            fill="#8884d8"
+                            dataKey="value"
+                            label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                          >
+                            {invitationStatusData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip 
+                            formatter={(value) => [`${value} invitations`, 'Count']}
+                            contentStyle={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '0.5rem', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' }}
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
                   ) : (
                     <div className="text-center">
                       <Mail className="h-12 w-12 text-gray-400 mx-auto mb-2" />

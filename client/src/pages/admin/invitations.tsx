@@ -39,6 +39,7 @@ export default function AdminInvitations() {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [selectedInvitation, setSelectedInvitation] = useState<Invitation | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -71,15 +72,25 @@ export default function AdminInvitations() {
   const filteredInvitations = invitations
     ? invitations
         .filter((invitation) => {
+          // Filter by status
           if (statusFilter !== "all" && invitation.status !== statusFilter) {
             return false;
           }
+          
+          // Filter by type
+          if (typeFilter !== "all" && invitation.type !== typeFilter) {
+            return false;
+          }
+          
+          // Filter by search query
           if (searchQuery === "") return true;
           
           return (
             invitation.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             invitation.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            (invitation.message && invitation.message.toLowerCase().includes(searchQuery.toLowerCase()))
+            (invitation.message && invitation.message.toLowerCase().includes(searchQuery.toLowerCase())) ||
+            (invitation.institution && invitation.institution.toLowerCase().includes(searchQuery.toLowerCase())) ||
+            (invitation.position && invitation.position.toLowerCase().includes(searchQuery.toLowerCase()))
           );
         })
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
@@ -145,22 +156,39 @@ export default function AdminInvitations() {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-40">
-                <div className="flex items-center">
-                  <Filter className="mr-2 h-4 w-4" />
-                  <SelectValue placeholder="Filter by status" />
-                </div>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="accepted">Accepted</SelectItem>
-                  <SelectItem value="rejected">Rejected</SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full sm:w-40">
+                  <div className="flex items-center">
+                    <Filter className="mr-2 h-4 w-4" />
+                    <SelectValue placeholder="Filter by status" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="accepted">Accepted</SelectItem>
+                    <SelectItem value="rejected">Rejected</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              <Select value={typeFilter} onValueChange={setTypeFilter}>
+                <SelectTrigger className="w-full sm:w-40">
+                  <div className="flex items-center">
+                    <Filter className="mr-2 h-4 w-4" />
+                    <SelectValue placeholder="Filter by type" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="account">Account</SelectItem>
+                    <SelectItem value="attendance">Attendance</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
             <Button onClick={() => setCreateDialogOpen(true)}>
               <Send className="mr-2 h-4 w-4" />
               Send Invitation
@@ -179,6 +207,7 @@ export default function AdminInvitations() {
                   <TableRow>
                     <TableHead>Recipient</TableHead>
                     <TableHead>Email</TableHead>
+                    <TableHead>Type</TableHead>
                     <TableHead>Role</TableHead>
                     <TableHead>Date Sent</TableHead>
                     <TableHead>Status</TableHead>
@@ -192,6 +221,17 @@ export default function AdminInvitations() {
                         {invitation.name}
                       </TableCell>
                       <TableCell>{invitation.email}</TableCell>
+                      <TableCell className="capitalize">
+                        {invitation.type === "attendance" ? (
+                          <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+                            Attendance
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                            Account
+                          </Badge>
+                        )}
+                      </TableCell>
                       <TableCell className="capitalize">{invitation.role}</TableCell>
                       <TableCell>
                         {new Date(invitation.createdAt).toLocaleDateString()}
@@ -230,20 +270,22 @@ export default function AdminInvitations() {
 
           {/* Create Invitation Dialog */}
           <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-            <DialogContent className="max-w-md">
+            <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Send New Invitation</DialogTitle>
                 <DialogDescription>
                   Invite someone to participate in the conference
                 </DialogDescription>
               </DialogHeader>
-              <InvitationForm onSuccess={() => setCreateDialogOpen(false)} />
+              <div className="py-4">
+                <InvitationForm onSuccess={() => setCreateDialogOpen(false)} />
+              </div>
             </DialogContent>
           </Dialog>
 
           {/* Delete Confirmation Dialog */}
           <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-            <DialogContent className="max-w-md">
+            <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Delete Invitation</DialogTitle>
                 <DialogDescription>

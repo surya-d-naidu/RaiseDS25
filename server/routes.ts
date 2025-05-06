@@ -491,26 +491,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
         expiresAt
       });
       
-      // Send invitation email
-      const baseUrl = req.protocol + '://' + req.get('host');
-      const acceptUrl = `${baseUrl}/invitation/accept/${token}`;
-      const rejectUrl = `${baseUrl}/invitation/reject/${token}`;
-      
-      await sendEmail(
-        invitation.email,
-        `Invitation to RAISE DS 2025`,
-        `<p>Dear ${invitation.name},</p>
-        <p>You have been invited to participate in the 45th Annual Convention of Indian Society for Probability and Statistics (ISPS) in conjunction with the International Conference on Recent Advances and Innovative Statistics with Enhancing Data Science (IC-RAISE DS).</p>
-        <p>${invitation.message || ""}</p>
-        <p>Please click one of the links below to respond to this invitation:</p>
-        <p><a href="${acceptUrl}" style="display: inline-block; padding: 10px 20px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px;">Accept Invitation</a></p>
-        <p><a href="${rejectUrl}" style="display: inline-block; padding: 10px 20px; background-color: #f44336; color: white; text-decoration: none; border-radius: 5px;">Decline Invitation</a></p>
-        <p>If the buttons above don't work, you can copy and paste these links into your browser:</p>
-        <p>Accept: ${acceptUrl}</p>
-        <p>Decline: ${rejectUrl}</p>
-        <p>Thank you,</p>
-        <p>RAISE DS 2025 Team</p>`
-      );
+      // Send invitation email based on type
+      if (validatedData.type === "attendance") {
+        // For attendance confirmation invitations
+        const clientUrl = process.env.CLIENT_URL || `${req.protocol}://${req.get('host')}`;
+        const attendanceUrl = `${clientUrl}/attendance?token=${token}`;
+        
+        await sendEmail(
+          invitation.email,
+          `Invitation to Attend RAISE DS 2025 Conference`,
+          `<p>Dear ${invitation.name},</p>
+          <p>You are cordially invited to attend the 45th Annual Convention of Indian Society for Probability and Statistics (ISPS) in conjunction with the International Conference on Recent Advances and Innovative Statistics with Enhancing Data Science (IC-RAISE DS).</p>
+          <p>${invitation.message || ""}</p>
+          <p>Please click the link below to confirm your attendance:</p>
+          <p style="text-align: center; margin: 30px 0;">
+            <a href="${attendanceUrl}" style="display: inline-block; padding: 12px 24px; background-color: #3b82f6; color: white; text-decoration: none; border-radius: 4px; font-weight: bold;">Respond to Invitation</a>
+          </p>
+          <p>If the button above doesn't work, you can copy and paste this link into your browser:</p>
+          <p>${attendanceUrl}</p>
+          <p>We look forward to your participation.</p>
+          <p>Thank you,</p>
+          <p>RAISE DS 2025 Team</p>`
+        );
+      } else {
+        // For account registration invitations
+        const clientUrl = process.env.CLIENT_URL || `${req.protocol}://${req.get('host')}`;
+        const registerUrl = `${clientUrl}/register?token=${token}`;
+        
+        await sendEmail(
+          invitation.email,
+          `Invitation to Join RAISE DS 2025 Conference Platform`,
+          `<p>Dear ${invitation.name},</p>
+          <p>You have been invited to join the 45th Annual Convention of Indian Society for Probability and Statistics (ISPS) in conjunction with the International Conference on Recent Advances and Innovative Statistics with Enhancing Data Science (IC-RAISE DS).</p>
+          <p>${invitation.message || ""}</p>
+          <p>Please click the link below to register on our platform:</p>
+          <p style="text-align: center; margin: 30px 0;">
+            <a href="${registerUrl}" style="display: inline-block; padding: 12px 24px; background-color: #3b82f6; color: white; text-decoration: none; border-radius: 4px; font-weight: bold;">Register Now</a>
+          </p>
+          <p>If the button above doesn't work, you can copy and paste this link into your browser:</p>
+          <p>${registerUrl}</p>
+          <p>Thank you,</p>
+          <p>RAISE DS 2025 Team</p>`
+        );
+      }
       
       res.status(201).json(invitation);
     } catch (error) {
@@ -583,6 +606,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(updatedInvitation);
     } catch (error) {
       res.status(500).json({ message: "Error updating invitation status" });
+    }
+  });
+  
+  // Verify invitation for attendance response
+  app.get("/api/invitations/verify", async (req, res) => {
+    try {
+      const token = req.query.token as string;
+      
+      if (!token) {
+        return res.status(400).json({ message: "Invalid token" });
+      }
+      
+      const invitation = await storage.getInvitationByToken(token);
+      
+      if (!invitation) {
+        return res.status(404).json({ message: "Invitation not found" });
+      }
+      
+      res.json(invitation);
+    } catch (error) {
+      res.status(500).json({ message: "Error verifying invitation" });
+    }
+  });
+  
+  // Handle attendance response
+  app.post("/api/invitations/attendance-response", async (req, res) => {
+    try {
+      const { token, accept } = req.body;
+      
+      if (!token) {
+        return res.status(400).json({ message: "Invalid token" });
+      }
+      
+      if (typeof accept !== 'boolean') {
+        return res.status(400).json({ message: "Invalid response" });
+      }
+      
+      const invitation = await storage.getInvitationByToken(token);
+      
+      if (!invitation) {
+        return res.status(404).json({ message: "Invitation not found" });
+      }
+      
+      if (invitation.type !== "attendance") {
+        return res.status(400).json({ message: "Invalid invitation type" });
+      }
+      
+      if (invitation.status !== "pending") {
+        return res.status(400).json({ message: "Invitation already responded to" });
+      }
+      
+      if (invitation.expiresAt && new Date() > invitation.expiresAt) {
+        return res.status(410).json({ message: "Invitation has expired" });
+      }
+      
+      const status = accept ? "accepted" : "rejected";
+      const updatedInvitation = await storage.updateInvitationStatus(token, status);
+      
+      // Notify sender
+      const sender = await storage.getUser(invitation.senderId);
+      if (sender) {
+        await sendEmail(
+          sender.email,
+          `Attendance ${accept ? 'Confirmed' : 'Declined'} - RAISE DS 2025`,
+          `<p>Dear ${sender.firstName},</p>
+          <p>${invitation.name} has ${accept ? 'confirmed' : 'declined'} attendance to the conference.</p>
+          <p>Position: ${invitation.position || 'Not specified'}</p>
+          <p>Institution: ${invitation.institution || 'Not specified'}</p>
+          <p>RAISE DS 2025 Team</p>`
+        );
+      }
+      
+      res.json({
+        message: accept ? "Attendance confirmed" : "Response recorded",
+        accept,
+        invitation: updatedInvitation
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Error processing attendance response" });
     }
   });
   

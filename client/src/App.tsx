@@ -18,6 +18,7 @@ import CommitteePage from "@/pages/committee-page";
 import RegisterPage from "@/pages/register-page";
 import AbstractSubmissionPage from "@/pages/abstract-submission-page";
 import ProfilePage from "@/pages/profile-page";
+import AttendanceResponse from "@/pages/attendance-response";
 
 // Admin Pages
 import AdminDashboard from "@/pages/admin/dashboard";
@@ -36,6 +37,7 @@ function Router() {
       <Route path="/research-awards" component={ResearchAwardsPage} />
       <Route path="/committee" component={CommitteePage} />
       <Route path="/register" component={RegisterPage} />
+      <Route path="/attendance" component={AttendanceResponse} />
       
       {/* Protected Routes */}
       <ProtectedRoute path="/abstracts/submit" component={AbstractSubmissionPage} />
