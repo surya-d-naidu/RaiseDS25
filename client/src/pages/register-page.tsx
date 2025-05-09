@@ -72,30 +72,35 @@ export default function RegisterPage() {
                         <TableHeader>
                           <TableRow>
                             <TableHead>Category</TableHead>
-                            <TableHead>Early Bird (Until Nov 30)</TableHead>
+                            <TableHead>Early Bird (Until Nov 20)</TableHead>
                             <TableHead>Regular</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           <TableRow>
-                            <TableCell className="font-medium">Academic/Faculty</TableCell>
-                            <TableCell>₹6,000</TableCell>
-                            <TableCell>₹7,500</TableCell>
+                            <TableCell className="font-medium">Faculty/Scientists (ISPS Member)</TableCell>
+                            <TableCell>₹4,000</TableCell>
+                            <TableCell>₹5,000</TableCell>
                           </TableRow>
                           <TableRow>
-                            <TableCell className="font-medium">ISPS Member</TableCell>
+                            <TableCell className="font-medium">Faculty/Scientists (Non-Member)</TableCell>
                             <TableCell>₹5,000</TableCell>
                             <TableCell>₹6,000</TableCell>
                           </TableRow>
                           <TableRow>
-                            <TableCell className="font-medium">Industry Professional</TableCell>
-                            <TableCell>₹8,000</TableCell>
-                            <TableCell>₹10,000</TableCell>
+                            <TableCell className="font-medium">Industry Personnel (ISPS Member)</TableCell>
+                            <TableCell>₹5,000</TableCell>
+                            <TableCell>₹6,000</TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell className="font-medium">Industry Personnel (Non-Member)</TableCell>
+                            <TableCell>₹6,000</TableCell>
+                            <TableCell>₹7,000</TableCell>
                           </TableRow>
                           <TableRow>
                             <TableCell className="font-medium">Accompanying Person</TableCell>
                             <TableCell>₹3,000</TableCell>
-                            <TableCell>₹3,500</TableCell>
+                            <TableCell>₹4,000</TableCell>
                           </TableRow>
                         </TableBody>
                       </Table>
@@ -106,25 +111,20 @@ export default function RegisterPage() {
                         <TableHeader>
                           <TableRow>
                             <TableHead>Category</TableHead>
-                            <TableHead>Early Bird (Until Nov 30)</TableHead>
+                            <TableHead>Early Bird (Until Nov 20)</TableHead>
                             <TableHead>Regular</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           <TableRow>
-                            <TableCell className="font-medium">Ph.D. Scholar</TableCell>
-                            <TableCell>₹4,000</TableCell>
-                            <TableCell>₹5,000</TableCell>
+                            <TableCell className="font-medium">Research Scholars/Students (ISPS Member)</TableCell>
+                            <TableCell>₹2,400</TableCell>
+                            <TableCell>₹3,000</TableCell>
                           </TableRow>
                           <TableRow>
-                            <TableCell className="font-medium">M.Phil./M.Sc. Student</TableCell>
+                            <TableCell className="font-medium">Research Scholars/Students (Non-Member)</TableCell>
                             <TableCell>₹3,000</TableCell>
                             <TableCell>₹3,500</TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableCell className="font-medium">Student ISPS Member</TableCell>
-                            <TableCell>₹2,500</TableCell>
-                            <TableCell>₹3,000</TableCell>
                           </TableRow>
                         </TableBody>
                       </Table>
@@ -138,30 +138,25 @@ export default function RegisterPage() {
                         <TableHeader>
                           <TableRow>
                             <TableHead>Category</TableHead>
-                            <TableHead>Early Bird (Until Nov 30)</TableHead>
+                            <TableHead>Early Bird (Until Nov 20)</TableHead>
                             <TableHead>Regular</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           <TableRow>
-                            <TableCell className="font-medium">Academic/Faculty</TableCell>
-                            <TableCell>USD 250</TableCell>
-                            <TableCell>USD 300</TableCell>
+                            <TableCell className="font-medium">Foreign Delegates (ISPS Member)</TableCell>
+                            <TableCell>US$ 240</TableCell>
+                            <TableCell>US$ 280</TableCell>
                           </TableRow>
                           <TableRow>
-                            <TableCell className="font-medium">Student</TableCell>
-                            <TableCell>USD 150</TableCell>
-                            <TableCell>USD 175</TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableCell className="font-medium">Industry Professional</TableCell>
-                            <TableCell>USD 350</TableCell>
-                            <TableCell>USD 400</TableCell>
+                            <TableCell className="font-medium">Foreign Delegates (Non-Member)</TableCell>
+                            <TableCell>US$ 300</TableCell>
+                            <TableCell>US$ 350</TableCell>
                           </TableRow>
                           <TableRow>
                             <TableCell className="font-medium">Accompanying Person</TableCell>
-                            <TableCell>USD 100</TableCell>
-                            <TableCell>USD 125</TableCell>
+                            <TableCell>US$ 80</TableCell>
+                            <TableCell>US$ 100</TableCell>
                           </TableRow>
                         </TableBody>
                       </Table>
@@ -247,7 +242,7 @@ export default function RegisterPage() {
                 <CardContent>
                   <div className="prose prose-indigo max-w-none">
                     <p>
-                      Registration for the pre-conference workshop on "Data Science & Machine Learning" is available exclusively for ISPS members. The workshop will be held on December 21, 2025.
+                      Registration for the pre-conference workshop on "Data Science & Machine Learning" is available for all participants, with special rates for ISPS Life Members. The workshop will be held on December 21, 2025.
                     </p>
                     
                     <div className="bg-amber-50 border-l-4 border-amber-500 p-4 my-4">
@@ -257,7 +252,10 @@ export default function RegisterPage() {
                         </div>
                         <div className="ml-3">
                           <p className="text-sm text-amber-700">
-                            Workshop registration fee is ₹2,000 for ISPS members (in addition to the main conference registration fee).
+                            Workshop registration fees: Faculty/Scientists (ISPS Members) - ₹1,000 (early bird) / ₹1,500 (regular); 
+                            Industry Personnel (ISPS Members) - ₹1,000 (early bird) / ₹2,000 (regular);
+                            Research Scholars/Students - ₹700 (early bird) / ₹1,000 (regular);
+                            Foreign Delegates - US$80 (early bird) / US$100 (regular).
                           </p>
                         </div>
                       </div>
@@ -276,7 +274,7 @@ export default function RegisterPage() {
                 <CardHeader>
                   <Badge className="w-fit" variant="outline">Limited Time Offer</Badge>
                   <CardTitle>Early Bird Registration</CardTitle>
-                  <CardDescription>Register before November 30, 2025 to avail discounted rates</CardDescription>
+                  <CardDescription>Register before November 20, 2025 to avail discounted rates</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center">
@@ -313,7 +311,7 @@ export default function RegisterPage() {
                   <div className="flex justify-between items-center">
                     <div>
                       <p className="text-sm text-gray-500">Starting from</p>
-                      <p className="text-2xl font-bold text-gray-900">₹2,500</p>
+                      <p className="text-2xl font-bold text-gray-900">₹2,400</p>
                     </div>
                     <div>
                       <Badge variant="secondary">Save up to 25%</Badge>
