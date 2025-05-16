@@ -1,20 +1,25 @@
 import { Link } from "wouter";
 import { BarChart2, Mail, Phone, MapPin, Facebook, Twitter, Linkedin } from "lucide-react";
+import { getImageWithFallback } from "@/lib/asset-utils";
 
 export default function Footer() {
   return (
     <footer className="bg-white">
       <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div className="md:col-span-1">
-            <div className="flex items-center mb-4">
-              <img src="/logo.jpeg" alt="RAISE DS Logo" className="h-10 w-auto mr-3" />
-              <span className="text-xl font-bold text-gray-900">RAISE DS</span>
+          <div className="md:col-span-1">            <div className="flex flex-col items-center md:items-start bg-gray-50 p-4 rounded-lg shadow-sm">              <Link href="/">
+                <img 
+                  {...getImageWithFallback('logo.jpeg', 'logo.png')}
+                  alt="RAISE DS Logo" 
+                  className="h-16 w-auto mb-3 rounded-md shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer border border-gray-200" 
+                />
+              </Link>
+              <span className="text-xl font-bold text-gray-900">RAISE DS 2025</span>
             </div>
-            <p className="mt-4 text-gray-500 text-sm">
+            <p className="mt-4 text-gray-500 text-sm text-center md:text-left">
               International Conference on Recent Advances and Innovative Statistics with Enhancing Data Science
             </p>
-            <p className="mt-2 text-gray-500 text-sm">
+            <p className="mt-2 text-gray-500 text-sm text-center md:text-left">
               December 22-24, 2025<br />
               VIT-AP University, Vijayawada
             </p>

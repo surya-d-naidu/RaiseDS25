@@ -20,6 +20,7 @@ import {
   Settings,
   ChevronRight
 } from "lucide-react";
+import { getImageWithFallback } from "@/lib/asset-utils";
 
 export default function Navbar() {
   const [location] = useLocation();
@@ -37,13 +38,15 @@ export default function Navbar() {
   return (
     <nav className="bg-gradient-to-r from-primary to-primary/80 text-white shadow-md sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <div className="flex items-center">
-            <div className="flex-shrink-0 flex items-center">
-              <Link href="/">
-                <div className="flex items-center cursor-pointer">
-                  <img src="/logo.jpeg" alt="RAISE DS Logo" className="h-10 w-auto mr-3" />
-                  <span className="text-xl font-bold tracking-tight text-white">RAISE DS</span>
+        <div className="flex items-center justify-between h-16">          <div className="flex items-center">
+            <div className="flex-shrink-0 flex items-center">              <Link href="/">
+                <div className="flex items-center cursor-pointer group">
+                  <img 
+                    {...getImageWithFallback('logo.jpeg', 'logo.png')}
+                    alt="RAISE DS Logo" 
+                    className="h-12 w-auto mr-3 rounded-md shadow-sm transform transition-all duration-300 group-hover:scale-105 border border-white/20" 
+                  />
+                  <span className="text-xl font-bold tracking-tight text-white group-hover:text-white/90">RAISE DS 2025</span>
                 </div>
               </Link>
             </div>
@@ -168,11 +171,22 @@ export default function Navbar() {
             </Button>
           </div>
         </div>
-      </div>
-
-      {/* Mobile menu */}
+      </div>      {/* Mobile menu */}
       <div className={`md:hidden ${mobileMenuOpen ? 'block' : 'hidden'} bg-primary/95 text-white shadow-lg`}>
-        <div className="pt-2 pb-3 space-y-0.5">
+        <div className="pt-2 pb-1">
+          <div className="flex items-center justify-center px-4 py-2">
+            <Link href="/">
+              <div className="flex items-center cursor-pointer">
+                <img 
+                  src="/logo.jpeg" 
+                  alt="RAISE DS Logo" 
+                  className="h-10 w-auto mr-2 rounded shadow-sm" 
+                />
+                <span className="text-lg font-bold tracking-tight text-white">RAISE DS 2025</span>
+              </div>
+            </Link>          </div>
+        </div>
+        <div className="border-t border-white/10 pt-2">
           <Link href="/">
             <a className={`block pl-4 pr-4 py-2.5 border-l-4 text-base font-medium transition-colors duration-150 ${
               isActive("/") 
@@ -227,13 +241,14 @@ export default function Navbar() {
               Register
             </a>
           </Link>
-        </div>
-        <div className="pt-4 pb-4 border-t border-white/20">
+        </div>        <div className="pt-4 pb-4 border-t border-white/20">
           {user ? (
             <div className="space-y-0.5">
-              <div className="px-4 py-3 bg-primary-800/20">
-                <p className="text-sm font-medium text-white/70">Signed in as</p>
-                <p className="text-sm font-medium text-white truncate">{user.username}</p>
+              <div className="px-4 py-3 flex items-center space-x-3 bg-primary-800/20">                <img src="/logo.jpeg" alt="RAISE DS Logo" className="h-8 w-auto rounded shadow-sm animate-pulse" />
+                <div>
+                  <p className="text-sm font-medium text-white/70">Signed in as</p>
+                  <p className="text-sm font-medium text-white truncate">{user.username}</p>
+                </div>
               </div>
               <Link href="/profile">
                 <a className="block px-4 py-2.5 text-base font-medium text-white/90 hover:text-white hover:bg-primary-800/30 transition-colors duration-150">

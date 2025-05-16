@@ -76,6 +76,11 @@ export function serveStatic(app: Express) {
     );
   }
 
+  // Serve logo files from public directory
+  const publicPath = path.resolve(import.meta.dirname, "..", "public");
+  app.use('/public', express.static(publicPath));
+
+  // Serve all other static assets from the dist/public directory
   app.use(express.static(distPath));
 
   // fall through to index.html if the file doesn't exist
