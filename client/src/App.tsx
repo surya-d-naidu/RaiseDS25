@@ -26,6 +26,7 @@ import AdminAbstracts from "@/pages/admin/abstracts";
 import AdminUsers from "@/pages/admin/users";
 import AdminInvitations from "@/pages/admin/invitations";
 import AdminNotifications from "@/pages/admin/notifications";
+import AdminCommittee from "@/pages/admin/committee";
 import AdminAwards from "@/pages/admin/awards";
 
 function Router() {
@@ -44,12 +45,12 @@ function Router() {
       <ProtectedRoute path="/abstracts/submit" component={AbstractSubmissionPage} />
       <ProtectedRoute path="/profile" component={ProfilePage} />
         {/* Admin Routes */}
-      <AdminRoute path="/admin" component={AdminDashboard} />
-      <AdminRoute path="/admin/abstracts" component={AdminAbstracts} />
+      <AdminRoute path="/admin" component={AdminDashboard} />      <AdminRoute path="/admin/abstracts" component={AdminAbstracts} />
       <AdminRoute path="/admin/users" component={AdminUsers} />
       <AdminRoute path="/admin/invitations" component={AdminInvitations} />
       <AdminRoute path="/admin/notifications" component={AdminNotifications} />
       <AdminRoute path="/admin/awards" component={AdminAwards} />
+      <AdminRoute path="/admin/committee" component={AdminCommittee} />
       
       {/* Fallback to 404 */}
       <Route component={NotFound} />

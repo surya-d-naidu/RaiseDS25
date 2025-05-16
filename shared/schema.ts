@@ -136,6 +136,7 @@ export const committeeMembers = pgTable("committee_members", {
   email: text("email"),
   phone: text("phone"),
   order: integer("order").default(0),
+  profileLink: text("profile_link"), // Link to member's profile page
 });
 
 export const insertCommitteeMemberSchema = createInsertSchema(committeeMembers).omit({ 
