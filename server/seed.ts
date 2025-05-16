@@ -44,8 +44,7 @@ async function createTables() {
         created_at TIMESTAMP DEFAULT NOW()
       )
     `);
-    
-    // Create abstracts table
+      // Create abstracts table
     await db.execute(sql`
       CREATE TABLE IF NOT EXISTS abstracts (
         id SERIAL PRIMARY KEY,
@@ -53,7 +52,9 @@ async function createTables() {
         title TEXT NOT NULL,
         category TEXT NOT NULL,
         content TEXT NOT NULL,
+        authors TEXT NOT NULL,
         keywords TEXT NOT NULL,
+        reference_id TEXT,
         status TEXT NOT NULL DEFAULT 'pending',
         file_url TEXT,
         created_at TIMESTAMP DEFAULT NOW(),

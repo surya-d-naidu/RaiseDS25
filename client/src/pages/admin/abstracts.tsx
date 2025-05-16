@@ -33,6 +33,8 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, FileText, Search, CheckCircle, XCircle, Clock, Download, Eye, Filter } from "lucide-react";
 import { Abstract } from "@shared/schema";
+import MarkdownRenderer from "@/components/ui/markdown-renderer";
+import { getCategoryCode } from "@/lib/abstract-utils";
 
 export default function AdminAbstracts() {
   const { toast } = useToast();
@@ -171,6 +173,7 @@ export default function AdminAbstracts() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>ID</TableHead>
                     <TableHead>Title</TableHead>
                     <TableHead>Category</TableHead>
                     <TableHead>Submission Date</TableHead>
@@ -180,8 +183,10 @@ export default function AdminAbstracts() {
                 </TableHeader>
                 <TableBody>
                   {filteredAbstracts.map((abstract) => (
-                    <TableRow key={abstract.id}>
-                      <TableCell className="font-medium max-w-xs truncate">
+                    <TableRow key={abstract.id}>                      <TableCell className="font-medium">
+                        {abstract.referenceId || `${getCategoryCode(abstract.category)}-${abstract.id.toString().padStart(4, '0')}`}
+                      </TableCell>
+                      <TableCell className="max-w-xs truncate">
                         {abstract.title}
                       </TableCell>
                       <TableCell>{abstract.category}</TableCell>
@@ -230,11 +235,10 @@ export default function AdminAbstracts() {
 
           {/* Abstract Details Dialog */}
           <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
-            <DialogContent className="max-w-3xl">
-              <DialogHeader>
+            <DialogContent className="max-w-3xl">              <DialogHeader>
                 <DialogTitle>{selectedAbstract?.title}</DialogTitle>
                 <DialogDescription>
-                  Submitted on {selectedAbstract?.createdAt && new Date(selectedAbstract.createdAt).toLocaleDateString()}
+                  ID: {selectedAbstract?.referenceId || (selectedAbstract && `${getCategoryCode(selectedAbstract.category)}-${selectedAbstract.id.toString().padStart(4, '0')}`)} | Submitted on {selectedAbstract?.createdAt && new Date(selectedAbstract.createdAt).toLocaleDateString()}
                 </DialogDescription>
               </DialogHeader>
 
@@ -250,9 +254,14 @@ export default function AdminAbstracts() {
                 </div>
 
                 <div>
+                  <h4 className="text-sm font-medium mb-1">Authors</h4>
+                  <p className="text-sm">{selectedAbstract?.authors}</p>
+                </div>
+
+                <div>
                   <h4 className="text-sm font-medium mb-1">Abstract</h4>
-                  <div className="bg-gray-50 p-4 rounded-md text-sm whitespace-pre-wrap">
-                    {selectedAbstract?.content}
+                  <div className="bg-gray-50 p-4 rounded-md">
+                    {selectedAbstract && <MarkdownRenderer content={selectedAbstract.content || ''} />}
                   </div>
                 </div>
 

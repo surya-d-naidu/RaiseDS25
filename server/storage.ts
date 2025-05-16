@@ -228,19 +228,46 @@ export class MemStorage implements IStorage {
   async getAllAbstracts(): Promise<Abstract[]> {
     return Array.from(this.abstractStore.values());
   }
-
   async createAbstract(abstractData: InsertAbstract & { userId: number }): Promise<Abstract> {
     const id = this.currentId.abstract++;
     const now = new Date();
+    const categoryCode = this.getCategoryCode(abstractData.category);
+    const randomNum = Math.floor(1000 + Math.random() * 9000); // Generate a random 4-digit number
+    const referenceId = `${categoryCode}-${randomNum}`;
+    
     const abstract: Abstract = {
       ...abstractData,
       id,
+      referenceId,
       status: 'pending',
       createdAt: now,
       updatedAt: now
     };
     this.abstractStore.set(id, abstract);
     return abstract;
+  }
+  
+  // Helper function to generate category code from the abstract category
+  getCategoryCode(category: string): string {
+    const categoryCodeMap: Record<string, string> = {
+      "Probability Theory": "PT",
+      "Statistical Inference": "SI",
+      "Statistical Computing": "SC", 
+      "Biostatistics": "BS",
+      "Data Science": "DS",
+      "Machine Learning": "ML",
+      "Big Data Analytics": "BD",
+      "Time Series Analysis": "TS",
+      "Statistical Quality Control": "SQ",
+      "Statistical Methods": "SM",
+      "Data Visualization": "DV",
+      "Computational Statistics": "CS",
+      "Bayesian Analysis": "BA",
+      "Applied Statistics": "AS",
+      "Other": "OT"
+    };
+    
+    return categoryCodeMap[category] || "XX";
   }
 
   async updateAbstract(id: number, data: Partial<InsertAbstract>): Promise<Abstract | undefined> {

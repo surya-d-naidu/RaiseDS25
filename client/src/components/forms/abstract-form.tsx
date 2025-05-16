@@ -26,7 +26,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, AlertTriangle, FileText, Upload } from "lucide-react";
+import { Loader2, AlertTriangle, Upload, FileText } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import MarkdownRenderer from "@/components/ui/markdown-renderer";
+import { Card, CardContent } from "@/components/ui/card";
 
 const categoryOptions = [
   "Statistical Methods",
@@ -50,6 +53,7 @@ export default function AbstractForm({ abstract }: { abstract?: any }) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [previewTab, setPreviewTab] = useState<string>("write");
 
   const form = useForm<AbstractFormValues>({
     resolver: zodResolver(abstractFormSchema),
@@ -59,12 +63,14 @@ export default function AbstractForm({ abstract }: { abstract?: any }) {
           category: abstract.category,
           content: abstract.content,
           keywords: abstract.keywords,
+          authors: abstract.authors,
         }
       : {
           title: "",
           category: "",
           content: "",
           keywords: "",
+          authors: "",
         },
   });
 
@@ -132,6 +138,26 @@ export default function AbstractForm({ abstract }: { abstract?: any }) {
 
         <FormField
           control={form.control}
+          name="authors"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Authors</FormLabel>
+              <FormControl>
+                <Input 
+                  placeholder="e.g., John Doe¹, Jane Smith², etc." 
+                  {...field} 
+                />
+              </FormControl>
+              <FormDescription>
+                List all authors with their affiliations as superscripts.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
           name="category"
           render={({ field }) => (
             <FormItem>
@@ -167,15 +193,31 @@ export default function AbstractForm({ abstract }: { abstract?: any }) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Abstract Content</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Enter your abstract (300-500 words)"
-                  className="resize-none min-h-[200px]"
-                  {...field}
-                />
-              </FormControl>
-              <FormDescription>
-                Include research problem, methodology, results, and conclusions. 300-500 words recommended.
+              <Tabs value={previewTab} onValueChange={setPreviewTab} className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="write">Write</TabsTrigger>
+                  <TabsTrigger value="preview">Preview</TabsTrigger>
+                </TabsList>
+                <TabsContent value="write">
+                  <FormControl>
+                    <Textarea
+                      placeholder="Enter your abstract (300-500 words). You can use Markdown formatting and LaTeX formulas using $...$ for inline math and $$...$$ for block math."
+                      className="resize-none min-h-[300px]"
+                      {...field}
+                    />
+                  </FormControl>
+                </TabsContent>
+                <TabsContent value="preview">
+                  <Card>
+                    <CardContent className="pt-6">
+                      <MarkdownRenderer content={field.value} />
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </Tabs>
+              <FormDescription className="flex flex-col space-y-1">
+                <span>Include research problem, methodology, results, and conclusions. 300-500 words recommended.</span>
+                <span>Supports Markdown and LaTeX: Use $...$ for inline math and $$...$$ for block math formulas.</span>
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -201,8 +243,6 @@ export default function AbstractForm({ abstract }: { abstract?: any }) {
             </FormItem>
           )}
         />
-
-
 
         <Alert>
           <AlertTriangle className="h-4 w-4" />

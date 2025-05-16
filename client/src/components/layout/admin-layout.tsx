@@ -43,7 +43,6 @@ export default function AdminLayout({ children, title, description }: AdminLayou
       </div>
     );
   }
-
   const navigationItems = [
     {
       name: "Dashboard",
@@ -59,6 +58,11 @@ export default function AdminLayout({ children, title, description }: AdminLayou
       name: "Users",
       href: "/admin/users",
       icon: <Users className="h-5 w-5" />,
+    },
+    {
+      name: "Awards",
+      href: "/admin/awards",
+      icon: <Award className="h-5 w-5" />,
     },
     {
       name: "Invitations",

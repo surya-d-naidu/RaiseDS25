@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import Navbar from "@/components/layout/navbar";
 import Footer from "@/components/layout/footer";
 import NotificationBar from "@/components/layout/notification-bar";
@@ -7,44 +7,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Abstract } from "@shared/schema";
 import { useAuth } from "@/hooks/use-auth";
-import { InfoIcon, AlertTriangle, FileText, CheckCircle2, Clock, Loader2 } from "lucide-react";
+import { InfoIcon, AlertTriangle, FileText, CheckCircle2, Clock } from "lucide-react";
 import MarkdownRenderer from "@/components/ui/markdown-renderer";
 import AbstractForm from "@/components/forms/abstract-form";
-import { getCategoryCode } from "@/lib/abstract-utils";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import AbstractForm from "@/components/forms/abstract-form";
 
 export default function AbstractSubmissionPage() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("submit");
-  const [formData, setFormData] = useState({ title: "", authors: "", category: "", content: "", keywords: "" });
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const { toast } = useToast();
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: abstracts, isLoading } = useQuery<Abstract[]>({
     queryKey: ["/api/abstracts"],
     enabled: !!user,
   });
 
-  const submitMutation = useMutation({
-    mutationFn: async (formData: FormData) => {
-      const response = await apiRequest("POST", "/api/abstracts", formData, true);
-      return await response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Abstract Submitted",
-        description: "Your abstract has been successfully submitted for review.",
-      });
-      setFormData({ title: "", authors: "", category: "", content: "", keywords: "" });
-      setSelectedFile(null);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
       queryClient.invalidateQueries({ queryKey: ["/api/abstracts"] });
     },
     onError: (error) => {
@@ -409,12 +388,7 @@ export default function AbstractSubmissionPage() {
                       {abstracts.map((abstract) => (
                         <div key={abstract.id} className="border rounded-lg overflow-hidden">
                           <div className="bg-gray-50 p-4 flex justify-between items-center border-b">
-                            <div>
-                              <h3 className="font-medium text-gray-900">{abstract.title}</h3>
-                              <div className="text-xs text-gray-500 mt-1">
-                                ID: {abstract.referenceId || `${getCategoryCode(abstract.category)}-${abstract.id.toString().padStart(4, '0')}`}
-                              </div>
-                            </div>
+                            <h3 className="font-medium text-gray-900">{abstract.title}</h3>
                             <div
                               className={`px-2 py-1 rounded text-xs font-medium ${
                                 abstract.status === "accepted"

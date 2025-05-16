@@ -7,10 +7,8 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="md:col-span-1">
-            <div className="flex items-center">
-              <div className="h-10 w-10 bg-primary rounded flex items-center justify-center mr-3">
-                <BarChart2 className="h-6 w-6 text-white" />
-              </div>
+            <div className="flex items-center mb-4">
+              <img src="/logo.jpeg" alt="RAISE DS Logo" className="h-10 w-auto mr-3" />
               <span className="text-xl font-bold text-gray-900">RAISE DS</span>
             </div>
             <p className="mt-4 text-gray-500 text-sm">

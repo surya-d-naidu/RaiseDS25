@@ -31,7 +31,9 @@ export const abstracts = pgTable("abstracts", {
   title: text("title").notNull(),
   category: text("category").notNull(),
   content: text("content").notNull(),
+  authors: text("authors").notNull(), // New field for authors
   keywords: text("keywords").notNull(),
+  referenceId: text("reference_id"),
   status: text("status").notNull().default("pending"), // pending, accepted, rejected
   fileUrl: text("file_url"),
   createdAt: timestamp("created_at").defaultNow(),

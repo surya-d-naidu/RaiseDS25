@@ -59,37 +59,40 @@ export default function AnimatedCursor() {
       );
     }, 100);
 
-    const handleLinkHoverEvents = () => {
-      const interactiveElements = document.querySelectorAll(
-        'a, button, [role="button"], input, textarea, select, [data-cursor="pointer"]'
-      );
-      
-      interactiveElements.forEach(el => {
-        el.addEventListener('mouseenter', () => setLinkHovered(true));
-        el.addEventListener('mouseleave', () => setLinkHovered(false));
-      });
-    };
-
-    document.addEventListener('mousemove', updatePosition);
-    document.addEventListener('mousedown', () => setClicked(true));
-    document.addEventListener('mouseup', () => setClicked(false));
-    handleLinkHoverEvents();
-    
+    const handleMouseEnter = () => setLinkHovered(true);
+    const handleMouseLeave = () => setLinkHovered(false);
+    const handleMouseDown = () => setClicked(true);
+    const handleMouseUp = () => setClicked(false);
     const mouseOutsideWindow = () => setPosition({ x: -100, y: -100 });
-    document.documentElement.addEventListener('mouseleave', mouseOutsideWindow);
 
+    // Add all event listeners
+    document.addEventListener('mousemove', updatePosition);
+    document.addEventListener('mousedown', handleMouseDown);
+    document.addEventListener('mouseup', handleMouseUp);
+    document.documentElement.addEventListener('mouseleave', mouseOutsideWindow);
+    
+    // Add hover events to interactive elements
+    const interactiveElements = document.querySelectorAll(
+      'a, button, [role="button"], input, textarea, select, [data-cursor="pointer"]'
+    );
+    
+    interactiveElements.forEach(el => {
+      el.addEventListener('mouseenter', handleMouseEnter);
+      el.addEventListener('mouseleave', handleMouseLeave);
+    });
+
+    // Clean up function
     return () => {
       document.removeEventListener('mousemove', updatePosition);
-      document.removeEventListener('mousedown', () => setClicked(true));
-      document.removeEventListener('mouseup', () => setClicked(false));
+      document.removeEventListener('mousedown', handleMouseDown);
+      document.removeEventListener('mouseup', handleMouseUp);
       document.documentElement.removeEventListener('mouseleave', mouseOutsideWindow);
       clearInterval(cleanupInterval);
       
-      document.querySelectorAll('a, button, [role="button"], input, textarea, select, [data-cursor="pointer"]')
-        .forEach(el => {
-          el.removeEventListener('mouseenter', () => setLinkHovered(true));
-          el.removeEventListener('mouseleave', () => setLinkHovered(false));
-        });
+      interactiveElements.forEach(el => {
+        el.removeEventListener('mouseenter', handleMouseEnter);
+        el.removeEventListener('mouseleave', handleMouseLeave);
+      });
     };
   }, []);
 
@@ -223,7 +226,7 @@ export default function AnimatedCursor() {
       })}
       
       {/* Add global animation styles */}
-      <style jsx global>{`
+      <style>{`
         /* Hide default cursor */
         body {
           cursor: none !important;

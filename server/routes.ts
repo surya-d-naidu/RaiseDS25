@@ -1,4 +1,4 @@
-import express, { type Express, Request, Response } from "express";
+import express, { type Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
@@ -127,25 +127,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Error fetching abstracts" });
     }
   });
-  
-  app.post("/api/abstracts", isAuthenticated, upload.single("file"), async (req, res) => {
+    app.post("/api/abstracts", isAuthenticated, async (req, res) => {
     try {
-      const abstractData = {
-        ...req.body,
-        fileUrl: req.file ? `/uploads/${req.file.filename}` : undefined
-      };
-      
-      const validatedData = insertAbstractSchema.parse(abstractData);
-      const abstract = await storage.createAbstract({
-        ...validatedData,
-        userId: req.user!.id
+      const { title, category, content, authors, keywords } = req.body;
+      const newAbstract = await storage.createAbstract({
+        userId: req.user.id,
+        title,
+        category,
+        content,
+        authors, // Include authors in the request body
+        keywords,
       });
       
-      res.status(201).json(abstract);
-    } catch (error) {
-      if (error instanceof ZodError) {
-        return res.status(400).json({ errors: formatZodError(error) });
+      // Send confirmation email with abstract ID
+      try {
+        await sendEmail(
+          req.user.email,
+          `Abstract Submission Confirmation - RAISE DS 2025`,
+          `<p>Dear ${req.user.firstName},</p>
+          <p>Thank you for submitting your abstract to RAISE DS 2025.</p>
+          <p>Your abstract has been received and is pending review.</p>
+          <p><strong>Abstract ID:</strong> ${newAbstract.referenceId}</p>
+          <p><strong>Title:</strong> ${newAbstract.title}</p>
+          <p>You can check the status of your submission in the "My Abstracts" section of your account.</p>
+          <p>RAISE DS 2025 Team</p>`
+        );
+      } catch (emailError) {
+        console.error("Failed to send confirmation email:", emailError);
       }
+      
+      res.status(201).json(newAbstract);
+    } catch (error) {
       res.status(500).json({ message: "Error creating abstract" });
     }
   });
@@ -250,13 +262,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           rejected: "We regret to inform you that your abstract was not accepted",
           pending: "Your abstract status has been updated to pending review"
         };
-        
-        await sendEmail(
+          await sendEmail(
           user.email,
           `Abstract ${status} - RAISE DS 2025`,
-          `<p>Dear ${user.firstName},</p>
-          <p>${statusMap[status as keyof typeof statusMap]}</p>
-          <p>Abstract Title: ${updatedAbstract.title}</p>
+          `<p>Dear ${user.firstName},</p>          <p>${statusMap[status as keyof typeof statusMap]}</p>
+          <p><strong>Abstract ID:</strong> ${updatedAbstract.referenceId || `${storage.getCategoryCode(updatedAbstract.category)}-${updatedAbstract.id.toString().padStart(4, '0')}`}</p>
+          <p><strong>Abstract Title:</strong> ${updatedAbstract.title}</p>
           <p>Thank you for your submission.</p>
           <p>RAISE DS 2025 Team</p>`
         );

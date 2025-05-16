@@ -42,9 +42,7 @@ export default function Navbar() {
             <div className="flex-shrink-0 flex items-center">
               <Link href="/">
                 <div className="flex items-center cursor-pointer">
-                  <div className="h-10 w-10 flex items-center justify-center mr-3 overflow-hidden">
-                    <img src="/logo.png" alt="RAISE DS Logo" className="h-full w-full object-contain" />
-                  </div>
+                  <img src="/logo.jpeg" alt="RAISE DS Logo" className="h-10 w-auto mr-3" />
                   <span className="text-xl font-bold tracking-tight text-white">RAISE DS</span>
                 </div>
               </Link>
