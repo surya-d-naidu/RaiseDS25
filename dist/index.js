@@ -1291,7 +1291,7 @@ var vite_config_default = defineConfig({
   },
   root: path2.resolve(import.meta.dirname, "client"),
   build: {
-    outDir: path2.resolve(import.meta.dirname, "dist/public"),
+    outDir: path2.resolve(import.meta.dirname, "dist"),
     emptyOutDir: true
   }
 });
@@ -1351,7 +1351,7 @@ async function setupVite(app2, server) {
   });
 }
 function serveStatic(app2) {
-  const distPath = path3.resolve(import.meta.dirname, "..", "dist", "public");
+  const distPath = path3.resolve(import.meta.dirname, "..", "dist");
   if (!fs2.existsSync(distPath)) {
     throw new Error(
       `Could not find the build directory: ${distPath}, make sure to build the client first`
