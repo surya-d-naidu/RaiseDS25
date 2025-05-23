@@ -9,10 +9,10 @@ async function generatePasswordHash(password: string) {
   return `${buf.toString("hex")}.${salt}`;
 }
 
-// Generate a hash for "admin123"
+// Generate a hash for "7075052734"
 async function main() {
-  const hash = await generatePasswordHash("admin123");
-  console.log("Generated hash for 'admin123':", hash);
+  const hash = await generatePasswordHash("7075052734");
+  console.log("Generated hash for '7075052734':", hash);
   
   // Verify the hash format
   const [hashedPart, saltPart] = hash.split(".");

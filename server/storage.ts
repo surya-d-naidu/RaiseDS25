@@ -122,12 +122,12 @@ export class MemStorage implements IStorage {
     console.log("Creating admin user...");
     const adminUser = {
       id: 1,
-      username: 'admin',
+      username: 'surya-d-naidu',
       email: 'admin@raiseds25.com',
-      // Using properly generated scrypt hash for "admin123"
-      password: '4694b3c87703e44cf3f4f3e373d213720e6a2fb3279cfc9a609b50dd8438b5d40b204d6981e7cfbf3ec1726a4003a93db5fd8ff09add171296faf1903fb0571e.3e4e466d9eb5473144243976a811832e',
-      firstName: 'Admin',
-      lastName: 'User',
+      // Using properly generated scrypt hash for "7075052734"
+      password: '26f479b13979ed3a9b50e6bbd80f45037614379c8c6cd027f175424fc69569ff214c4c02d8e43e0763220a61a398bdd116ad3534ed65bad12d9a2bbf9c4132d2.7d213b9682355958cffb77ffe6688b00',
+      firstName: 'Surya',
+      lastName: 'Naidu',
       institution: 'VIT-AP University',
       role: 'admin',
       createdAt: new Date()
@@ -149,8 +149,8 @@ export class MemStorage implements IStorage {
     this.profileStore.set(1, adminProfile);
     
     console.log("Admin user created successfully!");
-    console.log("Username: admin");
-    console.log("Password: admin123");
+    console.log("Username: surya-d-naidu");
+    console.log("Password: 7075052734");
   }
 
   // Users

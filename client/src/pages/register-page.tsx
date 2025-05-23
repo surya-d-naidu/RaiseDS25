@@ -313,9 +313,6 @@ export default function RegisterPage() {
                       <p className="text-sm text-gray-500">Starting from</p>
                       <p className="text-2xl font-bold text-gray-900">₹2,400</p>
                     </div>
-                    <div>
-                      <Badge variant="secondary">Save up to 25%</Badge>
-                    </div>
                   </div>
                 </CardContent>
                 <CardFooter className="flex flex-col space-y-2">
