@@ -5,17 +5,45 @@ import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import { dirname } from 'path';
+import helmet from 'helmet';
+import enforce from 'express-sslify';
+import https from 'https';
+import http from 'http';
+import fs from 'fs';
 
 // Load environment variables from .env file
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
-import "./seed"; // Import seed script to create default admin user
+// Note: Database tables are initialized via setup-db.sh script, not on every server start
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Enable trust proxy since we're behind a reverse proxy
+app.enable('trust proxy');
+
+// Add security headers and HTTPS redirect middleware
+app.use((req, res, next) => {
+  // Add security headers
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  
+  // Check for HTTP protocol and redirect to HTTPS
+  const hostHeader = req.headers.host || '';
+  const isHttps = req.secure || req.headers['x-forwarded-proto'] === 'https';
+  
+  if (
+    process.env.NODE_ENV === 'production' && 
+    hostHeader.includes('raiseds25') &&  // Only redirect domain traffic
+    !isHttps
+  ) {
+    return res.redirect(301, `https://${hostHeader}${req.url}`);
+  }
+  
+  next();
+});
 
 // Serve static files from the public directory
 const publicPath = process.env.NODE_ENV === 'production'
@@ -73,10 +101,9 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // ALWAYS serve the app on port 5000
+  // Serve the app on the configured port (default 5000)
   // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = 5000;
+  const port = parseInt(process.env.PORT || '5000', 10);
   server.listen({
     port,
     host: "0.0.0.0",

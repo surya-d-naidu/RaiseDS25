@@ -5,6 +5,12 @@ import { createServer as createViteServer, createLogger } from "vite";
 import { type Server } from "http";
 import viteConfig from "../vite.config";
 import { nanoid } from "nanoid";
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+// Fix for __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const viteLogger = createLogger();
 
@@ -46,7 +52,7 @@ export async function setupVite(app: Express, server: Server) {
 
     try {
       const clientTemplate = path.resolve(
-        import.meta.dirname,
+        __dirname,
         "..",
         "client",
         "index.html",
@@ -68,7 +74,7 @@ export async function setupVite(app: Express, server: Server) {
 }
 
 export function serveStatic(app: Express) {
-  const distPath = path.resolve(import.meta.dirname, "..", "dist", "public");
+  const distPath = path.resolve(__dirname, "..", "dist", "public");
 
   if (!fs.existsSync(distPath)) {
     throw new Error(
@@ -77,7 +83,7 @@ export function serveStatic(app: Express) {
   }
 
   // Serve logo files from public directory
-  const publicPath = path.resolve(import.meta.dirname, "..", "public");
+  const publicPath = path.resolve(__dirname, "..", "public");
   app.use('/public', express.static(publicPath));
 
   // Serve all other static assets from the dist/public directory

@@ -149,8 +149,13 @@ async function setupDatabase() {
     console.log("Database setup completed successfully!");
   } catch (error) {
     console.error("Error setting up database:", error);
+    process.exit(1);
   }
 }
 
-// Run when imported
-setupDatabase();
+// Only run when called directly, not when imported
+if (import.meta.url === `file://${process.argv[1]}`) {
+  setupDatabase().then(() => {
+    process.exit(0);
+  });
+}

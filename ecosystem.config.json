@@ -1,0 +1,37 @@
+{
+  "apps": [
+    {
+      "name": "raiseds25",
+      "script": "dist/index.js",
+      "cwd": "/root/raiseds25/project",
+      "env": {
+        "NODE_ENV": "production",
+        "PORT": "80",
+        "TRUST_PROXY": "true"
+      },
+      "instances": 1,
+      "exec_mode": "fork",
+      "watch": false,
+      "merge_logs": true,
+      "log_date_format": "YYYY-MM-DD HH:mm:ss",
+      "max_memory_restart": "300M",
+      "restart_delay": 3000,
+      "autorestart": true
+    },
+    {
+      "name": "raiseds25-webhook",
+      "script": "/root/raiseds25/webhook-server.js",
+      "cwd": "/root/raiseds25",
+      "env": {
+        "NODE_ENV": "production",
+        "PORT": "9000"
+      },
+      "instances": 1,
+      "exec_mode": "fork",
+      "watch": false,
+      "merge_logs": true,
+      "log_date_format": "YYYY-MM-DD HH:mm:ss",
+      "autorestart": true
+    }
+  ]
+}

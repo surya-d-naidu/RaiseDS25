@@ -11,156 +11,188 @@ import express3 from "express";
 import express from "express";
 import { createServer } from "http";
 
-// server/storage.ts
+// shared/schema.ts
+var schema_exports = {};
+__export(schema_exports, {
+  abstracts: () => abstracts,
+  committeeMembers: () => committeeMembers,
+  insertAbstractSchema: () => insertAbstractSchema,
+  insertCommitteeMemberSchema: () => insertCommitteeMemberSchema,
+  insertInvitationSchema: () => insertInvitationSchema,
+  insertNotificationSchema: () => insertNotificationSchema,
+  insertProfileSchema: () => insertProfileSchema,
+  insertResearchAwardSchema: () => insertResearchAwardSchema,
+  insertUserSchema: () => insertUserSchema,
+  invitations: () => invitations,
+  notifications: () => notifications,
+  profiles: () => profiles,
+  researchAwards: () => researchAwards,
+  users: () => users
+});
+import { pgTable, text, serial, integer, boolean, timestamp, json } from "drizzle-orm/pg-core";
+import { createInsertSchema } from "drizzle-zod";
+var users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  username: text("username").notNull().unique(),
+  password: text("password").notNull(),
+  email: text("email").notNull().unique(),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  institution: text("institution").notNull(),
+  role: text("role").notNull().default("user"),
+  // user, admin
+  createdAt: timestamp("created_at").defaultNow()
+});
+var insertUserSchema = createInsertSchema(users).omit({
+  id: true,
+  createdAt: true,
+  role: true
+});
+var abstracts = pgTable("abstracts", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  title: text("title").notNull(),
+  category: text("category").notNull(),
+  content: text("content").notNull(),
+  authors: text("authors").notNull(),
+  // New field for authors
+  keywords: text("keywords").notNull(),
+  referenceId: text("reference_id"),
+  status: text("status").notNull().default("pending"),
+  // pending, accepted, rejected
+  fileUrl: text("file_url"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+var insertAbstractSchema = createInsertSchema(abstracts).omit({
+  id: true,
+  userId: true,
+  status: true,
+  createdAt: true,
+  updatedAt: true
+});
+var profiles = pgTable("profiles", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().unique(),
+  bio: text("bio"),
+  position: text("position"),
+  department: text("department"),
+  country: text("country"),
+  profilePictureUrl: text("profile_picture_url"),
+  isPresenter: boolean("is_presenter").default(false),
+  isCommitteeMember: boolean("is_committee_member").default(false),
+  socialLinks: json("social_links").$type()
+});
+var insertProfileSchema = createInsertSchema(profiles).omit({
+  id: true,
+  userId: true
+});
+var invitations = pgTable("invitations", {
+  id: serial("id").primaryKey(),
+  email: text("email").notNull(),
+  name: text("name").notNull(),
+  token: text("token").notNull().unique(),
+  role: text("role").notNull().default("user"),
+  type: text("type").notNull().default("account"),
+  // account, attendance
+  status: text("status").notNull().default("pending"),
+  // pending, accepted, rejected
+  message: text("message"),
+  senderId: integer("sender_id").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  expiresAt: timestamp("expires_at"),
+  institution: text("institution"),
+  position: text("position")
+});
+var insertInvitationSchema = createInsertSchema(invitations).omit({
+  id: true,
+  token: true,
+  status: true,
+  senderId: true,
+  createdAt: true
+});
+var notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  type: text("type").notNull().default("general"),
+  // general, important, deadline
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  expiresAt: timestamp("expires_at")
+});
+var insertNotificationSchema = createInsertSchema(notifications).omit({
+  id: true,
+  createdAt: true
+});
+var committeeMembers = pgTable("committee_members", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  role: text("role").notNull(),
+  institution: text("institution"),
+  country: text("country"),
+  category: text("category").notNull(),
+  // chief_patron, patron, organizing_committee, advisory_committee, etc.
+  email: text("email"),
+  phone: text("phone"),
+  order: integer("order").default(0),
+  profileLink: text("profile_link")
+  // Link to member's profile page
+});
+var insertCommitteeMemberSchema = createInsertSchema(committeeMembers).omit({
+  id: true
+});
+var researchAwards = pgTable("research_awards", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  eligibility: text("eligibility").notNull(),
+  amount: text("amount"),
+  deadline: timestamp("deadline"),
+  isActive: boolean("is_active").default(true)
+});
+var insertResearchAwardSchema = createInsertSchema(researchAwards).omit({
+  id: true
+});
+
+// server/db-storage.ts
 import session from "express-session";
-import createMemoryStore from "memorystore";
-var MemoryStore = createMemoryStore(session);
-var MemStorage = class {
-  userStore;
-  profileStore;
-  abstractStore;
-  invitationStore;
-  notificationStore;
-  committeeMemberStore;
-  researchAwardStore;
-  currentId;
+
+// server/db.ts
+import { Pool, neonConfig } from "@neondatabase/serverless";
+import { drizzle } from "drizzle-orm/neon-serverless";
+import ws from "ws";
+import dotenv from "dotenv";
+import { fileURLToPath } from "url";
+import path from "path";
+import { dirname } from "path";
+var __filename = fileURLToPath(import.meta.url);
+var __dirname = dirname(__filename);
+dotenv.config({ path: path.resolve(__dirname, "../.env") });
+neonConfig.webSocketConstructor = ws;
+if (!process.env.DATABASE_URL) {
+  throw new Error(
+    "DATABASE_URL must be set. Did you forget to provision a database?"
+  );
+}
+var pool = new Pool({ connectionString: process.env.DATABASE_URL });
+var db = drizzle({ client: pool, schema: schema_exports });
+
+// server/db-storage.ts
+import { eq, gt, or, and, desc, asc } from "drizzle-orm";
+import ConnectPgSimple from "connect-pg-simple";
+import { Pool as Pool2 } from "@neondatabase/serverless";
+var DbStorage = class {
   sessionStore;
   constructor() {
-    this.resetDatabase();
-    this.sessionStore = new MemoryStore({
-      checkPeriod: 864e5
-      // prune expired entries every 24h
+    const PgSession = ConnectPgSimple(session);
+    this.sessionStore = new PgSession({
+      pool: new Pool2({ connectionString: process.env.DATABASE_URL }),
+      tableName: "sessions",
+      createTableIfMissing: true
     });
   }
-  // Method to reset the database and recreate the admin user
-  resetDatabase() {
-    console.log("Resetting in-memory database...");
-    this.userStore = /* @__PURE__ */ new Map();
-    this.profileStore = /* @__PURE__ */ new Map();
-    this.abstractStore = /* @__PURE__ */ new Map();
-    this.invitationStore = /* @__PURE__ */ new Map();
-    this.notificationStore = /* @__PURE__ */ new Map();
-    this.committeeMemberStore = /* @__PURE__ */ new Map();
-    this.researchAwardStore = /* @__PURE__ */ new Map();
-    this.currentId = {
-      user: 1,
-      profile: 1,
-      abstract: 1,
-      invitation: 1,
-      notification: 1,
-      committeeMember: 1,
-      researchAward: 1
-    };
-    console.log("Creating admin user...");
-    const adminUser = {
-      id: 1,
-      username: "surya-d-naidu",
-      email: "admin@raiseds25.com",
-      // Using properly generated scrypt hash for "7075052734"
-      password: "26f479b13979ed3a9b50e6bbd80f45037614379c8c6cd027f175424fc69569ff214c4c02d8e43e0763220a61a398bdd116ad3534ed65bad12d9a2bbf9c4132d2.7d213b9682355958cffb77ffe6688b00",
-      firstName: "Surya",
-      lastName: "Naidu",
-      institution: "VIT-AP University",
-      role: "admin",
-      createdAt: /* @__PURE__ */ new Date()
-    };
-    this.userStore.set(1, adminUser);
-    const adminProfile = {
-      id: 1,
-      userId: 1,
-      bio: "Conference administrator",
-      position: "Administrator",
-      department: "Conference Management",
-      country: "India",
-      isPresenter: false,
-      isCommitteeMember: true,
-      socialLinks: {}
-    };
-    this.profileStore.set(1, adminProfile);
-    console.log("Admin user created successfully!");
-    console.log("Username: surya-d-naidu");
-    console.log("Password: 7075052734");
-  }
-  // Users
-  async getUser(id) {
-    return this.userStore.get(id);
-  }
-  async getUserByUsername(username) {
-    return Array.from(this.userStore.values()).find((user) => user.username === username);
-  }
-  async getUserByEmail(email) {
-    return Array.from(this.userStore.values()).find((user) => user.email === email);
-  }
-  async createUser(userData) {
-    const id = this.currentId.user++;
-    const now = /* @__PURE__ */ new Date();
-    const user = {
-      ...userData,
-      id,
-      role: "user",
-      createdAt: now
-    };
-    this.userStore.set(id, user);
-    return user;
-  }
-  async updateUser(id, data) {
-    const user = this.userStore.get(id);
-    if (!user) return void 0;
-    const updatedUser = { ...user, ...data };
-    this.userStore.set(id, updatedUser);
-    return updatedUser;
-  }
-  async getAllUsers() {
-    return Array.from(this.userStore.values());
-  }
-  // Profiles
-  async getProfile(userId) {
-    return Array.from(this.profileStore.values()).find((profile) => profile.userId === userId);
-  }
-  async createProfile(profileData) {
-    const id = this.currentId.profile++;
-    const profile = {
-      ...profileData,
-      id
-    };
-    this.profileStore.set(id, profile);
-    return profile;
-  }
-  async updateProfile(userId, data) {
-    const profile = Array.from(this.profileStore.values()).find((profile2) => profile2.userId === userId);
-    if (!profile) return void 0;
-    const updatedProfile = { ...profile, ...data };
-    this.profileStore.set(profile.id, updatedProfile);
-    return updatedProfile;
-  }
-  // Abstracts
-  async getAbstract(id) {
-    return this.abstractStore.get(id);
-  }
-  async getAbstractsByUser(userId) {
-    return Array.from(this.abstractStore.values()).filter((abstract) => abstract.userId === userId);
-  }
-  async getAllAbstracts() {
-    return Array.from(this.abstractStore.values());
-  }
-  async createAbstract(abstractData) {
-    const id = this.currentId.abstract++;
-    const now = /* @__PURE__ */ new Date();
-    const categoryCode = this.getCategoryCode(abstractData.category);
-    const randomNum = Math.floor(1e3 + Math.random() * 9e3);
-    const referenceId = `${categoryCode}-${randomNum}`;
-    const abstract = {
-      ...abstractData,
-      id,
-      referenceId,
-      status: "pending",
-      createdAt: now,
-      updatedAt: now
-    };
-    this.abstractStore.set(id, abstract);
-    return abstract;
-  }
-  // Helper function to generate category code from the abstract category
+  // Helper function to generate category code
   getCategoryCode(category) {
     const categoryCodeMap = {
       "Probability Theory": "PT",
@@ -181,154 +213,192 @@ var MemStorage = class {
     };
     return categoryCodeMap[category] || "XX";
   }
+  // ----- Users -----
+  async getUser(id) {
+    const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+    return result[0];
+  }
+  async getUserByUsername(username) {
+    const result = await db.select().from(users).where(eq(users.username, username)).limit(1);
+    return result[0];
+  }
+  async getUserByEmail(email) {
+    const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
+    return result[0];
+  }
+  async createUser(userData) {
+    const result = await db.insert(users).values(userData).returning();
+    return result[0];
+  }
+  async updateUser(id, data) {
+    const result = await db.update(users).set(data).where(eq(users.id, id)).returning();
+    return result[0];
+  }
+  async getAllUsers() {
+    return db.select().from(users);
+  }
+  // ----- Profiles -----
+  async getProfile(userId) {
+    const result = await db.select().from(profiles).where(eq(profiles.userId, userId)).limit(1);
+    return result[0];
+  }
+  async createProfile(profileData) {
+    const result = await db.insert(profiles).values(profileData).returning();
+    return result[0];
+  }
+  async updateProfile(userId, data) {
+    const existingProfile = await this.getProfile(userId);
+    if (!existingProfile) return void 0;
+    const result = await db.update(profiles).set(data).where(eq(profiles.userId, userId)).returning();
+    return result[0];
+  }
+  // ----- Abstracts -----
+  async getAbstract(id) {
+    const result = await db.select().from(abstracts).where(eq(abstracts.id, id)).limit(1);
+    return result[0];
+  }
+  async getAbstractsByUser(userId) {
+    return db.select().from(abstracts).where(eq(abstracts.userId, userId));
+  }
+  async getAllAbstracts() {
+    return db.select().from(abstracts).orderBy(desc(abstracts.createdAt));
+  }
+  async createAbstract(abstractData) {
+    const now = /* @__PURE__ */ new Date();
+    const categoryCode = this.getCategoryCode(abstractData.category);
+    const randomNum = Math.floor(1e3 + Math.random() * 9e3);
+    const referenceId = `${categoryCode}-${randomNum}`;
+    const result = await db.insert(abstracts).values({
+      ...abstractData,
+      referenceId,
+      status: "pending",
+      createdAt: now,
+      updatedAt: now
+    }).returning();
+    return result[0];
+  }
   async updateAbstract(id, data) {
-    const abstract = this.abstractStore.get(id);
-    if (!abstract) return void 0;
-    const updatedAbstract = {
-      ...abstract,
+    const result = await db.update(abstracts).set({
       ...data,
       updatedAt: /* @__PURE__ */ new Date()
-    };
-    this.abstractStore.set(id, updatedAbstract);
-    return updatedAbstract;
+    }).where(eq(abstracts.id, id)).returning();
+    return result[0];
   }
   async updateAbstractStatus(id, status) {
-    const abstract = this.abstractStore.get(id);
-    if (!abstract) return void 0;
-    abstract.status = status;
-    abstract.updatedAt = /* @__PURE__ */ new Date();
-    this.abstractStore.set(id, abstract);
-    return abstract;
+    const result = await db.update(abstracts).set({
+      status,
+      updatedAt: /* @__PURE__ */ new Date()
+    }).where(eq(abstracts.id, id)).returning();
+    return result[0];
   }
   async deleteAbstract(id) {
-    return this.abstractStore.delete(id);
+    const result = await db.delete(abstracts).where(eq(abstracts.id, id)).returning();
+    return result.length > 0;
   }
-  // Invitations
+  // ----- Invitations -----
   async getInvitation(id) {
-    return this.invitationStore.get(id);
+    const result = await db.select().from(invitations).where(eq(invitations.id, id)).limit(1);
+    return result[0];
   }
   async getInvitationByToken(token) {
-    return Array.from(this.invitationStore.values()).find((invitation) => invitation.token === token);
+    const result = await db.select().from(invitations).where(eq(invitations.token, token)).limit(1);
+    return result[0];
   }
   async getAllInvitations() {
-    return Array.from(this.invitationStore.values());
+    return db.select().from(invitations).orderBy(desc(invitations.createdAt));
   }
   async createInvitation(invitationData) {
-    const id = this.currentId.invitation++;
-    const now = /* @__PURE__ */ new Date();
-    const invitation = {
-      ...invitationData,
-      id,
-      status: "pending",
-      createdAt: now
-    };
-    this.invitationStore.set(id, invitation);
-    return invitation;
+    const result = await db.insert(invitations).values(invitationData).returning();
+    return result[0];
   }
   async updateInvitationStatus(token, status) {
-    const invitation = Array.from(this.invitationStore.values()).find((inv) => inv.token === token);
-    if (!invitation) return void 0;
-    invitation.status = status;
-    this.invitationStore.set(invitation.id, invitation);
-    return invitation;
+    const result = await db.update(invitations).set({ status }).where(eq(invitations.token, token)).returning();
+    return result[0];
   }
   async deleteInvitation(id) {
-    return this.invitationStore.delete(id);
+    const result = await db.delete(invitations).where(eq(invitations.id, id)).returning();
+    return result.length > 0;
   }
-  // Notifications
+  // ----- Notifications -----
   async getNotification(id) {
-    return this.notificationStore.get(id);
+    const result = await db.select().from(notifications).where(eq(notifications.id, id)).limit(1);
+    return result[0];
   }
   async getActiveNotifications() {
     const now = /* @__PURE__ */ new Date();
-    return Array.from(this.notificationStore.values()).filter(
-      (notification) => notification.isActive && (!notification.expiresAt || notification.expiresAt > now)
-    );
+    return db.select().from(notifications).where(
+      and(
+        eq(notifications.isActive, true),
+        or(
+          eq(notifications.expiresAt, null),
+          gt(notifications.expiresAt, now)
+        )
+      )
+    ).orderBy(desc(notifications.createdAt));
   }
   async getAllNotifications() {
-    return Array.from(this.notificationStore.values());
+    return db.select().from(notifications).orderBy(desc(notifications.createdAt));
   }
   async createNotification(notificationData) {
-    const id = this.currentId.notification++;
-    const now = /* @__PURE__ */ new Date();
-    const notification = {
-      ...notificationData,
-      id,
-      createdAt: now
-    };
-    this.notificationStore.set(id, notification);
-    return notification;
+    const result = await db.insert(notifications).values(notificationData).returning();
+    return result[0];
   }
   async updateNotification(id, data) {
-    const notification = this.notificationStore.get(id);
-    if (!notification) return void 0;
-    const updatedNotification = { ...notification, ...data };
-    this.notificationStore.set(id, updatedNotification);
-    return updatedNotification;
+    const result = await db.update(notifications).set(data).where(eq(notifications.id, id)).returning();
+    return result[0];
   }
   async deleteNotification(id) {
-    return this.notificationStore.delete(id);
+    const result = await db.delete(notifications).where(eq(notifications.id, id)).returning();
+    return result.length > 0;
   }
-  // Committee Members
+  // ----- Committee Members -----
   async getCommitteeMember(id) {
-    return this.committeeMemberStore.get(id);
+    const result = await db.select().from(committeeMembers).where(eq(committeeMembers.id, id)).limit(1);
+    return result[0];
   }
   async getCommitteeMembersByCategory(category) {
-    return Array.from(this.committeeMemberStore.values()).filter((member) => member.category === category).sort((a, b) => (a.order || 0) - (b.order || 0));
+    return db.select().from(committeeMembers).where(eq(committeeMembers.category, category)).orderBy(asc(committeeMembers.order));
   }
   async getAllCommitteeMembers() {
-    return Array.from(this.committeeMemberStore.values()).sort((a, b) => (a.order || 0) - (b.order || 0));
+    return db.select().from(committeeMembers).orderBy(asc(committeeMembers.order));
   }
   async createCommitteeMember(memberData) {
-    const id = this.currentId.committeeMember++;
-    const member = {
-      ...memberData,
-      id
-    };
-    this.committeeMemberStore.set(id, member);
-    return member;
+    const result = await db.insert(committeeMembers).values(memberData).returning();
+    return result[0];
   }
   async updateCommitteeMember(id, data) {
-    const member = this.committeeMemberStore.get(id);
-    if (!member) return void 0;
-    const updatedMember = { ...member, ...data };
-    this.committeeMemberStore.set(id, updatedMember);
-    return updatedMember;
+    const result = await db.update(committeeMembers).set(data).where(eq(committeeMembers.id, id)).returning();
+    return result[0];
   }
   async deleteCommitteeMember(id) {
-    return this.committeeMemberStore.delete(id);
+    const result = await db.delete(committeeMembers).where(eq(committeeMembers.id, id)).returning();
+    return result.length > 0;
   }
-  // Research Awards
+  // ----- Research Awards -----
   async getResearchAward(id) {
-    return this.researchAwardStore.get(id);
+    const result = await db.select().from(researchAwards).where(eq(researchAwards.id, id)).limit(1);
+    return result[0];
   }
   async getActiveResearchAwards() {
-    return Array.from(this.researchAwardStore.values()).filter((award) => award.isActive);
+    return db.select().from(researchAwards).where(eq(researchAwards.isActive, true));
   }
   async getAllResearchAwards() {
-    return Array.from(this.researchAwardStore.values());
+    return db.select().from(researchAwards);
   }
   async createResearchAward(awardData) {
-    const id = this.currentId.researchAward++;
-    const award = {
-      ...awardData,
-      id
-    };
-    this.researchAwardStore.set(id, award);
-    return award;
+    const result = await db.insert(researchAwards).values(awardData).returning();
+    return result[0];
   }
   async updateResearchAward(id, data) {
-    const award = this.researchAwardStore.get(id);
-    if (!award) return void 0;
-    const updatedAward = { ...award, ...data };
-    this.researchAwardStore.set(id, updatedAward);
-    return updatedAward;
+    const result = await db.update(researchAwards).set(data).where(eq(researchAwards.id, id)).returning();
+    return result[0];
   }
   async deleteResearchAward(id) {
-    return this.researchAwardStore.delete(id);
+    const result = await db.delete(researchAwards).where(eq(researchAwards.id, id)).returning();
+    return result.length > 0;
   }
 };
-var storage = new MemStorage();
+var storage = new DbStorage();
 
 // server/auth.ts
 import passport from "passport";
@@ -499,161 +569,15 @@ function setupAuth(app2) {
 
 // server/routes.ts
 import { randomBytes as randomBytes2 } from "crypto";
-
-// shared/schema.ts
-var schema_exports = {};
-__export(schema_exports, {
-  abstracts: () => abstracts,
-  committeeMembers: () => committeeMembers,
-  insertAbstractSchema: () => insertAbstractSchema,
-  insertCommitteeMemberSchema: () => insertCommitteeMemberSchema,
-  insertInvitationSchema: () => insertInvitationSchema,
-  insertNotificationSchema: () => insertNotificationSchema,
-  insertProfileSchema: () => insertProfileSchema,
-  insertResearchAwardSchema: () => insertResearchAwardSchema,
-  insertUserSchema: () => insertUserSchema,
-  invitations: () => invitations,
-  notifications: () => notifications,
-  profiles: () => profiles,
-  researchAwards: () => researchAwards,
-  users: () => users
-});
-import { pgTable, text, serial, integer, boolean, timestamp, json } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
-var users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
-  email: text("email").notNull().unique(),
-  firstName: text("first_name").notNull(),
-  lastName: text("last_name").notNull(),
-  institution: text("institution").notNull(),
-  role: text("role").notNull().default("user"),
-  // user, admin
-  createdAt: timestamp("created_at").defaultNow()
-});
-var insertUserSchema = createInsertSchema(users).omit({
-  id: true,
-  createdAt: true,
-  role: true
-});
-var abstracts = pgTable("abstracts", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  title: text("title").notNull(),
-  category: text("category").notNull(),
-  content: text("content").notNull(),
-  authors: text("authors").notNull(),
-  // New field for authors
-  keywords: text("keywords").notNull(),
-  referenceId: text("reference_id"),
-  status: text("status").notNull().default("pending"),
-  // pending, accepted, rejected
-  fileUrl: text("file_url"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow()
-});
-var insertAbstractSchema = createInsertSchema(abstracts).omit({
-  id: true,
-  userId: true,
-  status: true,
-  createdAt: true,
-  updatedAt: true
-});
-var profiles = pgTable("profiles", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().unique(),
-  bio: text("bio"),
-  position: text("position"),
-  department: text("department"),
-  country: text("country"),
-  profilePictureUrl: text("profile_picture_url"),
-  isPresenter: boolean("is_presenter").default(false),
-  isCommitteeMember: boolean("is_committee_member").default(false),
-  socialLinks: json("social_links").$type()
-});
-var insertProfileSchema = createInsertSchema(profiles).omit({
-  id: true,
-  userId: true
-});
-var invitations = pgTable("invitations", {
-  id: serial("id").primaryKey(),
-  email: text("email").notNull(),
-  name: text("name").notNull(),
-  token: text("token").notNull().unique(),
-  role: text("role").notNull().default("user"),
-  type: text("type").notNull().default("account"),
-  // account, attendance
-  status: text("status").notNull().default("pending"),
-  // pending, accepted, rejected
-  message: text("message"),
-  senderId: integer("sender_id").notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
-  expiresAt: timestamp("expires_at"),
-  institution: text("institution"),
-  position: text("position")
-});
-var insertInvitationSchema = createInsertSchema(invitations).omit({
-  id: true,
-  token: true,
-  status: true,
-  senderId: true,
-  createdAt: true
-});
-var notifications = pgTable("notifications", {
-  id: serial("id").primaryKey(),
-  title: text("title").notNull(),
-  content: text("content").notNull(),
-  type: text("type").notNull().default("general"),
-  // general, important, deadline
-  isActive: boolean("is_active").notNull().default(true),
-  createdAt: timestamp("created_at").defaultNow(),
-  expiresAt: timestamp("expires_at")
-});
-var insertNotificationSchema = createInsertSchema(notifications).omit({
-  id: true,
-  createdAt: true
-});
-var committeeMembers = pgTable("committee_members", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  role: text("role").notNull(),
-  institution: text("institution"),
-  country: text("country"),
-  category: text("category").notNull(),
-  // chief_patron, patron, organizing_committee, advisory_committee, etc.
-  email: text("email"),
-  phone: text("phone"),
-  order: integer("order").default(0),
-  profileLink: text("profile_link")
-  // Link to member's profile page
-});
-var insertCommitteeMemberSchema = createInsertSchema(committeeMembers).omit({
-  id: true
-});
-var researchAwards = pgTable("research_awards", {
-  id: serial("id").primaryKey(),
-  title: text("title").notNull(),
-  description: text("description").notNull(),
-  eligibility: text("eligibility").notNull(),
-  amount: text("amount"),
-  deadline: timestamp("deadline"),
-  isActive: boolean("is_active").default(true)
-});
-var insertResearchAwardSchema = createInsertSchema(researchAwards).omit({
-  id: true
-});
-
-// server/routes.ts
 import { ZodError } from "zod";
 import multer from "multer";
-import path from "path";
+import path2 from "path";
 import fs from "fs";
 import nodemailer from "nodemailer";
 var upload = multer({
   storage: multer.diskStorage({
     destination: function(req, file, cb) {
-      const dir = path.join(process.cwd(), "uploads");
+      const dir = path2.join(process.cwd(), "uploads");
       if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
       }
@@ -661,7 +585,7 @@ var upload = multer({
     },
     filename: function(req, file, cb) {
       const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-      cb(null, file.fieldname + "-" + uniqueSuffix + path.extname(file.originalname));
+      cb(null, file.fieldname + "-" + uniqueSuffix + path2.extname(file.originalname));
     }
   })
 });
@@ -713,7 +637,7 @@ function isAdmin(req, res, next) {
 }
 async function registerRoutes(app2) {
   setupAuth(app2);
-  const uploadsDir = path.join(process.cwd(), "uploads");
+  const uploadsDir = path2.join(process.cwd(), "uploads");
   if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir, { recursive: true });
   }
@@ -790,7 +714,7 @@ async function registerRoutes(app2) {
       if (req.file) {
         updateData.fileUrl = `/uploads/${req.file.filename}`;
         if (abstract.fileUrl) {
-          const oldFilePath = path.join(process.cwd(), abstract.fileUrl.replace(/^\/uploads\//, "uploads/"));
+          const oldFilePath = path2.join(process.cwd(), abstract.fileUrl.replace(/^\/uploads\//, "uploads/"));
           if (fs.existsSync(oldFilePath)) {
             fs.unlinkSync(oldFilePath);
           }
@@ -816,7 +740,7 @@ async function registerRoutes(app2) {
         return res.status(403).json({ message: "Forbidden" });
       }
       if (abstract.fileUrl) {
-        const filePath = path.join(process.cwd(), abstract.fileUrl.replace(/^\/uploads\//, "uploads/"));
+        const filePath = path2.join(process.cwd(), abstract.fileUrl.replace(/^\/uploads\//, "uploads/"));
         if (fs.existsSync(filePath)) {
           fs.unlinkSync(filePath);
         }
@@ -1238,7 +1162,7 @@ async function registerRoutes(app2) {
     }
   });
   app2.get("/api/brochure", (req, res) => {
-    const brochurePath = path.join(process.cwd(), "uploads", "brochure.pdf");
+    const brochurePath = path2.join(process.cwd(), "uploads", "brochure.pdf");
     if (fs.existsSync(brochurePath)) {
       res.download(brochurePath, "RAISE-DS-2025-Brochure.pdf");
     } else {
@@ -1250,7 +1174,7 @@ async function registerRoutes(app2) {
       return res.status(400).json({ message: "No file uploaded" });
     }
     const oldPath = req.file.path;
-    const newPath = path.join(process.cwd(), "uploads", "brochure.pdf");
+    const newPath = path2.join(process.cwd(), "uploads", "brochure.pdf");
     if (fs.existsSync(newPath)) {
       fs.unlinkSync(newPath);
     }
@@ -1264,14 +1188,18 @@ async function registerRoutes(app2) {
 // server/vite.ts
 import express2 from "express";
 import fs2 from "fs";
-import path3 from "path";
+import path4 from "path";
 import { createServer as createViteServer, createLogger } from "vite";
 
 // vite.config.ts
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import path2 from "path";
+import path3 from "path";
+import { fileURLToPath as fileURLToPath2 } from "url";
+import { dirname as dirname2 } from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
+var __filename2 = fileURLToPath2(import.meta.url);
+var __dirname2 = dirname2(__filename2);
 var vite_config_default = defineConfig({
   plugins: [
     react(),
@@ -1284,20 +1212,24 @@ var vite_config_default = defineConfig({
   ],
   resolve: {
     alias: {
-      "@": path2.resolve(import.meta.dirname, "client", "src"),
-      "@shared": path2.resolve(import.meta.dirname, "shared"),
-      "@assets": path2.resolve(import.meta.dirname, "attached_assets")
+      "@": path3.resolve(__dirname2, "client", "src"),
+      "@shared": path3.resolve(__dirname2, "shared"),
+      "@assets": path3.resolve(__dirname2, "attached_assets")
     }
   },
-  root: path2.resolve(import.meta.dirname, "client"),
+  root: path3.resolve(__dirname2, "client"),
   build: {
-    outDir: path2.resolve(import.meta.dirname, "dist/public"),
+    outDir: path3.resolve(__dirname2, "dist/public"),
     emptyOutDir: true
   }
 });
 
 // server/vite.ts
 import { nanoid } from "nanoid";
+import { fileURLToPath as fileURLToPath3 } from "url";
+import { dirname as dirname3 } from "path";
+var __filename3 = fileURLToPath3(import.meta.url);
+var __dirname3 = dirname3(__filename3);
 var viteLogger = createLogger();
 function log(message, source = "express") {
   const formattedTime = (/* @__PURE__ */ new Date()).toLocaleTimeString("en-US", {
@@ -1331,8 +1263,8 @@ async function setupVite(app2, server) {
   app2.use("*", async (req, res, next) => {
     const url = req.originalUrl;
     try {
-      const clientTemplate = path3.resolve(
-        import.meta.dirname,
+      const clientTemplate = path4.resolve(
+        __dirname3,
         "..",
         "client",
         "index.html"
@@ -1351,170 +1283,46 @@ async function setupVite(app2, server) {
   });
 }
 function serveStatic(app2) {
-  const distPath = path3.resolve(import.meta.dirname, "..", "dist", "public");
+  const distPath = path4.resolve(__dirname3, "..", "dist", "public");
   if (!fs2.existsSync(distPath)) {
     throw new Error(
       `Could not find the build directory: ${distPath}, make sure to build the client first`
     );
   }
-  const publicPath2 = path3.resolve(import.meta.dirname, "..", "public");
+  const publicPath2 = path4.resolve(__dirname3, "..", "public");
   app2.use("/public", express2.static(publicPath2));
   app2.use(express2.static(distPath));
   app2.use("*", (_req, res) => {
-    res.sendFile(path3.resolve(distPath, "index.html"));
+    res.sendFile(path4.resolve(distPath, "index.html"));
   });
 }
 
 // server/index.ts
 import dotenv2 from "dotenv";
-import { fileURLToPath as fileURLToPath2 } from "url";
+import { fileURLToPath as fileURLToPath4 } from "url";
 import path5 from "path";
-import { dirname as dirname2 } from "path";
-
-// server/db.ts
-import { Pool, neonConfig } from "@neondatabase/serverless";
-import { drizzle } from "drizzle-orm/neon-serverless";
-import ws from "ws";
-import dotenv from "dotenv";
-import { fileURLToPath } from "url";
-import path4 from "path";
-import { dirname } from "path";
-var __filename = fileURLToPath(import.meta.url);
-var __dirname = dirname(__filename);
-dotenv.config({ path: path4.resolve(__dirname, "../.env") });
-neonConfig.webSocketConstructor = ws;
-if (!process.env.DATABASE_URL) {
-  throw new Error(
-    "DATABASE_URL must be set. Did you forget to provision a database?"
-  );
-}
-var pool = new Pool({ connectionString: process.env.DATABASE_URL });
-var db = drizzle({ client: pool, schema: schema_exports });
-
-// server/seed.ts
-import { scrypt as scrypt2, randomBytes as randomBytes3 } from "crypto";
-import { promisify as promisify2 } from "util";
-import { sql } from "drizzle-orm";
-var scryptAsync2 = promisify2(scrypt2);
-async function createTables() {
-  try {
-    console.log("Creating database tables if they don't exist...");
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS users (
-        id SERIAL PRIMARY KEY,
-        username TEXT NOT NULL UNIQUE,
-        password TEXT NOT NULL,
-        email TEXT NOT NULL UNIQUE,
-        first_name TEXT NOT NULL,
-        last_name TEXT NOT NULL,
-        institution TEXT NOT NULL,
-        role TEXT NOT NULL DEFAULT 'user',
-        created_at TIMESTAMP DEFAULT NOW()
-      )
-    `);
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS abstracts (
-        id SERIAL PRIMARY KEY,
-        user_id INTEGER NOT NULL,
-        title TEXT NOT NULL,
-        category TEXT NOT NULL,
-        content TEXT NOT NULL,
-        authors TEXT NOT NULL,
-        keywords TEXT NOT NULL,
-        reference_id TEXT,
-        status TEXT NOT NULL DEFAULT 'pending',
-        file_url TEXT,
-        created_at TIMESTAMP DEFAULT NOW(),
-        updated_at TIMESTAMP DEFAULT NOW()
-      )
-    `);
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS profiles (
-        id SERIAL PRIMARY KEY,
-        user_id INTEGER NOT NULL UNIQUE,
-        bio TEXT,
-        position TEXT,
-        department TEXT,
-        country TEXT,
-        profile_picture_url TEXT,
-        is_presenter BOOLEAN DEFAULT FALSE,
-        is_committee_member BOOLEAN DEFAULT FALSE,
-        social_links JSONB
-      )
-    `);
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS invitations (
-        id SERIAL PRIMARY KEY,
-        email TEXT NOT NULL,
-        name TEXT NOT NULL,
-        token TEXT NOT NULL UNIQUE,
-        role TEXT NOT NULL DEFAULT 'user',
-        status TEXT NOT NULL DEFAULT 'pending',
-        message TEXT,
-        sender_id INTEGER NOT NULL,
-        created_at TIMESTAMP DEFAULT NOW(),
-        expires_at TIMESTAMP
-      )
-    `);
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS notifications (
-        id SERIAL PRIMARY KEY,
-        title TEXT NOT NULL,
-        content TEXT NOT NULL,
-        type TEXT NOT NULL DEFAULT 'general',
-        is_active BOOLEAN NOT NULL DEFAULT TRUE,
-        created_at TIMESTAMP DEFAULT NOW(),
-        expires_at TIMESTAMP
-      )
-    `);
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS committee_members (
-        id SERIAL PRIMARY KEY,
-        name TEXT NOT NULL,
-        role TEXT NOT NULL,
-        institution TEXT,
-        country TEXT,
-        category TEXT NOT NULL,
-        email TEXT,
-        phone TEXT,
-        "order" INTEGER DEFAULT 0
-      )
-    `);
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS research_awards (
-        id SERIAL PRIMARY KEY,
-        title TEXT NOT NULL,
-        description TEXT NOT NULL,
-        eligibility TEXT NOT NULL,
-        amount TEXT,
-        deadline TIMESTAMP,
-        is_active BOOLEAN DEFAULT TRUE
-      )
-    `);
-    console.log("Database tables created successfully!");
-  } catch (error) {
-    console.error("Error creating tables:", error);
-    throw error;
-  }
-}
-async function setupDatabase() {
-  try {
-    await createTables();
-    console.log("Database setup completed successfully!");
-  } catch (error) {
-    console.error("Error setting up database:", error);
-  }
-}
-setupDatabase();
-
-// server/index.ts
-var __filename2 = fileURLToPath2(import.meta.url);
-var __dirname2 = dirname2(__filename2);
-dotenv2.config({ path: path5.resolve(__dirname2, "../.env") });
+import { dirname as dirname4 } from "path";
+import https from "https";
+import http from "http";
+import fs3 from "fs";
+var __filename4 = fileURLToPath4(import.meta.url);
+var __dirname4 = dirname4(__filename4);
+dotenv2.config({ path: path5.resolve(__dirname4, "../.env") });
 var app = express3();
 app.use(express3.json());
 app.use(express3.urlencoded({ extended: false }));
-var publicPath = process.env.NODE_ENV === "production" ? path5.join(__dirname2, "public") : path5.join(__dirname2, "../public");
+app.enable("trust proxy");
+app.use((req, res, next) => {
+  res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+  const hostHeader = req.headers.host || "";
+  const isHttps = req.secure || req.headers["x-forwarded-proto"] === "https";
+  if (process.env.NODE_ENV === "production" && hostHeader.includes("raiseds25") && // Only redirect domain traffic
+  !isHttps) {
+    return res.redirect(301, `https://${hostHeader}${req.url}`);
+  }
+  next();
+});
+var publicPath = process.env.NODE_ENV === "production" ? path5.join(__dirname4, "public") : path5.join(__dirname4, "../public");
 app.use("/public", express3.static(publicPath));
 app.use((req, res, next) => {
   const start = Date.now();
@@ -1553,11 +1361,38 @@ app.use((req, res, next) => {
   } else {
     serveStatic(app);
   }
-  const port = 5e3;
-  server.listen({
-    port,
-    host: "0.0.0.0"
-  }, () => {
-    log(`serving on port ${port}`);
-  });
+  const port = parseInt(process.env.PORT || "5000", 10);
+  if (process.env.NODE_ENV === "production") {
+    const httpPort = 80;
+    const httpsPort = 443;
+    const httpServer = http.createServer(app);
+    httpServer.listen(httpPort, "0.0.0.0", () => {
+      log(`HTTP server running on port ${httpPort} (redirects to HTTPS)`);
+    });
+    try {
+      const sslOptions = {
+        key: fs3.readFileSync("/etc/letsencrypt/live/raiseds25.com/privkey.pem"),
+        cert: fs3.readFileSync("/etc/letsencrypt/live/raiseds25.com/fullchain.pem")
+      };
+      const httpsServer = https.createServer(sslOptions, app);
+      httpsServer.listen(httpsPort, "0.0.0.0", () => {
+        log(`HTTPS server running on port ${httpsPort}`);
+      });
+    } catch (error) {
+      log(`SSL certificates not found, falling back to HTTP only on port ${port}`);
+      server.listen({
+        port,
+        host: "0.0.0.0"
+      }, () => {
+        log(`serving on port ${port}`);
+      });
+    }
+  } else {
+    server.listen({
+      port,
+      host: "0.0.0.0"
+    }, () => {
+      log(`serving on port ${port}`);
+    });
+  }
 })();
