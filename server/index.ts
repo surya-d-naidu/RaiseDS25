@@ -36,10 +36,13 @@ app.use((req, res, next) => {
   
   if (
     process.env.NODE_ENV === 'production' && 
+    process.env.ENABLE_HTTPS === 'true' &&
     hostHeader.includes('raiseds25') &&  // Only redirect domain traffic
     !isHttps
   ) {
-    return res.redirect(301, `https://${hostHeader}${req.url}`);
+    // Remove port if present in hostHeader
+    const host = hostHeader.split(':')[0];
+    return res.redirect(301, `https://${host}${req.url}`);
   }
   
   next();
@@ -101,6 +104,47 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
+  // Set up HTTPS server with SSL certificates
+  if (process.env.NODE_ENV === "production" && process.env.ENABLE_HTTPS === 'true') {
+    try {
+      // Read SSL certificate files
+      const privateKey = fs.readFileSync('/etc/letsencrypt/live/raiseds25.com/privkey.pem', 'utf8');
+      const certificate = fs.readFileSync('/etc/letsencrypt/live/raiseds25.com/fullchain.pem', 'utf8');
+      
+      const credentials = {
+        key: privateKey,
+        cert: certificate
+      };
+      
+      // Create HTTPS server
+      const httpsServer = https.createServer(credentials, app);
+      
+      // Listen on port 443 for HTTPS
+      httpsServer.listen(443, '0.0.0.0', () => {
+        log(`HTTPS server running on port 443`);
+      }).on('error', (err: NodeJS.ErrnoException) => {
+        if (err.code === 'EACCES') {
+          log(`Error: Permission denied to bind to port 443. Make sure the process has the right permissions or is run with sudo.`);
+        } else if (err.code === 'EADDRINUSE') {
+          log(`Error: Port 443 is already in use. Make sure no other service is running on this port.`);
+        } else {
+          log(`HTTPS server error: ${err.message}`);
+        }
+      });
+      
+      log('HTTPS server successfully configured');
+    } catch (error) {
+      log(`Failed to set up HTTPS server: ${error.message}`);
+      
+      // Check for common issues with certificate files
+      if (error.code === 'ENOENT') {
+        log('SSL certificate files not found. Please check the path to your certificate files.');
+      } else if (error.code === 'EACCES') {
+        log('Permission denied when reading certificate files. Please check file permissions.');
+      }
+    }
+  }
+
   // Serve the app on the configured port (default 5000)
   // this serves both the API and the client.
   const port = parseInt(process.env.PORT || '5000', 10);
@@ -108,6 +152,14 @@ app.use((req, res, next) => {
     port,
     host: "0.0.0.0",
   }, () => {
-    log(`serving on port ${port}`);
+    log(`HTTP server running on port ${port}`);
+  }).on('error', (err: NodeJS.ErrnoException) => {
+    if (err.code === 'EACCES') {
+      log(`Error: Permission denied to bind to port ${port}. Make sure the process has the right permissions or is run with sudo.`);
+    } else if (err.code === 'EADDRINUSE') {
+      log(`Error: Port ${port} is already in use. Make sure no other service is running on this port.`);
+    } else {
+      log(`HTTP server error: ${err.message}`);
+    }
   });
 })();

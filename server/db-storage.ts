@@ -253,12 +253,23 @@ export class DbStorage implements IStorage {
   }
   
   async getAllCommitteeMembers(): Promise<CommitteeMember[]> {
-    return db.select().from(committeeMembers).orderBy(asc(committeeMembers.order));
+    try {
+      return await db.select().from(committeeMembers).orderBy(asc(committeeMembers.order));
+    } catch (error) {
+      console.error("Error fetching committee members:", error);
+      return []; // Return empty array instead of throwing error
+    }
   }
   
   async createCommitteeMember(memberData: InsertCommitteeMember): Promise<CommitteeMember> {
-    const result = await db.insert(committeeMembers).values(memberData).returning();
-    return result[0];
+    try {
+      // After migration, we can use all fields including profileLink and image
+      const result = await db.insert(committeeMembers).values(memberData).returning();
+      return result[0];
+    } catch (error) {
+      console.error("Error creating committee member:", error);
+      throw error;
+    }
   }
   
   async updateCommitteeMember(id: number, data: Partial<InsertCommitteeMember>): Promise<CommitteeMember | undefined> {

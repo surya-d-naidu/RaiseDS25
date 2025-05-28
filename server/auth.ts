@@ -113,13 +113,33 @@ export function setupAuth(app: Express) {
     }),
   );
 
-  passport.serializeUser((user, done) => done(null, user.id));
+  passport.serializeUser((user, done) => {
+    if (!user || !user.id) {
+      console.warn('Cannot serialize undefined or invalid user');
+      return done(null, false);
+    }
+    return done(null, user.id);
+  });
+  
   passport.deserializeUser(async (id: number, done) => {
+    if (!id) {
+      console.warn('No ID provided for deserialization');
+      return done(null, false);
+    }
+    
     try {
       const user = await storage.getUser(id);
-      done(null, user);
+      
+      if (!user) {
+        console.warn(`User with ID ${id} not found during deserialization`);
+        return done(null, false);
+      }
+      
+      return done(null, user);
     } catch (error) {
-      done(error);
+      console.error('Error deserializing user:', error);
+      // Don't throw an error here, just return false to avoid crashing
+      return done(null, false);
     }
   });
 

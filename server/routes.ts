@@ -349,9 +349,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/committee", async (req, res) => {
     try {
       const members = await storage.getAllCommitteeMembers();
-      res.json(members);
+      // Ensure we always return an array, even if the storage returns null/undefined
+      res.json(members || []);
     } catch (error) {
-      res.status(500).json({ message: "Error fetching committee members" });
+      console.error("Error fetching committee members:", error);
+      // Return an empty array instead of an error to handle client-side gracefully
+      res.json([]);
     }
   });
   
@@ -372,10 +375,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const member = await storage.createCommitteeMember(validatedData);
       res.status(201).json(member);
     } catch (error) {
+      console.error("Error in committee member creation:", error);
       if (error instanceof ZodError) {
         return res.status(400).json({ errors: formatZodError(error) });
       }
       res.status(500).json({ message: "Error creating committee member" });
+    }
+  });
+  
+  // Add route for committee member image upload
+  app.post("/api/admin/committee/:id/image", isAdmin, upload.single('image'), async (req, res) => {
+    try {
+      const memberId = parseInt(req.params.id);
+      if (!req.file) {
+        return res.status(400).json({ message: "No image file provided" });
+      }
+      
+      // Get the path to the uploaded file
+      const imagePath = `/uploads/${req.file.filename}`;
+      
+      // Update the member's image field
+      const updatedMember = await storage.updateCommitteeMember(memberId, { image: imagePath });
+      
+      if (!updatedMember) {
+        return res.status(404).json({ message: "Committee member not found" });
+      }
+      
+      res.json({ imagePath, member: updatedMember });
+    } catch (error) {
+      console.error("Error uploading committee member image:", error);
+      res.status(500).json({ message: "Error uploading image" });
     }
   });
   

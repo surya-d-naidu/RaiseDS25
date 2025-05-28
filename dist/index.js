@@ -136,8 +136,10 @@ var committeeMembers = pgTable("committee_members", {
   email: text("email"),
   phone: text("phone"),
   order: integer("order").default(0),
-  profileLink: text("profile_link")
+  profileLink: text("profile_link"),
   // Link to member's profile page
+  image: text("image")
+  // Path to member's image
 });
 var insertCommitteeMemberSchema = createInsertSchema(committeeMembers).omit({
   id: true
@@ -360,11 +362,21 @@ var DbStorage = class {
     return db.select().from(committeeMembers).where(eq(committeeMembers.category, category)).orderBy(asc(committeeMembers.order));
   }
   async getAllCommitteeMembers() {
-    return db.select().from(committeeMembers).orderBy(asc(committeeMembers.order));
+    try {
+      return await db.select().from(committeeMembers).orderBy(asc(committeeMembers.order));
+    } catch (error) {
+      console.error("Error fetching committee members:", error);
+      return [];
+    }
   }
   async createCommitteeMember(memberData) {
-    const result = await db.insert(committeeMembers).values(memberData).returning();
-    return result[0];
+    try {
+      const result = await db.insert(committeeMembers).values(memberData).returning();
+      return result[0];
+    } catch (error) {
+      console.error("Error creating committee member:", error);
+      throw error;
+    }
   }
   async updateCommitteeMember(id, data) {
     const result = await db.update(committeeMembers).set(data).where(eq(committeeMembers.id, id)).returning();
@@ -488,13 +500,28 @@ function setupAuth(app2) {
       }
     })
   );
-  passport.serializeUser((user, done) => done(null, user.id));
+  passport.serializeUser((user, done) => {
+    if (!user || !user.id) {
+      console.warn("Cannot serialize undefined or invalid user");
+      return done(null, false);
+    }
+    return done(null, user.id);
+  });
   passport.deserializeUser(async (id, done) => {
+    if (!id) {
+      console.warn("No ID provided for deserialization");
+      return done(null, false);
+    }
     try {
       const user = await storage.getUser(id);
-      done(null, user);
+      if (!user) {
+        console.warn(`User with ID ${id} not found during deserialization`);
+        return done(null, false);
+      }
+      return done(null, user);
     } catch (error) {
-      done(error);
+      console.error("Error deserializing user:", error);
+      return done(null, false);
     }
   });
   app2.post("/api/register", async (req, res, next) => {
@@ -850,9 +877,10 @@ async function registerRoutes(app2) {
   app2.get("/api/committee", async (req, res) => {
     try {
       const members = await storage.getAllCommitteeMembers();
-      res.json(members);
+      res.json(members || []);
     } catch (error) {
-      res.status(500).json({ message: "Error fetching committee members" });
+      console.error("Error fetching committee members:", error);
+      res.json([]);
     }
   });
   app2.get("/api/committee/:category", async (req, res) => {
@@ -870,10 +898,28 @@ async function registerRoutes(app2) {
       const member = await storage.createCommitteeMember(validatedData);
       res.status(201).json(member);
     } catch (error) {
+      console.error("Error in committee member creation:", error);
       if (error instanceof ZodError) {
         return res.status(400).json({ errors: formatZodError(error) });
       }
       res.status(500).json({ message: "Error creating committee member" });
+    }
+  });
+  app2.post("/api/admin/committee/:id/image", isAdmin, upload.single("image"), async (req, res) => {
+    try {
+      const memberId = parseInt(req.params.id);
+      if (!req.file) {
+        return res.status(400).json({ message: "No image file provided" });
+      }
+      const imagePath = `/uploads/${req.file.filename}`;
+      const updatedMember = await storage.updateCommitteeMember(memberId, { image: imagePath });
+      if (!updatedMember) {
+        return res.status(404).json({ message: "Committee member not found" });
+      }
+      res.json({ imagePath, member: updatedMember });
+    } catch (error) {
+      console.error("Error uploading committee member image:", error);
+      res.status(500).json({ message: "Error uploading image" });
     }
   });
   app2.put("/api/admin/committee/:id", isAdmin, async (req, res) => {
@@ -1303,7 +1349,6 @@ import { fileURLToPath as fileURLToPath4 } from "url";
 import path5 from "path";
 import { dirname as dirname4 } from "path";
 import https from "https";
-import http from "http";
 import fs3 from "fs";
 var __filename4 = fileURLToPath4(import.meta.url);
 var __dirname4 = dirname4(__filename4);
@@ -1316,9 +1361,10 @@ app.use((req, res, next) => {
   res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
   const hostHeader = req.headers.host || "";
   const isHttps = req.secure || req.headers["x-forwarded-proto"] === "https";
-  if (process.env.NODE_ENV === "production" && hostHeader.includes("raiseds25") && // Only redirect domain traffic
+  if (process.env.NODE_ENV === "production" && process.env.ENABLE_HTTPS === "true" && hostHeader.includes("raiseds25") && // Only redirect domain traffic
   !isHttps) {
-    return res.redirect(301, `https://${hostHeader}${req.url}`);
+    const host = hostHeader.split(":")[0];
+    return res.redirect(301, `https://${host}${req.url}`);
   }
   next();
 });
@@ -1361,38 +1407,49 @@ app.use((req, res, next) => {
   } else {
     serveStatic(app);
   }
-  const port = parseInt(process.env.PORT || "5000", 10);
-  if (process.env.NODE_ENV === "production") {
-    const httpPort = 80;
-    const httpsPort = 443;
-    const httpServer = http.createServer(app);
-    httpServer.listen(httpPort, "0.0.0.0", () => {
-      log(`HTTP server running on port ${httpPort} (redirects to HTTPS)`);
-    });
+  if (process.env.NODE_ENV === "production" && process.env.ENABLE_HTTPS === "true") {
     try {
-      const sslOptions = {
-        key: fs3.readFileSync("/etc/letsencrypt/live/raiseds25.com/privkey.pem"),
-        cert: fs3.readFileSync("/etc/letsencrypt/live/raiseds25.com/fullchain.pem")
+      const privateKey = fs3.readFileSync("/etc/letsencrypt/live/raiseds25.com/privkey.pem", "utf8");
+      const certificate = fs3.readFileSync("/etc/letsencrypt/live/raiseds25.com/fullchain.pem", "utf8");
+      const credentials = {
+        key: privateKey,
+        cert: certificate
       };
-      const httpsServer = https.createServer(sslOptions, app);
-      httpsServer.listen(httpsPort, "0.0.0.0", () => {
-        log(`HTTPS server running on port ${httpsPort}`);
+      const httpsServer = https.createServer(credentials, app);
+      httpsServer.listen(443, "0.0.0.0", () => {
+        log(`HTTPS server running on port 443`);
+      }).on("error", (err) => {
+        if (err.code === "EACCES") {
+          log(`Error: Permission denied to bind to port 443. Make sure the process has the right permissions or is run with sudo.`);
+        } else if (err.code === "EADDRINUSE") {
+          log(`Error: Port 443 is already in use. Make sure no other service is running on this port.`);
+        } else {
+          log(`HTTPS server error: ${err.message}`);
+        }
       });
+      log("HTTPS server successfully configured");
     } catch (error) {
-      log(`SSL certificates not found, falling back to HTTP only on port ${port}`);
-      server.listen({
-        port,
-        host: "0.0.0.0"
-      }, () => {
-        log(`serving on port ${port}`);
-      });
+      log(`Failed to set up HTTPS server: ${error.message}`);
+      if (error.code === "ENOENT") {
+        log("SSL certificate files not found. Please check the path to your certificate files.");
+      } else if (error.code === "EACCES") {
+        log("Permission denied when reading certificate files. Please check file permissions.");
+      }
     }
-  } else {
-    server.listen({
-      port,
-      host: "0.0.0.0"
-    }, () => {
-      log(`serving on port ${port}`);
-    });
   }
+  const port = parseInt(process.env.PORT || "5000", 10);
+  server.listen({
+    port,
+    host: "0.0.0.0"
+  }, () => {
+    log(`HTTP server running on port ${port}`);
+  }).on("error", (err) => {
+    if (err.code === "EACCES") {
+      log(`Error: Permission denied to bind to port ${port}. Make sure the process has the right permissions or is run with sudo.`);
+    } else if (err.code === "EADDRINUSE") {
+      log(`Error: Port ${port} is already in use. Make sure no other service is running on this port.`);
+    } else {
+      log(`HTTP server error: ${err.message}`);
+    }
+  });
 })();

@@ -21,16 +21,30 @@ export default function AdminCommitteePage() {
     email: "",
     phone: "",
     order: 0,
-    profileLink: ""
+    profileLink: "",
+    image: ""
   });
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [filterCategory, setFilterCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const { toast } = useToast();
   useEffect(() => {
     fetch("/api/committee")
       .then((res) => res.json())
-      .then(setCommitteeMembers)
-      .catch(() => toast({ title: "Error fetching committee members", variant: "destructive" }));
+      .then((data) => {
+        // Ensure data is an array before setting state
+        if (Array.isArray(data)) {
+          setCommitteeMembers(data);
+        } else {
+          console.error("API returned non-array data:", data);
+          setCommitteeMembers([]);
+          toast({ title: "Invalid data format received from server", variant: "destructive" });
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching committee members:", error);
+        toast({ title: "Error fetching committee members", variant: "destructive" });
+      });
   }, [toast]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -41,30 +55,79 @@ export default function AdminCommitteePage() {
   const handleSelectChange = (name: string, value: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
+  
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedImage(e.target.files[0]);
+    }
+  };
 
-  const handleSubmit = () => {
-    const method = formData.id ? "PUT" : "POST";
-    const url = formData.id ? `/api/admin/committee/${formData.id}` : "/api/admin/committee";
-
-    fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to save committee member");
-        return res.json();
-      })
-      .then((data) => {
-        setCommitteeMembers((prev) =>
-          formData.id
-            ? prev.map((member) => (member.id === data.id ? data : member))
-            : [...prev, data]
-        );
-        setIsDialogOpen(false);
-        toast({ title: "Committee member saved successfully" });
-      })
-      .catch(() => toast({ title: "Error saving committee member", variant: "destructive" }));
+  const handleSubmit = async () => {
+    try {
+      const method = formData.id ? "PUT" : "POST";
+      const url = formData.id ? `/api/admin/committee/${formData.id}` : "/api/admin/committee";
+      
+      // Submit the member data first
+      const response = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to save committee member");
+      }
+      
+      const savedMember = await response.json();
+      
+      // If we have a new image selected, upload it
+      if (selectedImage && savedMember.id) {
+        const imageFormData = new FormData();
+        imageFormData.append('image', selectedImage);
+        
+        const imageResponse = await fetch(`/api/admin/committee/${savedMember.id}/image`, {
+          method: 'POST',
+          body: imageFormData,
+        });
+        
+        if (!imageResponse.ok) {
+          toast({ 
+            title: "Member saved but image upload failed", 
+            description: "The committee member was created, but there was an issue uploading the image.",
+            variant: "warning" 
+          });
+          // Update UI with the member data we have
+          setCommitteeMembers((prev) =>
+            formData.id
+              ? prev.map((member) => (member.id === savedMember.id ? savedMember : member))
+              : [...prev, savedMember]
+          );
+          setIsDialogOpen(false);
+          return;
+        }
+        
+        const imageData = await imageResponse.json();
+        // Update the saved member with the image path
+        savedMember.image = imageData.imagePath;
+      }
+      
+      // Update the UI with the complete member data
+      setCommitteeMembers((prev) =>
+        formData.id
+          ? prev.map((member) => (member.id === savedMember.id ? savedMember : member))
+          : [...prev, savedMember]
+      );
+      
+      setIsDialogOpen(false);
+      toast({ title: "Committee member saved successfully" });
+      
+      // Reset the selected image
+      setSelectedImage(null);
+      
+    } catch (error) {
+      console.error("Error saving committee member:", error);
+      toast({ title: "Error saving committee member", variant: "destructive" });
+    }
   };
 
   const handleDelete = (id: number) => {
@@ -78,13 +141,15 @@ export default function AdminCommitteePage() {
   };
 
   // Filter members based on selected category and search query
-  const filteredMembers = committeeMembers.filter(member => {
+  const filteredMembers = Array.isArray(committeeMembers) ? committeeMembers.filter(member => {
+    if (!member) return false;
+    
     const matchesCategory = filterCategory === "all" || member.category === filterCategory;
     const matchesSearch = searchQuery === "" || 
-      member.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      (member.name && member.name.toLowerCase().includes(searchQuery.toLowerCase())) || 
       (member.institution && member.institution.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesCategory && matchesSearch;
-  });
+  }) : [];
 
   // Sort members by order field then by name
   const sortedMembers = [...filteredMembers].sort((a, b) => {
@@ -133,8 +198,10 @@ export default function AdminCommitteePage() {
                 email: "",
                 phone: "",
                 order: 0,
-                profileLink: ""
+                profileLink: "",
+                image: ""
               });
+              setSelectedImage(null);
               setIsDialogOpen(true);
             }}>Add Member</Button>
           </div>
@@ -143,12 +210,13 @@ export default function AdminCommitteePage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Photo</TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Role</TableHead>
                   <TableHead>Category</TableHead>
                   <TableHead>Institution</TableHead>
-                  <TableHead>Profile Link</TableHead>
                   <TableHead>Display Order</TableHead>
+                  <TableHead>Profile Link</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -156,6 +224,21 @@ export default function AdminCommitteePage() {
                 {sortedMembers.length > 0 ? (
                   sortedMembers.map((member) => (
                     <TableRow key={member.id}>
+                      <TableCell>
+                        {member.image ? (
+                          <div className="h-12 w-12 rounded-full overflow-hidden">
+                            <img 
+                              src={member.image} 
+                              alt={`${member.name}`} 
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div className="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center">
+                            <span className="text-gray-500 text-xs">No image</span>
+                          </div>
+                        )}
+                      </TableCell>
                       <TableCell className="font-medium">{member.name}</TableCell>
                       <TableCell>{member.role}</TableCell>
                       <TableCell>
@@ -164,16 +247,21 @@ export default function AdminCommitteePage() {
                         </span>
                       </TableCell>
                       <TableCell>{member.institution}</TableCell>
+                      <TableCell>{member.order}</TableCell>
                       <TableCell>
                         {member.profileLink ? (
-                          <a href={member.profileLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                            View
+                          <a 
+                            href={member.profileLink} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800 underline"
+                          >
+                            View Profile
                           </a>
                         ) : (
-                          <span className="text-gray-400">None</span>
+                          <span className="text-gray-500">-</span>
                         )}
                       </TableCell>
-                      <TableCell>{member.order}</TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
                           <Button
@@ -199,7 +287,7 @@ export default function AdminCommitteePage() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={7} className="h-24 text-center">
+                    <TableCell colSpan={8} className="h-24 text-center">
                       No committee members found
                     </TableCell>
                   </TableRow>
@@ -311,6 +399,7 @@ export default function AdminCommitteePage() {
                 value={formData.profileLink || ""}
                 onChange={handleInputChange}
               />
+              <p className="text-xs text-gray-500">Link to personal webpage or professional profile</p>
             </div>
             
             <div className="space-y-2">
@@ -323,6 +412,29 @@ export default function AdminCommitteePage() {
                 value={formData.order || 0}
                 onChange={handleInputChange}
               />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="image">Profile Image</Label>
+              <div className="flex items-center gap-4">
+                {(formData.image || selectedImage) && (
+                  <div className="h-20 w-20 rounded-full overflow-hidden bg-gray-100">
+                    <img 
+                      src={selectedImage ? URL.createObjectURL(selectedImage) : formData.image} 
+                      alt="Member" 
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                )}
+                <Input
+                  id="image"
+                  name="image"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                />
+              </div>
+              <p className="text-xs text-gray-500">Upload a profile photo (JPG or PNG recommended)</p>
             </div>
           </div>
           

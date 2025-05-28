@@ -24,13 +24,20 @@ fi
 echo "🏗️  Building TypeScript files..."
 npm run build
 
-echo "🗄️  Setting up database tables and admin user..."
+echo "🗄️  Setting up database tables..."
 npx esbuild server/seed.ts --platform=node --packages=external --bundle --format=esm --outfile=dist/seed.js
 node dist/seed.js
 
+echo "👤 Setting up admin user..."
+npx esbuild server/create-admin.ts --platform=node --packages=external --bundle --format=esm --outfile=dist/create-admin.js
+node dist/create-admin.js
+
+echo "🔄 Removing old admin account..."
+npx esbuild server/remove-old-admin.ts --platform=node --packages=external --bundle --format=esm --outfile=dist/remove-old-admin.js
+node dist/remove-old-admin.js
+
 echo "✅ Database setup completed successfully!"
-echo "🎯 Default admin user:"
+echo "🎯 Admin user credentials:"
+echo "   Username: surya-d-naidu"
 echo "   Email: admin@raiseds25.org"
-echo "   Password: admin123"
-echo ""
-echo "⚠️  Please change the admin password after first login!"
+echo "   Password: 7075052734"

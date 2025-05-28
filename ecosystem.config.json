@@ -7,7 +7,10 @@
       "env": {
         "NODE_ENV": "production",
         "PORT": "80",
-        "TRUST_PROXY": "true"
+        "TRUST_PROXY": "true",
+        "ENABLE_HTTPS": "true",
+        "DATABASE_URL": "postgresql://neondb_owner:npg_xZIcvFJAO29V@ep-autumn-pond-a1b1bzgw-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require",
+        "SESSION_SECRET": "raise-ds-session-secret-2025"
       },
       "instances": 1,
       "exec_mode": "fork",
@@ -24,7 +27,9 @@
       "cwd": "/root/raiseds25",
       "env": {
         "NODE_ENV": "production",
-        "PORT": "9000"
+        "PORT": "9000",
+        "DATABASE_URL": "postgresql://neondb_owner:npg_xZIcvFJAO29V@ep-autumn-pond-a1b1bzgw-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require",
+        "SESSION_SECRET": "raise-ds-session-secret-2025"
       },
       "instances": 1,
       "exec_mode": "fork",
