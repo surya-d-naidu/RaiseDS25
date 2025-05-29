@@ -24,6 +24,17 @@ export const insertUserSchema = createInsertSchema(users).omit({
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 
+// Author type for structured author data
+export const AuthorSchema = z.object({
+  name: z.string().min(1, "Author name is required"),
+  affiliation: z.string().min(1, "Author affiliation is required"),
+  category: z.enum(["Delegate (Keynote speaker)", "Delegate (Invited speaker)", "Presenter", "Participant"]),
+  email: z.string().email("Invalid email").optional(),
+  isCorresponding: z.boolean().default(false)
+});
+
+export type Author = z.infer<typeof AuthorSchema>;
+
 // Abstracts
 export const abstracts = pgTable("abstracts", {
   id: serial("id").primaryKey(),
@@ -31,7 +42,7 @@ export const abstracts = pgTable("abstracts", {
   title: text("title").notNull(),
   category: text("category").notNull(),
   content: text("content").notNull(),
-  authors: text("authors").notNull(), // New field for authors
+  authors: json("authors").$type<Author[]>(), // Updated to use JSON for structured authors
   keywords: text("keywords").notNull(),
   referenceId: text("reference_id"),
   status: text("status").notNull().default("pending"), // pending, accepted, rejected
@@ -40,12 +51,15 @@ export const abstracts = pgTable("abstracts", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const insertAbstractSchema = createInsertSchema(abstracts).omit({ 
-  id: true, 
-  userId: true, 
-  status: true, 
-  createdAt: true, 
-  updatedAt: true 
+// Override the automatically generated schema to handle the authors field properly
+export const insertAbstractSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  category: z.string().min(1, "Category is required"),
+  content: z.string().min(1, "Content is required"),
+  authors: z.array(AuthorSchema).min(1, "At least one author is required"),
+  keywords: z.string().min(1, "Keywords are required"),
+  referenceId: z.string().optional(),
+  fileUrl: z.string().optional()
 });
 
 export type InsertAbstract = z.infer<typeof insertAbstractSchema>;

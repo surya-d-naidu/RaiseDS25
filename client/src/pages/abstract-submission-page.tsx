@@ -8,19 +8,28 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Abstract } from "@shared/schema";
+import { Abstract, Author } from "@shared/schema";
 import { useAuth } from "@/hooks/use-auth";
-import { InfoIcon, AlertTriangle, FileText, CheckCircle2, Clock, Loader2 } from "lucide-react";
+import { InfoIcon, AlertTriangle, FileText, CheckCircle2, Clock, Loader2, Plus, Trash2, X, User } from "lucide-react";
 import MarkdownRenderer from "@/components/ui/markdown-renderer";
 import AbstractForm from "@/components/forms/abstract-form";
 import { getCategoryCode } from "@/lib/abstract-utils";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { Badge } from "@/components/ui/badge";
 
 export default function AbstractSubmissionPage() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("submit");
-  const [formData, setFormData] = useState({ title: "", authors: "", category: "", content: "", keywords: "" });
+  const [formData, setFormData] = useState({ 
+    title: "", 
+    category: "", 
+    content: "", 
+    keywords: "" 
+  });
+  const [authors, setAuthors] = useState<Author[]>([
+    { name: "", affiliation: "", category: "Presenter", isCorresponding: true }
+  ]);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -40,7 +49,8 @@ export default function AbstractSubmissionPage() {
         title: "Abstract Submitted",
         description: "Your abstract has been successfully submitted for review.",
       });
-      setFormData({ title: "", authors: "", category: "", content: "", keywords: "" });
+      setFormData({ title: "", category: "", content: "", keywords: "" });
+      setAuthors([{ name: "", affiliation: "", category: "Presenter", isCorresponding: true }]);
       setSelectedFile(null);
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
@@ -62,6 +72,51 @@ export default function AbstractSubmissionPage() {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
+  
+  const handleAuthorChange = (index: number, field: keyof Author, value: string | boolean) => {
+    setAuthors(prev => {
+      const newAuthors = [...prev];
+      newAuthors[index] = { ...newAuthors[index], [field]: value };
+      return newAuthors;
+    });
+  };
+  
+  const addAuthor = () => {
+    setAuthors(prev => [...prev, { name: "", affiliation: "", category: "Participant", isCorresponding: false }]);
+  };
+  
+  const removeAuthor = (index: number) => {
+    if (authors.length <= 1) {
+      toast({
+        title: "Cannot Remove",
+        description: "At least one author is required",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // If removing the corresponding author, set the first remaining author as corresponding
+    const isRemovingCorresponding = authors[index].isCorresponding;
+    
+    setAuthors(prev => {
+      const newAuthors = prev.filter((_, i) => i !== index);
+      
+      if (isRemovingCorresponding && newAuthors.length > 0) {
+        newAuthors[0] = { ...newAuthors[0], isCorresponding: true };
+      }
+      
+      return newAuthors;
+    });
+  };
+  
+  const setCorrespondingAuthor = (index: number) => {
+    setAuthors(prev => 
+      prev.map((author, i) => ({
+        ...author,
+        isCorresponding: i === index
+      }))
+    );
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -72,6 +127,7 @@ export default function AbstractSubmissionPage() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    // Validate form fields
     if (!formData.title.trim()) {
       toast({
         title: "Missing Title",
@@ -81,10 +137,15 @@ export default function AbstractSubmissionPage() {
       return;
     }
 
-    if (!formData.authors.trim()) {
+    // Validate authors
+    const invalidAuthorIndex = authors.findIndex(
+      author => !author.name.trim() || !author.affiliation.trim()
+    );
+    
+    if (invalidAuthorIndex >= 0) {
       toast({
-        title: "Missing Authors",
-        description: "Please provide author information for your abstract.",
+        title: "Incomplete Author Information",
+        description: `Please provide name and affiliation for author #${invalidAuthorIndex + 1}.`,
         variant: "destructive",
       });
       return;
@@ -119,7 +180,7 @@ export default function AbstractSubmissionPage() {
 
     const formDataToSend = new FormData();
     formDataToSend.append("title", formData.title);
-    formDataToSend.append("authors", formData.authors);
+    formDataToSend.append("authors", JSON.stringify(authors));
     formDataToSend.append("category", formData.category);
     formDataToSend.append("content", formData.content);
     formDataToSend.append("keywords", formData.keywords);
@@ -192,18 +253,113 @@ export default function AbstractSubmissionPage() {
                           />
                         </div>
                         
-                        <div>
-                          <label htmlFor="authors" className="block text-sm font-medium text-gray-700 mb-1">Authors * <span className="text-xs text-gray-500">(Format: Name, Affiliation; Name, Affiliation)</span></label>
-                          <input
-                            id="authors"
-                            type="text"
-                            name="authors"
-                            placeholder="e.g., John Doe, University A; Jane Smith, Institute B"
-                            value={formData.authors}
-                            onChange={handleInputChange}
-                            required
-                            className="w-full border rounded px-3 py-2"
-                          />
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-center">
+                            <label className="block text-sm font-medium text-gray-700">Authors *</label>
+                            <button 
+                              type="button" 
+                              onClick={addAuthor}
+                              className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-primary bg-primary-50 hover:bg-primary-100"
+                            >
+                              <Plus className="h-3 w-3 mr-1" />
+                              Add Author
+                            </button>
+                          </div>
+                          
+                          {authors.map((author, index) => (
+                            <div key={index} className="border rounded-md p-4 bg-gray-50 relative">
+                              <div className="absolute top-2 right-2 flex items-center space-x-1">
+                                {author.isCorresponding && (
+                                  <Badge variant="outline" className="text-xs text-blue-700 bg-blue-50 border-blue-200">
+                                    <User className="h-3 w-3 mr-1" />
+                                    Corresponding
+                                  </Badge>
+                                )}
+                                <button
+                                  type="button"
+                                  onClick={() => removeAuthor(index)}
+                                  className="text-gray-400 hover:text-red-500 p-1"
+                                  title="Remove author"
+                                >
+                                  <X className="h-4 w-4" />
+                                </button>
+                              </div>
+
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Name *
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={author.name}
+                                    onChange={(e) => handleAuthorChange(index, 'name', e.target.value)}
+                                    placeholder="Full name"
+                                    required
+                                    className="w-full border rounded px-3 py-2"
+                                  />
+                                </div>
+                                
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Affiliation *
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={author.affiliation}
+                                    onChange={(e) => handleAuthorChange(index, 'affiliation', e.target.value)}
+                                    placeholder="Institution/University"
+                                    required
+                                    className="w-full border rounded px-3 py-2"
+                                  />
+                                </div>
+                              </div>
+                              
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Email
+                                  </label>
+                                  <input
+                                    type="email"
+                                    value={author.email || ''}
+                                    onChange={(e) => handleAuthorChange(index, 'email', e.target.value)}
+                                    placeholder="Email address (optional)"
+                                    className="w-full border rounded px-3 py-2"
+                                  />
+                                </div>
+                                
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Category *
+                                  </label>
+                                  <select
+                                    value={author.category}
+                                    onChange={(e) => handleAuthorChange(index, 'category', e.target.value)}
+                                    required
+                                    className="w-full border rounded px-3 py-2"
+                                  >
+                                    <option value="Delegate (Keynote speaker)">Delegate (Keynote speaker)</option>
+                                    <option value="Delegate (Invited speaker)">Delegate (Invited speaker)</option>
+                                    <option value="Presenter">Presenter</option>
+                                    <option value="Participant">Participant</option>
+                                  </select>
+                                </div>
+                              </div>
+                              
+                              <div className="mt-4">
+                                <label className="flex items-center">
+                                  <input
+                                    type="checkbox"
+                                    checked={author.isCorresponding}
+                                    onChange={() => setCorrespondingAuthor(index)}
+                                    className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+                                  />
+                                  <span className="ml-2 text-sm text-gray-700">Corresponding author</span>
+                                </label>
+                              </div>
+                            </div>
+                          ))}
                         </div>
                         
                         <div>
@@ -217,15 +373,39 @@ export default function AbstractSubmissionPage() {
                             className="w-full border rounded px-3 py-2"
                           >
                             <option value="">Select Category</option>
+                            {/* Column 1 themes */}
                             <option value="Probability Theory">Probability Theory</option>
+                            <option value="AI & Machine Learning">AI & Machine Learning</option>
                             <option value="Statistical Inference">Statistical Inference</option>
-                            <option value="Statistical Computing">Statistical Computing</option>
-                            <option value="Biostatistics">Biostatistics</option>
-                            <option value="Data Science">Data Science</option>
-                            <option value="Machine Learning">Machine Learning</option>
-                            <option value="Big Data Analytics">Big Data Analytics</option>
                             <option value="Time Series Analysis">Time Series Analysis</option>
+                            <option value="Survey Sampling">Survey Sampling</option>
+                            <option value="Planning and Experimental Designs">Planning and Experimental Designs</option>
+                            <option value="Statistics in Management">Statistics in Management</option>
                             <option value="Statistical Quality Control">Statistical Quality Control</option>
+                            <option value="Spatial Statistics">Spatial Statistics</option>
+                            
+                            {/* Column 2 themes */}
+                            <option value="Distribution Theory">Distribution Theory</option>
+                            <option value="Operations Research">Operations Research</option>
+                            <option value="Applied Mathematics">Applied Mathematics</option>
+                            <option value="Population Studies">Population Studies</option>
+                            <option value="Data Science Techniques">Data Science Techniques</option>
+                            <option value="Mathematical Modelling">Mathematical Modelling</option>
+                            <option value="Econometrics">Econometrics</option>
+                            <option value="Stochastic Modelling">Stochastic Modelling</option>
+                            <option value="Bayesian and Fuzzy Statistics">Bayesian and Fuzzy Statistics</option>
+                            
+                            {/* Column 3 themes */}
+                            <option value="Bio-Statistics">Bio-Statistics</option>
+                            <option value="Agricultural Statistics">Agricultural Statistics</option>
+                            <option value="Environmental Statistics">Environmental Statistics</option>
+                            <option value="Reliability and Survival Analysis">Reliability and Survival Analysis</option>
+                            <option value="Applied Statistics">Applied Statistics</option>
+                            <option value="Multivariate Analysis">Multivariate Analysis</option>
+                            <option value="Actuarial Statistics">Actuarial Statistics</option>
+                            <option value="Official Statistics">Official Statistics</option>
+                            <option value="Multi-Disciplinary Research">Multi-Disciplinary Research</option>
+                            
                             <option value="Other">Other</option>
                           </select>
                         </div>

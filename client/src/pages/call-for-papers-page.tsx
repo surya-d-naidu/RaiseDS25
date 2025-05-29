@@ -21,7 +21,19 @@ export default function CallForPapersPage() {
   const { user } = useAuth();
   
   useEffect(() => {
-    window.scrollTo(0, 0);
+    // Check if there's a hash in the URL
+    if (window.location.hash) {
+      // Delay scrolling slightly to ensure the page is fully loaded
+      setTimeout(() => {
+        const id = window.location.hash.substring(1);
+        const element = document.getElementById(id);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 300);
+    } else {
+      window.scrollTo(0, 0);
+    }
   }, []);
 
   return (
@@ -106,7 +118,7 @@ export default function CallForPapersPage() {
                 </CardContent>
               </Card>
               
-              <Card>
+              <Card id="conference-themes">
                 <CardHeader>
                   <CardTitle className="flex items-center text-2xl">
                     <Tag className="mr-2 h-6 w-6 text-primary" />
@@ -119,56 +131,46 @@ export default function CallForPapersPage() {
                       The conference welcomes submissions in, but not limited to, the following areas:
                     </p>
                     
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 mt-4">
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3 mt-4">
                       <div>
-                        <h3 className="text-lg font-medium text-gray-900">Statistical Methods</h3>
                         <ul className="list-disc pl-5 space-y-1 mt-2">
-                          <li>Bayesian Statistics</li>
-                          <li>Computational Statistics</li>
-                          <li>Multivariate Analysis</li>
-                          <li>Nonparametric Statistics</li>
+                          <li>Probability Theory</li>
+                          <li>AI & Machine Learning</li>
+                          <li>Statistical Inference</li>
                           <li>Time Series Analysis</li>
-                          <li>Survival Analysis</li>
+                          <li>Survey Sampling</li>
+                          <li>Planning and Experimental Designs</li>
+                          <li>Statistics in Management</li>
+                          <li>Statistical Quality Control</li>
                           <li>Spatial Statistics</li>
                         </ul>
                       </div>
                       
                       <div>
-                        <h3 className="text-lg font-medium text-gray-900">Data Science & AI</h3>
                         <ul className="list-disc pl-5 space-y-1 mt-2">
-                          <li>Machine Learning Algorithms</li>
-                          <li>Deep Learning</li>
-                          <li>Natural Language Processing</li>
-                          <li>Computer Vision</li>
-                          <li>Reinforcement Learning</li>
-                          <li>Big Data Analytics</li>
-                          <li>Statistical Learning Theory</li>
+                          <li>Distribution Theory</li>
+                          <li>Operations Research</li>
+                          <li>Applied Mathematics</li>
+                          <li>Population Studies</li>
+                          <li>Data Science Techniques</li>
+                          <li>Mathematical Modelling</li>
+                          <li>Econometrics</li>
+                          <li>Stochastic Modelling</li>
+                          <li>Bayesian and Fuzzy Statistics</li>
                         </ul>
                       </div>
                       
                       <div>
-                        <h3 className="text-lg font-medium text-gray-900">Applied Statistics</h3>
                         <ul className="list-disc pl-5 space-y-1 mt-2">
-                          <li>Biostatistics</li>
+                          <li>Bio-Statistics</li>
+                          <li>Agricultural Statistics</li>
                           <li>Environmental Statistics</li>
-                          <li>Financial Statistics</li>
-                          <li>Industrial Statistics</li>
+                          <li>Reliability and Survival Analysis</li>
+                          <li>Applied Statistics</li>
+                          <li>Multivariate Analysis</li>
+                          <li>Actuarial Statistics</li>
                           <li>Official Statistics</li>
-                          <li>Social Sciences Statistics</li>
-                          <li>Sports Analytics</li>
-                        </ul>
-                      </div>
-                      
-                      <div>
-                        <h3 className="text-lg font-medium text-gray-900">Emerging Areas</h3>
-                        <ul className="list-disc pl-5 space-y-1 mt-2">
-                          <li>Statistical Methods for AI Explainability</li>
-                          <li>Causal Inference</li>
-                          <li>Ethics in Data Science</li>
-                          <li>Privacy-Preserving Statistics</li>
-                          <li>Statistics for Sustainable Development</li>
-                          <li>COVID-19 Data Analytics</li>
-                          <li>Statistical Methods for Genomics</li>
+                          <li>Multi-Disciplinary Research</li>
                         </ul>
                       </div>
                     </div>

@@ -35,7 +35,7 @@ export default function AboutConference() {
             </div>
             
             <div>
-              <div className="relative h-64 bg-primary-700 rounded-lg overflow-hidden shadow-lg">
+              <div className="relative h-72 bg-gradient-to-br from-primary-700 to-blue-900 rounded-xl overflow-hidden shadow-lg border border-primary-300">
                 <div className="absolute inset-0">
                   <svg
                     className="w-full h-full object-cover"
@@ -60,15 +60,41 @@ export default function AboutConference() {
                   </svg>
                   <div className="absolute inset-0 bg-gradient-to-r from-primary-600 to-primary-600 mix-blend-multiply"></div>
                 </div>
-                <div className="relative px-6 py-4 h-full flex flex-col justify-end">
-                  <h3 className="text-lg font-semibold text-white">Pre-Annual Convention Workshop</h3>
-                  <p className="text-primary-100 text-sm mt-1">"Data Science & Machine Learning" - December 21, 2025</p>
-                  <Link href="/about">
-                    <a className="mt-4 inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-primary-800 bg-opacity-60 hover:bg-opacity-80">
-                      Learn more
-                      <ChevronRight className="ml-1 -mr-0.5 h-4 w-4" />
-                    </a>
-                  </Link>
+                
+                {/* Workshop details */}
+                <div className="relative h-full flex flex-col">
+                  
+                  
+                  {/* Content */}
+                  <div className="p-6 flex flex-col justify-between h-full">
+                    <div>
+                      <h3 className="text-2xl font-bold text-white tracking-tight">
+                        Pre-Annual Convention Workshop
+                      </h3>
+                      <div className="mt-3 flex items-center">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-md bg-blue-200 bg-opacity-30 backdrop-blur-sm">
+                          <CalendarDays className="mr-1.5 h-4 w-4 text-blue-100" />
+                          <span className="text-blue-100 font-medium">December 21, 2025</span>
+                        </span>
+                      </div>
+                      <div className="mt-4">
+                        <h4 className="text-xl font-semibold text-white">
+                          "Data Science & Machine Learning"
+                        </h4>
+                        <p className="mt-2 text-blue-100 text-sm">
+                          An intensive one-day workshop covering advanced techniques in data analysis, 
+                          statistical learning models, and hands-on machine learning applications.
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <Link href="/about">
+                      <a className="mt-6 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-700 hover:bg-blue-800 shadow-sm transition-colors duration-200">
+                        Learn more about the workshop
+                        <ChevronRight className="ml-1.5 -mr-1 h-4 w-4" />
+                      </a>
+                    </Link>
+                  </div>
                 </div>
               </div>
               

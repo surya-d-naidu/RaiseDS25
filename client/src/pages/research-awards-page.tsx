@@ -295,28 +295,6 @@ export default function ResearchAwardsPage() {
               </div>
             </CardContent>
           </Card>
-
-          {/* Contact Section */}
-          <Card className="mt-8">
-            <CardContent className="p-6">
-              <div className="text-center">
-                <h3 className="text-xl font-bold text-gray-900 mb-4">Questions about Awards?</h3>
-                <p className="text-gray-600 mb-4">
-                  Our awards committee is here to help with any questions about eligibility, application process, or award criteria.
-                </p>
-                <div className="text-sm">
-                  <div className="flex items-center justify-center mb-1">
-                    <span className="text-gray-500 mr-2">Email:</span>
-                    <span className="text-primary font-medium">awards@raiseds25.com</span>
-                  </div>
-                  <div className="flex items-center justify-center">
-                    <span className="text-gray-500 mr-2">Response:</span>
-                    <span className="text-gray-600">Within 24-48 hours</span>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </main>
       

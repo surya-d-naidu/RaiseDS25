@@ -9,6 +9,9 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import nodemailer from "nodemailer";
+import { registerAbstractRoutes } from "./routes/abstracts";
+import { isAuthenticated, isAdmin } from "./auth-middleware";
+import { sendEmail } from "./email-utils";
 
 // Setup file uploads
 const upload = multer({
@@ -35,56 +38,9 @@ function formatZodError(err: ZodError) {
   }));
 }
 
-// Email sending function
-async function sendEmail(to: string, subject: string, html: string) {
-  try {
-    // In production, you'd use a proper SMTP service
-    // For development, we'll just log the email
-    console.log(`Sending email to ${to}`);
-    console.log(`Subject: ${subject}`);
-    console.log(`Body: ${html}`);
-    
-    // If you have SMTP settings, use this:
-    if (process.env.SMTP_HOST && process.env.SMTP_PORT) {
-      const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port: parseInt(process.env.SMTP_PORT),
-        secure: process.env.SMTP_SECURE === "true",
-        auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS,
-        },
-      });
-      
-      await transporter.sendMail({
-        from: process.env.SMTP_FROM || '"RAISE DS 2025" <noreply@raiseds25.com>',
-        to,
-        subject,
-        html,
-      });
-    }
-    
-    return true;
-  } catch (error) {
-    console.error("Error sending email:", error);
-    return false;
-  }
-}
+// Email sending function has been moved to email-utils.ts
 
-// Auth middleware
-function isAuthenticated(req: Request, res: Response, next: Function) {
-  if (req.isAuthenticated()) {
-    return next();
-  }
-  res.status(401).json({ message: "Unauthorized" });
-}
-
-function isAdmin(req: Request, res: Response, next: Function) {
-  if (req.isAuthenticated() && req.user?.role === "admin") {
-    return next();
-  }
-  res.status(403).json({ message: "Forbidden" });
-}
+// Auth middleware has been moved to auth-middleware.ts
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
@@ -118,115 +74,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Abstract routes
-  app.get("/api/abstracts", isAuthenticated, async (req, res) => {
-    try {
-      const abstracts = await storage.getAbstractsByUser(req.user!.id);
-      res.json(abstracts);
-    } catch (error) {
-      res.status(500).json({ message: "Error fetching abstracts" });
-    }
-  });
-    app.post("/api/abstracts", isAuthenticated, async (req, res) => {
-    try {
-      const { title, category, content, authors, keywords } = req.body;
-      const newAbstract = await storage.createAbstract({
-        userId: req.user.id,
-        title,
-        category,
-        content,
-        authors, // Include authors in the request body
-        keywords,
-      });
-      
-      // Send confirmation email with abstract ID
-      try {
-        await sendEmail(
-          req.user.email,
-          `Abstract Submission Confirmation - RAISE DS 2025`,
-          `<p>Dear ${req.user.firstName},</p>
-          <p>Thank you for submitting your abstract to RAISE DS 2025.</p>
-          <p>Your abstract has been received and is pending review.</p>
-          <p><strong>Abstract ID:</strong> ${newAbstract.referenceId}</p>
-          <p><strong>Title:</strong> ${newAbstract.title}</p>
-          <p>You can check the status of your submission in the "My Abstracts" section of your account.</p>
-          <p>RAISE DS 2025 Team</p>`
-        );
-      } catch (emailError) {
-        console.error("Failed to send confirmation email:", emailError);
-      }
-      
-      res.status(201).json(newAbstract);
-    } catch (error) {
-      res.status(500).json({ message: "Error creating abstract" });
-    }
-  });
-  
-  app.put("/api/abstracts/:id", isAuthenticated, upload.single("file"), async (req, res) => {
-    try {
-      const abstractId = parseInt(req.params.id);
-      const abstract = await storage.getAbstract(abstractId);
-      
-      if (!abstract) {
-        return res.status(404).json({ message: "Abstract not found" });
-      }
-      
-      if (abstract.userId !== req.user!.id && req.user!.role !== "admin") {
-        return res.status(403).json({ message: "Forbidden" });
-      }
-      
-      const updateData = {
-        ...req.body
-      };
-      
-      if (req.file) {
-        updateData.fileUrl = `/uploads/${req.file.filename}`;
-        
-        // Delete old file if exists
-        if (abstract.fileUrl) {
-          const oldFilePath = path.join(process.cwd(), abstract.fileUrl.replace(/^\/uploads\//, "uploads/"));
-          if (fs.existsSync(oldFilePath)) {
-            fs.unlinkSync(oldFilePath);
-          }
-        }
-      }
-      
-      const updatedAbstract = await storage.updateAbstract(abstractId, updateData);
-      res.json(updatedAbstract);
-    } catch (error) {
-      if (error instanceof ZodError) {
-        return res.status(400).json({ errors: formatZodError(error) });
-      }
-      res.status(500).json({ message: "Error updating abstract" });
-    }
-  });
-  
-  app.delete("/api/abstracts/:id", isAuthenticated, async (req, res) => {
-    try {
-      const abstractId = parseInt(req.params.id);
-      const abstract = await storage.getAbstract(abstractId);
-      
-      if (!abstract) {
-        return res.status(404).json({ message: "Abstract not found" });
-      }
-      
-      if (abstract.userId !== req.user!.id && req.user!.role !== "admin") {
-        return res.status(403).json({ message: "Forbidden" });
-      }
-      
-      // Delete file if exists
-      if (abstract.fileUrl) {
-        const filePath = path.join(process.cwd(), abstract.fileUrl.replace(/^\/uploads\//, "uploads/"));
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-        }
-      }
-      
-      await storage.deleteAbstract(abstractId);
-      res.status(204).send();
-    } catch (error) {
-      res.status(500).json({ message: "Error deleting abstract" });
-    }
+  // Abstract routes are registered from ./routes/abstracts.ts
   });
   
   // Admin abstract routes
