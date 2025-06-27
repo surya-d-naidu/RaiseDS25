@@ -14,6 +14,7 @@ import { createServer } from "http";
 // shared/schema.ts
 var schema_exports = {};
 __export(schema_exports, {
+  AuthorSchema: () => AuthorSchema,
   abstracts: () => abstracts,
   committeeMembers: () => committeeMembers,
   insertAbstractSchema: () => insertAbstractSchema,
@@ -31,6 +32,7 @@ __export(schema_exports, {
 });
 import { pgTable, text, serial, integer, boolean, timestamp, json } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
+import { z } from "zod";
 var users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
@@ -41,6 +43,11 @@ var users = pgTable("users", {
   institution: text("institution").notNull(),
   role: text("role").notNull().default("user"),
   // user, admin
+  emailVerified: boolean("email_verified").default(false),
+  emailVerificationToken: text("email_verification_token"),
+  emailVerificationExpires: timestamp("email_verification_expires"),
+  passwordResetToken: text("password_reset_token"),
+  passwordResetExpires: timestamp("password_reset_expires"),
   createdAt: timestamp("created_at").defaultNow()
 });
 var insertUserSchema = createInsertSchema(users).omit({
@@ -48,14 +55,20 @@ var insertUserSchema = createInsertSchema(users).omit({
   createdAt: true,
   role: true
 });
+var AuthorSchema = z.object({
+  name: z.string().min(1, "Author name is required"),
+  affiliation: z.string().min(1, "Author affiliation is required"),
+  category: z.enum(["Delegate (Keynote speaker)", "Delegate (Invited speaker)", "Presenter", "Participant"]),
+  email: z.string().email("Invalid email")
+});
 var abstracts = pgTable("abstracts", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
   title: text("title").notNull(),
   category: text("category").notNull(),
   content: text("content").notNull(),
-  authors: text("authors").notNull(),
-  // New field for authors
+  authors: json("authors").$type(),
+  // Updated to use JSON for structured authors
   keywords: text("keywords").notNull(),
   referenceId: text("reference_id"),
   status: text("status").notNull().default("pending"),
@@ -64,12 +77,14 @@ var abstracts = pgTable("abstracts", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow()
 });
-var insertAbstractSchema = createInsertSchema(abstracts).omit({
-  id: true,
-  userId: true,
-  status: true,
-  createdAt: true,
-  updatedAt: true
+var insertAbstractSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  category: z.string().min(1, "Category is required"),
+  content: z.string().min(1, "Content is required"),
+  authors: z.array(AuthorSchema).min(1, "At least one author is required"),
+  keywords: z.string().min(1, "Keywords are required"),
+  referenceId: z.string().optional(),
+  fileUrl: z.string().optional()
 });
 var profiles = pgTable("profiles", {
   id: serial("id").primaryKey(),
@@ -124,6 +139,12 @@ var notifications = pgTable("notifications", {
 var insertNotificationSchema = createInsertSchema(notifications).omit({
   id: true,
   createdAt: true
+}).extend({
+  expiresAt: z.union([
+    z.string().transform((val) => val ? new Date(val) : null),
+    z.date(),
+    z.null()
+  ]).optional()
 });
 var committeeMembers = pgTable("committee_members", {
   id: serial("id").primaryKey(),
@@ -161,9 +182,8 @@ var insertResearchAwardSchema = createInsertSchema(researchAwards).omit({
 import session from "express-session";
 
 // server/db.ts
-import { Pool, neonConfig } from "@neondatabase/serverless";
-import { drizzle } from "drizzle-orm/neon-serverless";
-import ws from "ws";
+import { Pool } from "pg";
+import { drizzle } from "drizzle-orm/node-postgres";
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
 import path from "path";
@@ -171,19 +191,18 @@ import { dirname } from "path";
 var __filename = fileURLToPath(import.meta.url);
 var __dirname = dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, "../.env") });
-neonConfig.webSocketConstructor = ws;
 if (!process.env.DATABASE_URL) {
   throw new Error(
     "DATABASE_URL must be set. Did you forget to provision a database?"
   );
 }
 var pool = new Pool({ connectionString: process.env.DATABASE_URL });
-var db = drizzle({ client: pool, schema: schema_exports });
+var db = drizzle(pool, { schema: schema_exports });
 
 // server/db-storage.ts
 import { eq, gt, or, and, desc, asc } from "drizzle-orm";
 import ConnectPgSimple from "connect-pg-simple";
-import { Pool as Pool2 } from "@neondatabase/serverless";
+import { Pool as Pool2 } from "pg";
 var DbStorage = class {
   sessionStore;
   constructor() {
@@ -197,20 +216,33 @@ var DbStorage = class {
   // Helper function to generate category code
   getCategoryCode(category) {
     const categoryCodeMap = {
+      "Actuarial Statistics": "AS",
+      "Agricultural Statistics": "AG",
+      "AI & Machine Learning": "ML",
+      "Applied Mathematics": "AM",
+      "Applied Statistics": "AP",
+      "Bayesian and Fuzzy Statistics": "BF",
+      "Bio-Statistics": "BS",
+      "Data Science Techniques": "DS",
+      "Distribution Theory": "DT",
+      "Econometrics": "EC",
+      "Environmental Statistics": "ES",
+      "Mathematical Modelling": "MM",
+      "Multi-Disciplinary Research": "MD",
+      "Multivariate Analysis": "MV",
+      "Official Statistics": "OS",
+      "Operations Research": "OR",
+      "Planning and Experimental Designs": "PE",
+      "Population Studies": "PS",
       "Probability Theory": "PT",
+      "Reliability and Survival Analysis": "RS",
+      "Spatial Statistics": "SP",
       "Statistical Inference": "SI",
-      "Statistical Computing": "SC",
-      "Biostatistics": "BS",
-      "Data Science": "DS",
-      "Machine Learning": "ML",
-      "Big Data Analytics": "BD",
-      "Time Series Analysis": "TS",
       "Statistical Quality Control": "SQ",
-      "Statistical Methods": "SM",
-      "Data Visualization": "DV",
-      "Computational Statistics": "CS",
-      "Bayesian Analysis": "BA",
-      "Applied Statistics": "AS",
+      "Statistics in Management": "SM",
+      "Stochastic Modelling": "ST",
+      "Survey Sampling": "SS",
+      "Time Series Analysis": "TS",
       "Other": "OT"
     };
     return categoryCodeMap[category] || "XX";
@@ -235,6 +267,17 @@ var DbStorage = class {
   async updateUser(id, data) {
     const result = await db.update(users).set(data).where(eq(users.id, id)).returning();
     return result[0];
+  }
+  async deleteUser(id) {
+    try {
+      await db.delete(profiles).where(eq(profiles.userId, id));
+      await db.delete(abstracts).where(eq(abstracts.userId, id));
+      const result = await db.delete(users).where(eq(users.id, id)).returning();
+      return result.length > 0;
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      return false;
+    }
   }
   async getAllUsers() {
     return db.select().from(users);
@@ -409,6 +452,71 @@ var DbStorage = class {
     const result = await db.delete(researchAwards).where(eq(researchAwards.id, id)).returning();
     return result.length > 0;
   }
+  // ----- Email Verification -----
+  async setEmailVerificationToken(userId, token) {
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1e3);
+    await db.update(users).set({
+      emailVerificationToken: token,
+      emailVerificationExpires: expiresAt
+    }).where(eq(users.id, userId));
+  }
+  async verifyEmail(token) {
+    const now = /* @__PURE__ */ new Date();
+    const result = await db.select().from(users).where(
+      and(
+        eq(users.emailVerificationToken, token),
+        gt(users.emailVerificationExpires, now)
+      )
+    ).limit(1);
+    if (result.length === 0) {
+      return void 0;
+    }
+    const user = result[0];
+    await db.update(users).set({
+      emailVerified: true,
+      emailVerificationToken: null,
+      emailVerificationExpires: null
+    }).where(eq(users.id, user.id));
+    return user;
+  }
+  async resendVerificationToken(email) {
+    const user = await this.getUserByEmail(email);
+    if (!user || user.emailVerified) {
+      return void 0;
+    }
+    return user;
+  }
+  // ----- Password Reset -----
+  async setPasswordResetToken(email, token) {
+    const user = await this.getUserByEmail(email);
+    if (!user) {
+      return void 0;
+    }
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1e3);
+    const result = await db.update(users).set({
+      passwordResetToken: token,
+      passwordResetExpires: expiresAt
+    }).where(eq(users.id, user.id)).returning();
+    return result[0];
+  }
+  async verifyPasswordResetToken(token) {
+    const now = /* @__PURE__ */ new Date();
+    const result = await db.select().from(users).where(
+      and(
+        eq(users.passwordResetToken, token),
+        gt(users.passwordResetExpires, now)
+      )
+    ).limit(1);
+    return result[0];
+  }
+  async updatePassword(userId, newPassword) {
+    const result = await db.update(users).set({
+      password: newPassword,
+      passwordResetToken: null,
+      passwordResetExpires: null
+    }).where(eq(users.id, userId)).returning();
+    return result[0];
+  }
 };
 var storage = new DbStorage();
 
@@ -418,6 +526,109 @@ import { Strategy as LocalStrategy } from "passport-local";
 import session2 from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
+
+// server/email-utils.ts
+import nodemailer from "nodemailer";
+function generateOTP() {
+  return Math.floor(1e5 + Math.random() * 9e5).toString();
+}
+async function sendEmail(to, subject, html) {
+  try {
+    console.log(`Sending email to ${to}`);
+    console.log(`Subject: ${subject}`);
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_APP_PASSWORD
+        // Gmail App Password
+      }
+    });
+    await transporter.sendMail({
+      from: process.env.GMAIL_USER || '"RAISE DS 2025" <noreply@raiseds25.com>',
+      to,
+      subject,
+      html
+    });
+    console.log(`Email sent successfully to ${to}`);
+    return true;
+  } catch (error) {
+    console.error("Error sending email:", error);
+    return false;
+  }
+}
+async function sendOTPEmail(email, otp, name) {
+  const subject = "Verify Your Email - RAISE DS 2025";
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="color: #1e40af; margin: 0;">RAISE DS 2025</h1>
+        <p style="color: #6b7280; margin: 5px 0;">45th Annual Convention of ISPS</p>
+      </div>
+      
+      <div style="background: #f8fafc; border-radius: 8px; padding: 30px; text-align: center;">
+        <h2 style="color: #374151; margin-bottom: 20px;">Email Verification</h2>
+        <p style="color: #6b7280; margin-bottom: 30px;">
+          Hello ${name},<br><br>
+          Thank you for registering for RAISE DS 2025. Please use the following OTP to verify your email address:
+        </p>
+        
+        <div style="background: #1e40af; color: white; font-size: 32px; font-weight: bold; letter-spacing: 8px; padding: 20px; border-radius: 8px; margin: 30px 0;">
+          ${otp}
+        </div>
+        
+        <p style="color: #ef4444; font-size: 14px; margin-top: 20px;">
+          This OTP will expire in 10 minutes.
+        </p>
+      </div>
+      
+      <div style="text-align: center; margin-top: 30px; color: #6b7280; font-size: 14px;">
+        <p>If you didn't request this verification, please ignore this email.</p>
+        <p>&copy; 2025 RAISE DS Conference. All rights reserved.</p>
+      </div>
+    </div>
+  `;
+  return sendEmail(email, subject, html);
+}
+async function sendPasswordResetEmail(email, otp, name) {
+  const subject = "Password Reset - RAISE DS 2025";
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="color: #1e40af; margin: 0;">RAISE DS 2025</h1>
+        <p style="color: #6b7280; margin: 5px 0;">45th Annual Convention of ISPS</p>
+      </div>
+      
+      <div style="background: #f8fafc; border-radius: 8px; padding: 30px; text-align: center;">
+        <h2 style="color: #374151; margin-bottom: 20px;">Password Reset Request</h2>
+        <p style="color: #6b7280; margin-bottom: 30px;">
+          Hello ${name},<br><br>
+          You have requested to reset your password for RAISE DS 2025. Please use the following OTP to reset your password:
+        </p>
+        
+        <div style="background: #dc2626; color: white; font-size: 32px; font-weight: bold; letter-spacing: 8px; padding: 20px; border-radius: 8px; margin: 30px 0;">
+          ${otp}
+        </div>
+        
+        <p style="color: #ef4444; font-size: 14px; margin-top: 20px;">
+          This OTP will expire in 1 hour.
+        </p>
+        
+        <p style="color: #6b7280; font-size: 14px; margin-top: 20px;">
+          If you didn't request this password reset, please ignore this email and your password will remain unchanged.
+        </p>
+      </div>
+      
+      <div style="text-align: center; margin-top: 30px; color: #6b7280; font-size: 14px;">
+        <p>For security reasons, never share this OTP with anyone.</p>
+        <p>&copy; 2025 RAISE DS Conference. All rights reserved.</p>
+      </div>
+    </div>
+  `;
+  return await sendEmail(email, subject, html);
+}
+
+// server/auth.ts
 var scryptAsync = promisify(scrypt);
 async function hashPassword(password) {
   const salt = randomBytes(16).toString("hex");
@@ -541,7 +752,8 @@ function setupAuth(app2) {
         firstName,
         lastName,
         institution,
-        password: await hashPassword(password)
+        password: await hashPassword(password),
+        emailVerified: false
       });
       await storage.createProfile({
         userId: user.id,
@@ -550,12 +762,24 @@ function setupAuth(app2) {
         isCommitteeMember: false,
         socialLinks: {}
       });
-      req.login(user, (err) => {
-        if (err) return next(err);
-        const safeUser = { ...user };
-        delete safeUser.password;
-        res.status(201).json(safeUser);
-      });
+      const otp = generateOTP();
+      await storage.setEmailVerificationToken(user.id, otp);
+      try {
+        await sendOTPEmail(email, otp, firstName);
+        console.log(`OTP sent to ${email}: ${otp}`);
+        res.status(201).json({
+          message: "Registration successful. Please check your email for verification code.",
+          requiresVerification: true,
+          email
+        });
+      } catch (emailError) {
+        console.error("Failed to send OTP email:", emailError);
+        res.status(201).json({
+          message: "Registration successful but failed to send verification email. Please contact support.",
+          requiresVerification: false,
+          email
+        });
+      }
     } catch (error) {
       next(error);
     }
@@ -569,6 +793,13 @@ function setupAuth(app2) {
       if (!user) {
         return res.status(401).json({ message: "Invalid username or password" });
       }
+      if (!user.emailVerified) {
+        return res.status(403).json({
+          message: "Please verify your email address before logging in.",
+          requiresVerification: true,
+          email: user.email
+        });
+      }
       req.login(user, (loginErr) => {
         if (loginErr) {
           console.error("Login session error:", loginErr);
@@ -580,11 +811,120 @@ function setupAuth(app2) {
       });
     })(req, res, next);
   });
+  app2.post("/api/verify-email", async (req, res) => {
+    try {
+      const { email, otp } = req.body;
+      if (!email || !otp) {
+        return res.status(400).json({ message: "Email and OTP are required" });
+      }
+      const user = await storage.verifyEmail(otp);
+      if (!user) {
+        return res.status(400).json({ message: "Invalid or expired OTP" });
+      }
+      req.login(user, (err) => {
+        if (err) {
+          console.error("Auto-login error after verification:", err);
+          return res.status(200).json({
+            message: "Email verified successfully. Please log in.",
+            verified: true
+          });
+        }
+        const safeUser = { ...user };
+        delete safeUser.password;
+        res.status(200).json({
+          message: "Email verified successfully",
+          verified: true,
+          user: safeUser
+        });
+      });
+    } catch (error) {
+      console.error("Email verification error:", error);
+      res.status(500).json({ message: "Error verifying email" });
+    }
+  });
+  app2.post("/api/resend-otp", async (req, res) => {
+    try {
+      const { email } = req.body;
+      if (!email) {
+        return res.status(400).json({ message: "Email is required" });
+      }
+      const user = await storage.resendVerificationToken(email);
+      if (!user) {
+        return res.status(400).json({ message: "User not found or already verified" });
+      }
+      const otp = generateOTP();
+      await storage.setEmailVerificationToken(user.id, otp);
+      try {
+        await sendOTPEmail(email, otp, user.firstName);
+        console.log(`New OTP sent to ${email}: ${otp}`);
+        res.status(200).json({ message: "New verification code sent to your email" });
+      } catch (emailError) {
+        console.error("Failed to send OTP email:", emailError);
+        res.status(500).json({ message: "Failed to send verification email" });
+      }
+    } catch (error) {
+      console.error("Resend OTP error:", error);
+      res.status(500).json({ message: "Error resending verification code" });
+    }
+  });
   app2.post("/api/logout", (req, res, next) => {
     req.logout((err) => {
       if (err) return next(err);
       res.sendStatus(200);
     });
+  });
+  app2.post("/api/forgot-password", async (req, res) => {
+    try {
+      const { email } = req.body;
+      if (!email) {
+        return res.status(400).json({ message: "Email is required" });
+      }
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        return res.status(404).json({
+          message: "No account found with this email address. Please check your email or create a new account."
+        });
+      }
+      const otp = generateOTP();
+      await storage.setPasswordResetToken(email, otp);
+      try {
+        await sendPasswordResetEmail(email, otp, user.firstName);
+        console.log(`Password reset OTP sent to ${email}: ${otp}`);
+        res.status(200).json({
+          message: "Password reset code has been sent to your email.",
+          email
+        });
+      } catch (emailError) {
+        console.error("Failed to send password reset email:", emailError);
+        res.status(500).json({ message: "Failed to send password reset email. Please try again." });
+      }
+    } catch (error) {
+      console.error("Forgot password error:", error);
+      res.status(500).json({ message: "Error processing password reset request" });
+    }
+  });
+  app2.post("/api/reset-password", async (req, res) => {
+    try {
+      const { email, otp, newPassword } = req.body;
+      if (!email || !otp || !newPassword) {
+        return res.status(400).json({ message: "Email, OTP, and new password are required" });
+      }
+      if (newPassword.length < 6) {
+        return res.status(400).json({ message: "Password must be at least 6 characters long" });
+      }
+      const user = await storage.verifyPasswordResetToken(otp);
+      if (!user || user.email !== email) {
+        return res.status(400).json({ message: "Invalid or expired reset code" });
+      }
+      const hashedPassword = await hashPassword(newPassword);
+      await storage.updatePassword(user.id, hashedPassword);
+      res.status(200).json({
+        message: "Password reset successfully. You can now log in with your new password."
+      });
+    } catch (error) {
+      console.error("Reset password error:", error);
+      res.status(500).json({ message: "Error resetting password" });
+    }
   });
   app2.get("/api/user", (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
@@ -596,11 +936,30 @@ function setupAuth(app2) {
 
 // server/routes.ts
 import { randomBytes as randomBytes2 } from "crypto";
+import { ZodError as ZodError2 } from "zod";
+import multer2 from "multer";
+import path3 from "path";
+import fs2 from "fs";
+
+// server/auth-middleware.ts
+function isAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.status(401).json({ message: "Unauthorized" });
+}
+function isAdmin(req, res, next) {
+  if (req.isAuthenticated() && req.user?.role === "admin") {
+    return next();
+  }
+  res.status(403).json({ message: "Forbidden" });
+}
+
+// server/routes/abstracts.ts
 import { ZodError } from "zod";
-import multer from "multer";
 import path2 from "path";
 import fs from "fs";
-import nodemailer from "nodemailer";
+import multer from "multer";
 var upload = multer({
   storage: multer.diskStorage({
     destination: function(req, file, cb) {
@@ -622,69 +981,7 @@ function formatZodError(err) {
     message: e.message
   }));
 }
-async function sendEmail(to, subject, html) {
-  try {
-    console.log(`Sending email to ${to}`);
-    console.log(`Subject: ${subject}`);
-    console.log(`Body: ${html}`);
-    if (process.env.SMTP_HOST && process.env.SMTP_PORT) {
-      const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port: parseInt(process.env.SMTP_PORT),
-        secure: process.env.SMTP_SECURE === "true",
-        auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS
-        }
-      });
-      await transporter.sendMail({
-        from: process.env.SMTP_FROM || '"RAISE DS 2025" <noreply@raiseds25.com>',
-        to,
-        subject,
-        html
-      });
-    }
-    return true;
-  } catch (error) {
-    console.error("Error sending email:", error);
-    return false;
-  }
-}
-function isAuthenticated(req, res, next) {
-  if (req.isAuthenticated()) {
-    return next();
-  }
-  res.status(401).json({ message: "Unauthorized" });
-}
-function isAdmin(req, res, next) {
-  if (req.isAuthenticated() && req.user?.role === "admin") {
-    return next();
-  }
-  res.status(403).json({ message: "Forbidden" });
-}
-async function registerRoutes(app2) {
-  setupAuth(app2);
-  const uploadsDir = path2.join(process.cwd(), "uploads");
-  if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir, { recursive: true });
-  }
-  app2.use("/uploads", express.static(uploadsDir));
-  app2.get("/api/profile", isAuthenticated, async (req, res) => {
-    try {
-      const profile = await storage.getProfile(req.user.id);
-      res.json(profile);
-    } catch (error) {
-      res.status(500).json({ message: "Error fetching profile" });
-    }
-  });
-  app2.put("/api/profile", isAuthenticated, async (req, res) => {
-    try {
-      const profile = await storage.updateProfile(req.user.id, req.body);
-      res.json(profile);
-    } catch (error) {
-      res.status(500).json({ message: "Error updating profile" });
-    }
-  });
+function registerAbstractRoutes(app2) {
   app2.get("/api/abstracts", isAuthenticated, async (req, res) => {
     try {
       const abstracts2 = await storage.getAbstractsByUser(req.user.id);
@@ -693,18 +990,43 @@ async function registerRoutes(app2) {
       res.status(500).json({ message: "Error fetching abstracts" });
     }
   });
-  app2.post("/api/abstracts", isAuthenticated, async (req, res) => {
+  app2.post("/api/abstracts", isAuthenticated, upload.single("file"), async (req, res) => {
     try {
-      const { title, category, content, authors, keywords } = req.body;
+      const { title, category, content, keywords } = req.body;
+      let authors;
+      try {
+        authors = JSON.parse(req.body.authors);
+      } catch (e) {
+        return res.status(400).json({
+          errors: [{ path: "authors", message: "Invalid authors data format" }]
+        });
+      }
+      try {
+        insertAbstractSchema.parse({
+          title,
+          category,
+          content,
+          authors,
+          keywords,
+          fileUrl: req.file ? `/uploads/${req.file.filename}` : void 0
+        });
+      } catch (validationError) {
+        if (validationError instanceof ZodError) {
+          return res.status(400).json({ errors: formatZodError(validationError) });
+        }
+        throw validationError;
+      }
       const newAbstract = await storage.createAbstract({
         userId: req.user.id,
         title,
         category,
         content,
         authors,
-        // Include authors in the request body
-        keywords
+        // Now contains structured author data with categories
+        keywords,
+        fileUrl: req.file ? `/uploads/${req.file.filename}` : void 0
       });
+      const authorDisplay = authors.map((a) => a.name).join(", ");
       try {
         await sendEmail(
           req.user.email,
@@ -714,6 +1036,8 @@ async function registerRoutes(app2) {
           <p>Your abstract has been received and is pending review.</p>
           <p><strong>Abstract ID:</strong> ${newAbstract.referenceId}</p>
           <p><strong>Title:</strong> ${newAbstract.title}</p>
+          <p><strong>Authors:</strong> ${authorDisplay}</p>
+          <p><strong>Category:</strong> ${newAbstract.category}</p>
           <p>You can check the status of your submission in the "My Abstracts" section of your account.</p>
           <p>RAISE DS 2025 Team</p>`
         );
@@ -722,6 +1046,7 @@ async function registerRoutes(app2) {
       }
       res.status(201).json(newAbstract);
     } catch (error) {
+      console.error("Error submitting abstract:", error);
       res.status(500).json({ message: "Error creating abstract" });
     }
   });
@@ -735,9 +1060,16 @@ async function registerRoutes(app2) {
       if (abstract.userId !== req.user.id && req.user.role !== "admin") {
         return res.status(403).json({ message: "Forbidden" });
       }
-      const updateData = {
-        ...req.body
-      };
+      let updateData = { ...req.body };
+      if (req.body.authors) {
+        try {
+          updateData.authors = JSON.parse(req.body.authors);
+        } catch (e) {
+          return res.status(400).json({
+            errors: [{ path: "authors", message: "Invalid authors data format" }]
+          });
+        }
+      }
       if (req.file) {
         updateData.fileUrl = `/uploads/${req.file.filename}`;
         if (abstract.fileUrl) {
@@ -776,6 +1108,53 @@ async function registerRoutes(app2) {
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ message: "Error deleting abstract" });
+    }
+  });
+}
+
+// server/routes.ts
+var upload2 = multer2({
+  storage: multer2.diskStorage({
+    destination: function(req, file, cb) {
+      const dir = path3.join(process.cwd(), "uploads");
+      if (!fs2.existsSync(dir)) {
+        fs2.mkdirSync(dir, { recursive: true });
+      }
+      cb(null, dir);
+    },
+    filename: function(req, file, cb) {
+      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+      cb(null, file.fieldname + "-" + uniqueSuffix + path3.extname(file.originalname));
+    }
+  })
+});
+function formatZodError2(err) {
+  return err.errors.map((e) => ({
+    path: e.path.join("."),
+    message: e.message
+  }));
+}
+async function registerRoutes(app2) {
+  setupAuth(app2);
+  const uploadsDir = path3.join(process.cwd(), "uploads");
+  if (!fs2.existsSync(uploadsDir)) {
+    fs2.mkdirSync(uploadsDir, { recursive: true });
+  }
+  app2.use("/uploads", express.static(uploadsDir));
+  app2.get("/api/profile", isAuthenticated, async (req, res) => {
+    try {
+      const profile = await storage.getProfile(req.user.id);
+      res.json(profile);
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching profile" });
+    }
+  });
+  app2.put("/api/profile", isAuthenticated, async (req, res) => {
+    try {
+      const profile = await storage.updateProfile(req.user.id, req.body);
+      res.json(profile);
+    } catch (error) {
+      res.status(500).json({ message: "Error updating profile" });
     }
   });
   app2.get("/api/admin/abstracts", isAdmin, async (req, res) => {
@@ -841,8 +1220,8 @@ async function registerRoutes(app2) {
       const notification = await storage.createNotification(validatedData);
       res.status(201).json(notification);
     } catch (error) {
-      if (error instanceof ZodError) {
-        return res.status(400).json({ errors: formatZodError(error) });
+      if (error instanceof ZodError2) {
+        return res.status(400).json({ errors: formatZodError2(error) });
       }
       res.status(500).json({ message: "Error creating notification" });
     }
@@ -850,14 +1229,15 @@ async function registerRoutes(app2) {
   app2.put("/api/admin/notifications/:id", isAdmin, async (req, res) => {
     try {
       const notificationId = parseInt(req.params.id);
-      const notification = await storage.updateNotification(notificationId, req.body);
+      const validatedData = insertNotificationSchema.parse(req.body);
+      const notification = await storage.updateNotification(notificationId, validatedData);
       if (!notification) {
         return res.status(404).json({ message: "Notification not found" });
       }
       res.json(notification);
     } catch (error) {
-      if (error instanceof ZodError) {
-        return res.status(400).json({ errors: formatZodError(error) });
+      if (error instanceof ZodError2) {
+        return res.status(400).json({ errors: formatZodError2(error) });
       }
       res.status(500).json({ message: "Error updating notification" });
     }
@@ -899,13 +1279,13 @@ async function registerRoutes(app2) {
       res.status(201).json(member);
     } catch (error) {
       console.error("Error in committee member creation:", error);
-      if (error instanceof ZodError) {
-        return res.status(400).json({ errors: formatZodError(error) });
+      if (error instanceof ZodError2) {
+        return res.status(400).json({ errors: formatZodError2(error) });
       }
       res.status(500).json({ message: "Error creating committee member" });
     }
   });
-  app2.post("/api/admin/committee/:id/image", isAdmin, upload.single("image"), async (req, res) => {
+  app2.post("/api/admin/committee/:id/image", isAdmin, upload2.single("image"), async (req, res) => {
     try {
       const memberId = parseInt(req.params.id);
       if (!req.file) {
@@ -931,8 +1311,8 @@ async function registerRoutes(app2) {
       }
       res.json(member);
     } catch (error) {
-      if (error instanceof ZodError) {
-        return res.status(400).json({ errors: formatZodError(error) });
+      if (error instanceof ZodError2) {
+        return res.status(400).json({ errors: formatZodError2(error) });
       }
       res.status(500).json({ message: "Error updating committee member" });
     }
@@ -971,8 +1351,8 @@ async function registerRoutes(app2) {
       const award = await storage.createResearchAward(validatedData);
       res.status(201).json(award);
     } catch (error) {
-      if (error instanceof ZodError) {
-        return res.status(400).json({ errors: formatZodError(error) });
+      if (error instanceof ZodError2) {
+        return res.status(400).json({ errors: formatZodError2(error) });
       }
       res.status(500).json({ message: "Error creating research award" });
     }
@@ -986,8 +1366,8 @@ async function registerRoutes(app2) {
       }
       res.json(award);
     } catch (error) {
-      if (error instanceof ZodError) {
-        return res.status(400).json({ errors: formatZodError(error) });
+      if (error instanceof ZodError2) {
+        return res.status(400).json({ errors: formatZodError2(error) });
       }
       res.status(500).json({ message: "Error updating research award" });
     }
@@ -1064,8 +1444,8 @@ async function registerRoutes(app2) {
       }
       res.status(201).json(invitation);
     } catch (error) {
-      if (error instanceof ZodError) {
-        return res.status(400).json({ errors: formatZodError(error) });
+      if (error instanceof ZodError2) {
+        return res.status(400).json({ errors: formatZodError2(error) });
       }
       res.status(500).json({ message: "Error creating invitation" });
     }
@@ -1207,40 +1587,57 @@ async function registerRoutes(app2) {
       res.status(500).json({ message: "Error updating user role" });
     }
   });
+  app2.delete("/api/admin/users/:id", isAdmin, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      if (req.user && req.user.id === userId) {
+        return res.status(400).json({ message: "Cannot delete your own account" });
+      }
+      const success = await storage.deleteUser(userId);
+      if (!success) {
+        return res.status(404).json({ message: "User not found or could not be deleted" });
+      }
+      res.json({ message: "User deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      res.status(500).json({ message: "Error deleting user" });
+    }
+  });
   app2.get("/api/brochure", (req, res) => {
-    const brochurePath = path2.join(process.cwd(), "uploads", "brochure.pdf");
-    if (fs.existsSync(brochurePath)) {
+    const brochurePath = path3.join(process.cwd(), "uploads", "brochure.pdf");
+    if (fs2.existsSync(brochurePath)) {
       res.download(brochurePath, "RAISE-DS-2025-Brochure.pdf");
     } else {
       res.status(404).json({ message: "Brochure not available" });
     }
   });
-  app2.post("/api/admin/brochure", isAdmin, upload.single("brochure"), (req, res) => {
+  app2.post("/api/admin/brochure", isAdmin, upload2.single("brochure"), (req, res) => {
     if (!req.file) {
       return res.status(400).json({ message: "No file uploaded" });
     }
     const oldPath = req.file.path;
-    const newPath = path2.join(process.cwd(), "uploads", "brochure.pdf");
-    if (fs.existsSync(newPath)) {
-      fs.unlinkSync(newPath);
+    const newPath = path3.join(process.cwd(), "uploads", "brochure.pdf");
+    if (fs2.existsSync(newPath)) {
+      fs2.unlinkSync(newPath);
     }
-    fs.renameSync(oldPath, newPath);
+    fs2.renameSync(oldPath, newPath);
     res.status(201).json({ message: "Brochure uploaded successfully" });
   });
+  registerAbstractRoutes(app2);
   const httpServer = createServer(app2);
   return httpServer;
 }
 
 // server/vite.ts
 import express2 from "express";
-import fs2 from "fs";
-import path4 from "path";
+import fs3 from "fs";
+import path5 from "path";
 import { createServer as createViteServer, createLogger } from "vite";
 
 // vite.config.ts
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import path3 from "path";
+import path4 from "path";
 import { fileURLToPath as fileURLToPath2 } from "url";
 import { dirname as dirname2 } from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
@@ -1258,14 +1655,14 @@ var vite_config_default = defineConfig({
   ],
   resolve: {
     alias: {
-      "@": path3.resolve(__dirname2, "client", "src"),
-      "@shared": path3.resolve(__dirname2, "shared"),
-      "@assets": path3.resolve(__dirname2, "attached_assets")
+      "@": path4.resolve(__dirname2, "client", "src"),
+      "@shared": path4.resolve(__dirname2, "shared"),
+      "@assets": path4.resolve(__dirname2, "attached_assets")
     }
   },
-  root: path3.resolve(__dirname2, "client"),
+  root: path4.resolve(__dirname2, "client"),
   build: {
-    outDir: path3.resolve(__dirname2, "dist/public"),
+    outDir: path4.resolve(__dirname2, "dist/public"),
     emptyOutDir: true
   }
 });
@@ -1309,13 +1706,13 @@ async function setupVite(app2, server) {
   app2.use("*", async (req, res, next) => {
     const url = req.originalUrl;
     try {
-      const clientTemplate = path4.resolve(
+      const clientTemplate = path5.resolve(
         __dirname3,
         "..",
         "client",
         "index.html"
       );
-      let template = await fs2.promises.readFile(clientTemplate, "utf-8");
+      let template = await fs3.promises.readFile(clientTemplate, "utf-8");
       template = template.replace(
         `src="/src/main.tsx"`,
         `src="/src/main.tsx?v=${nanoid()}"`
@@ -1329,30 +1726,30 @@ async function setupVite(app2, server) {
   });
 }
 function serveStatic(app2) {
-  const distPath = path4.resolve(__dirname3, "..", "dist", "public");
-  if (!fs2.existsSync(distPath)) {
+  const distPath = path5.resolve(__dirname3, "..", "dist", "public");
+  if (!fs3.existsSync(distPath)) {
     throw new Error(
       `Could not find the build directory: ${distPath}, make sure to build the client first`
     );
   }
-  const publicPath2 = path4.resolve(__dirname3, "..", "public");
+  const publicPath2 = path5.resolve(__dirname3, "..", "public");
   app2.use("/public", express2.static(publicPath2));
   app2.use(express2.static(distPath));
   app2.use("*", (_req, res) => {
-    res.sendFile(path4.resolve(distPath, "index.html"));
+    res.sendFile(path5.resolve(distPath, "index.html"));
   });
 }
 
 // server/index.ts
 import dotenv2 from "dotenv";
 import { fileURLToPath as fileURLToPath4 } from "url";
-import path5 from "path";
+import path6 from "path";
 import { dirname as dirname4 } from "path";
 import https from "https";
-import fs3 from "fs";
+import fs4 from "fs";
 var __filename4 = fileURLToPath4(import.meta.url);
 var __dirname4 = dirname4(__filename4);
-dotenv2.config({ path: path5.resolve(__dirname4, "../.env") });
+dotenv2.config({ path: path6.resolve(__dirname4, "../.env") });
 var app = express3();
 app.use(express3.json());
 app.use(express3.urlencoded({ extended: false }));
@@ -1368,11 +1765,11 @@ app.use((req, res, next) => {
   }
   next();
 });
-var publicPath = process.env.NODE_ENV === "production" ? path5.join(__dirname4, "public") : path5.join(__dirname4, "../public");
+var publicPath = process.env.NODE_ENV === "production" ? path6.join(__dirname4, "public") : path6.join(__dirname4, "../public");
 app.use("/public", express3.static(publicPath));
 app.use((req, res, next) => {
   const start = Date.now();
-  const path6 = req.path;
+  const path7 = req.path;
   let capturedJsonResponse = void 0;
   const originalResJson = res.json;
   res.json = function(bodyJson, ...args) {
@@ -1381,8 +1778,8 @@ app.use((req, res, next) => {
   };
   res.on("finish", () => {
     const duration = Date.now() - start;
-    if (path6.startsWith("/api")) {
-      let logLine = `${req.method} ${path6} ${res.statusCode} in ${duration}ms`;
+    if (path7.startsWith("/api")) {
+      let logLine = `${req.method} ${path7} ${res.statusCode} in ${duration}ms`;
       if (capturedJsonResponse) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
@@ -1409,8 +1806,8 @@ app.use((req, res, next) => {
   }
   if (process.env.NODE_ENV === "production" && process.env.ENABLE_HTTPS === "true") {
     try {
-      const privateKey = fs3.readFileSync("/etc/letsencrypt/live/raiseds25.com/privkey.pem", "utf8");
-      const certificate = fs3.readFileSync("/etc/letsencrypt/live/raiseds25.com/fullchain.pem", "utf8");
+      const privateKey = fs4.readFileSync("/etc/letsencrypt/live/raiseds25.com/privkey.pem", "utf8");
+      const certificate = fs4.readFileSync("/etc/letsencrypt/live/raiseds25.com/fullchain.pem", "utf8");
       const credentials = {
         key: privateKey,
         cert: certificate

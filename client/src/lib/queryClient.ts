@@ -2,8 +2,26 @@ import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
-    const text = (await res.text()) || res.statusText;
-    throw new Error(`${res.status}: ${text}`);
+    let errorMessage = res.statusText;
+    
+    try {
+      const text = await res.text();
+      if (text) {
+        // Try to parse as JSON first
+        try {
+          const jsonError = JSON.parse(text);
+          errorMessage = jsonError.error || jsonError.message || text;
+        } catch {
+          // If not JSON, use the text directly
+          errorMessage = text;
+        }
+      }
+    } catch {
+      // Fallback to status text if reading body fails
+      errorMessage = res.statusText;
+    }
+    
+    throw new Error(errorMessage);
   }
 }
 
@@ -12,10 +30,12 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
+  const isFormData = data instanceof FormData;
+  
   const res = await fetch(url, {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
-    body: data ? JSON.stringify(data) : undefined,
+    headers: data && !isFormData ? { "Content-Type": "application/json" } : {},
+    body: data ? (isFormData ? data : JSON.stringify(data)) : undefined,
     credentials: "include",
   });
 

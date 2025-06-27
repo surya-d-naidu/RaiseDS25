@@ -2,8 +2,9 @@ import { useEffect } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Helmet } from "react-helmet";
 import { useForm } from "react-hook-form";
@@ -33,7 +34,7 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export default function AuthPage() {
   const [, navigate] = useLocation();
-  const { user, loginMutation, registerMutation } = useAuth();
+  const { user, loginMutation, registerMutation, isLoading } = useAuth();
 
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -125,17 +126,6 @@ export default function AuthPage() {
                             </FormItem>
                           )}
                         />
-                        
-                        <div className="flex justify-end">
-                          <Button
-                            type="button"
-                            variant="link"
-                            className="px-0 h-auto text-sm"
-                            onClick={() => navigate("/forgot-password")}
-                          >
-                            Forgot your password?
-                          </Button>
-                        </div>
                         
                         <Button 
                           type="submit" 
@@ -318,7 +308,7 @@ export default function AuthPage() {
                 
                 <div className="flex items-center mt-8">
                   <div className="flex-shrink-0">
-                    <svg className="w-12 h-12 text-primary" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinejoin="round">
+                    <svg className="w-12 h-12 text-primary" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2" />
                       <circle cx="9" cy="7" r="4" />
                       <path d="M22 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />

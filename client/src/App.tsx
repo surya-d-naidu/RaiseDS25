@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute, AdminRoute } from "@/lib/protected-route";
-import AnimatedCursor from "@/components/ui/animated-cursor";
+import NotificationBar from "@/components/layout/notification-bar";
 
 // Pages
 import HomePage from "@/pages/home-page";
@@ -19,6 +19,9 @@ import RegisterPage from "@/pages/register-page";
 import AbstractSubmissionPage from "@/pages/abstract-submission-page";
 import ProfilePage from "@/pages/profile-page";
 import AttendanceResponse from "@/pages/attendance-response";
+import OTPVerificationPage from "@/pages/otp-verification-page";
+import ForgotPasswordPage from "@/pages/forgot-password-page";
+import ResetPasswordPage from "@/pages/reset-password-page";
 
 // Admin Pages
 import AdminDashboard from "@/pages/admin/dashboard";
@@ -35,11 +38,14 @@ function Router() {
       <Route path="/" component={HomePage} />
       <Route path="/about" component={AboutPage} />
       <Route path="/auth" component={AuthPage} />
+      <Route path="/forgot-password" component={ForgotPasswordPage} />
+      <Route path="/reset-password" component={ResetPasswordPage} />
       <Route path="/call-for-papers" component={CallForPapersPage} />
       <Route path="/research-awards" component={ResearchAwardsPage} />
       <Route path="/committee" component={CommitteePage} />
       <Route path="/register" component={RegisterPage} />
       <Route path="/attendance" component={AttendanceResponse} />
+      <Route path="/verify-email" component={OTPVerificationPage} />
       
       {/* Protected Routes */}
       <ProtectedRoute path="/abstracts/submit" component={AbstractSubmissionPage} />
@@ -63,7 +69,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <TooltipProvider>
-          <AnimatedCursor />
+          <NotificationBar />
           <Toaster />
           <Router />
         </TooltipProvider>

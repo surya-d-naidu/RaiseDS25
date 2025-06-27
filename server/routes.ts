@@ -75,7 +75,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Abstract routes are registered from ./routes/abstracts.ts
-  });
   
   // Admin abstract routes
   app.get("/api/admin/abstracts", isAdmin, async (req, res) => {
@@ -163,7 +162,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/admin/notifications/:id", isAdmin, async (req, res) => {
     try {
       const notificationId = parseInt(req.params.id);
-      const notification = await storage.updateNotification(notificationId, req.body);
+      const validatedData = insertNotificationSchema.parse(req.body);
+      const notification = await storage.updateNotification(notificationId, validatedData);
       
       if (!notification) {
         return res.status(404).json({ message: "Notification not found" });
@@ -613,6 +613,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  app.delete("/api/admin/users/:id", isAdmin, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      
+      // Prevent deleting the current admin user
+      if (req.user && req.user.id === userId) {
+        return res.status(400).json({ message: "Cannot delete your own account" });
+      }
+      
+      const success = await storage.deleteUser(userId);
+      
+      if (!success) {
+        return res.status(404).json({ message: "User not found or could not be deleted" });
+      }
+      
+      res.json({ message: "User deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      res.status(500).json({ message: "Error deleting user" });
+    }
+  });
+  
   // Brochure download
   app.get("/api/brochure", (req, res) => {
     const brochurePath = path.join(process.cwd(), "uploads", "brochure.pdf");
@@ -642,6 +664,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     res.status(201).json({ message: "Brochure uploaded successfully" });
   });
+
+  // Register abstract routes
+  registerAbstractRoutes(app);
 
   const httpServer = createServer(app);
   

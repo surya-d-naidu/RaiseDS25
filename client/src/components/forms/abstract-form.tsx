@@ -201,7 +201,7 @@ export default function AbstractForm({ abstract }: { abstract?: any }) {
                 <TabsContent value="write">
                   <FormControl>
                     <Textarea
-                      placeholder="Enter your abstract (300-500 words). You can use Markdown formatting and LaTeX formulas using $...$ for inline math and $$...$$ for block math."
+                      placeholder="Enter your abstract (maximum 250 words). You can use Markdown formatting and LaTeX formulas using $...$ for inline math and $$...$$ for block math."
                       className="resize-none min-h-[300px]"
                       {...field}
                     />
@@ -216,7 +216,7 @@ export default function AbstractForm({ abstract }: { abstract?: any }) {
                 </TabsContent>
               </Tabs>
               <FormDescription className="flex flex-col space-y-1">
-                <span>Include research problem, methodology, results, and conclusions. 300-500 words recommended.</span>
+                <span>Include research problem, methodology, results, and conclusions. Maximum 250 words.</span>
                 <span>Supports Markdown and LaTeX: Use $...$ for inline math and $$...$$ for block math formulas.</span>
               </FormDescription>
               <FormMessage />

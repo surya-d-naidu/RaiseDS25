@@ -144,6 +144,11 @@ export default function RegisterPage() {
                         </TableHeader>
                         <TableBody>
                           <TableRow>
+                            <TableCell className="font-medium">Accompanying Person</TableCell>
+                            <TableCell>US$ 80</TableCell>
+                            <TableCell>US$ 100</TableCell>
+                          </TableRow>
+                          <TableRow>
                             <TableCell className="font-medium">Foreign Delegates (ISPS Member)</TableCell>
                             <TableCell>US$ 240</TableCell>
                             <TableCell>US$ 280</TableCell>
@@ -152,11 +157,6 @@ export default function RegisterPage() {
                             <TableCell className="font-medium">Foreign Delegates (Non-Member)</TableCell>
                             <TableCell>US$ 300</TableCell>
                             <TableCell>US$ 350</TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableCell className="font-medium">Accompanying Person</TableCell>
-                            <TableCell>US$ 80</TableCell>
-                            <TableCell>US$ 100</TableCell>
                           </TableRow>
                         </TableBody>
                       </Table>
@@ -271,11 +271,6 @@ export default function RegisterPage() {
             
             <div>
               <Card className="mb-8 bg-gradient-to-br from-primary-50 to-white sticky top-8">
-                <CardHeader>
-                  <Badge className="w-fit" variant="outline">Limited Time Offer</Badge>
-                  <CardTitle>Early Bird Registration</CardTitle>
-                  <CardDescription>Register before November 20, 2025 to avail discounted rates</CardDescription>
-                </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center">
                     <Clock className="h-5 w-5 text-primary mr-3 flex-shrink-0" />
@@ -305,20 +300,11 @@ export default function RegisterPage() {
                       <p className="text-gray-600">VIT-AP University, Amaravati</p>
                     </div>
                   </div>
-                  
-                  <Separator />
-                  
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="text-sm text-gray-500">Starting from</p>
-                      <p className="text-2xl font-bold text-gray-900">₹2,400</p>
-                    </div>
-                  </div>
                 </CardContent>
                 <CardFooter className="flex flex-col space-y-2">
-                  <Link href={user ? "#registration-form" : "/auth"}>
+                  <Link href="/auth">
                     <Button className="w-full">
-                      {user ? "Register Now" : "Sign In to Register"}
+                      {user ? "Manage Your Account" : "Sign In to Register"}
                     </Button>
                   </Link>
                   <a href="/api/brochure" target="_blank" rel="noopener noreferrer">
@@ -329,82 +315,33 @@ export default function RegisterPage() {
                   </a>
                 </CardFooter>
               </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-xl flex items-center">
-                    <CreditCard className="mr-2 h-5 w-5 text-primary" />
-                    Payment Methods
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4 text-sm text-gray-600">
-                    <div>
-                      <h3 className="font-medium text-gray-900">Bank Transfer</h3>
-                      <p className="mt-1">
-                        Account Name: RAISE DS 2025<br />
-                        Account Number: XXXX XXXX XXXX 1234<br />
-                        IFSC Code: ABCD0001234<br />
-                        Bank: State Bank of India<br />
-                        Branch: VIT-AP Campus
-                      </p>
-                    </div>
-                    
-                    <div>
-                      <h3 className="font-medium text-gray-900">Online Payment</h3>
-                      <p className="mt-1">
-                        Secure online payment options will be available during the registration process, including credit card, debit card, and UPI.
-                      </p>
-                    </div>
-                    
-                    <div className="bg-gray-50 p-3 rounded text-xs">
-                      <p className="font-medium text-gray-900">Registration Cancellation Policy</p>
-                      <p className="mt-1">
-                        • Before November 15, 2025: 75% refund<br />
-                        • Before December 1, 2025: 50% refund<br />
-                        • After December 1, 2025: No refund
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
             </div>
           </div>
           
-          <div className="mt-16" id="registration-form">
-            <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">
-              {user ? "Complete Your Registration" : "Create an Account to Register"}
-            </h2>
-            
-            {user ? (
-              <Card className="max-w-3xl mx-auto">
-                <CardHeader>
-                  <CardTitle>Registration Form</CardTitle>
-                  <CardDescription>
-                    Please complete all the required fields to register for the conference
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <p className="text-center py-6 text-gray-600">
-                      Registration form will be available soon. Please check back later.
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="text-center">
-                <p className="text-gray-600 mb-6">
-                  You need to create an account or sign in to register for the conference.
-                </p>
+          <div className="mt-16 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg shadow-sm p-8">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                Ready to Register?
+              </h2>
+              <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
+                Registration for RAISE DS 2025 is now open! Create your account or sign in to complete your registration 
+                and secure your spot at this premier conference on probability, statistics, and data science.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/auth">
-                  <Button size="lg">
+                  <Button size="lg" className="min-w-[200px]">
                     <Users className="mr-2 h-5 w-5" />
-                    Sign In or Create Account
+                    Register Now
                   </Button>
                 </Link>
+                <a href="/api/brochure" target="_blank" rel="noopener noreferrer">
+                  <Button variant="outline" size="lg" className="min-w-[200px]">
+                    <Download className="mr-2 h-4 w-4" />
+                    Download Brochure
+                  </Button>
+                </a>
               </div>
-            )}
+            </div>
           </div>
           
           <div className="mt-16 bg-white rounded-lg shadow-sm p-8">

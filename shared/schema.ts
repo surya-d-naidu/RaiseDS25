@@ -12,6 +12,11 @@ export const users = pgTable("users", {
   lastName: text("last_name").notNull(),
   institution: text("institution").notNull(),
   role: text("role").notNull().default("user"), // user, admin
+  emailVerified: boolean("email_verified").default(false),
+  emailVerificationToken: text("email_verification_token"),
+  emailVerificationExpires: timestamp("email_verification_expires"),
+  passwordResetToken: text("password_reset_token"),
+  passwordResetExpires: timestamp("password_reset_expires"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -29,8 +34,7 @@ export const AuthorSchema = z.object({
   name: z.string().min(1, "Author name is required"),
   affiliation: z.string().min(1, "Author affiliation is required"),
   category: z.enum(["Delegate (Keynote speaker)", "Delegate (Invited speaker)", "Presenter", "Participant"]),
-  email: z.string().email("Invalid email").optional(),
-  isCorresponding: z.boolean().default(false)
+  email: z.string().email("Invalid email")
 });
 
 export type Author = z.infer<typeof AuthorSchema>;
@@ -134,6 +138,12 @@ export const notifications = pgTable("notifications", {
 export const insertNotificationSchema = createInsertSchema(notifications).omit({ 
   id: true, 
   createdAt: true 
+}).extend({
+  expiresAt: z.union([
+    z.string().transform((val) => val ? new Date(val) : null),
+    z.date(),
+    z.null()
+  ]).optional()
 });
 
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;

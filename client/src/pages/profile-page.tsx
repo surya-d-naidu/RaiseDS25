@@ -218,6 +218,30 @@ export default function ProfilePage() {
                                     <span className="text-sm font-medium text-gray-500">Keywords:</span>
                                     <span className="ml-2 text-sm text-gray-900">{abstract.keywords}</span>
                                   </div>
+
+                                  <div className="mb-4">
+                                    <span className="text-sm font-medium text-gray-500">Authors:</span>
+                                    <div className="mt-2 space-y-2">
+                                      {Array.isArray(abstract.authors) ? (
+                                        abstract.authors.map((author: any, idx: number) => (
+                                          <div key={idx} className="flex items-start space-x-2 text-sm">
+                                            <Badge variant="outline" className="mt-0.5">
+                                              {author.category}
+                                            </Badge>
+                                            <div>
+                                              <span className="text-gray-900 font-medium">
+                                                {author.name}
+                                              </span>
+                                              <div className="text-gray-500">{author.affiliation}</div>
+                                              {author.email && <div className="text-gray-500 text-xs">{author.email}</div>}
+                                            </div>
+                                          </div>
+                                        ))
+                                      ) : (
+                                        <div className="text-gray-500">{abstract.authors || 'No author information'}</div>
+                                      )}
+                                    </div>
+                                  </div>
                                   
                                   <div className="prose prose-sm max-w-none">
                                     <h4 className="text-sm font-medium text-gray-500">Abstract Preview:</h4>

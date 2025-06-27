@@ -77,9 +77,10 @@ export default function CallForPapersPage() {
                       Abstract Requirements
                     </h3>
                     <ul className="list-disc pl-5 space-y-2 mt-2">
-                      <li>Abstracts should be 300-500 words, clearly describing the research problem, methodology, results, and conclusions.</li>
+                      <li>Abstracts should be maximum 250 words, clearly describing the research problem, methodology, results, and conclusions.</li>
                       <li>Include 3-5 keywords that best represent the content of your research.</li>
-                      <li>Submissions must be in English and in PDF format.</li>
+                      <li>Submissions must be in English.</li>
+                      <li>Supporting documents (optional) should be in DOCX format, maximum 5MB.</li>
                       <li>Full papers (if required after abstract acceptance) should be formatted according to the conference template, not exceeding 10 pages including references.</li>
                     </ul>
 
@@ -193,7 +194,7 @@ export default function CallForPapersPage() {
                       <Clock className="h-5 w-5 text-primary mr-3 flex-shrink-0" />
                       <div>
                         <p className="font-semibold">Abstract Submission Deadline</p>
-                        <p className="text-gray-600">October 15, 2025</p>
+                        <p className="text-gray-600">November 01, 2025</p>
                       </div>
                     </li>
                     <li className="flex">
@@ -206,8 +207,15 @@ export default function CallForPapersPage() {
                     <li className="flex">
                       <Clock className="h-5 w-5 text-primary mr-3 flex-shrink-0" />
                       <div>
+                        <p className="font-semibold">Submission of Full Length Paper</p>
+                        <p className="text-gray-600">December 12, 2025</p>
+                      </div>
+                    </li>
+                    <li className="flex">
+                      <Clock className="h-5 w-5 text-primary mr-3 flex-shrink-0" />
+                      <div>
                         <p className="font-semibold">Early Bird Registration</p>
-                        <p className="text-gray-600">Until November 30, 2025</p>
+                        <p className="text-gray-600">Until November 20, 2025</p>
                       </div>
                     </li>
                     <li className="flex">

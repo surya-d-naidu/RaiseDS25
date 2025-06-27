@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { Loader2, Award, Calendar, Sparkles, Clock, AlertTriangle, ChevronDown, ChevronUp } from "lucide-react";
+import { Loader2, Award, Calendar, Sparkles, Clock, AlertTriangle, ChevronDown, ChevronUp, Download } from "lucide-react";
 import { ResearchAward } from "@shared/schema";
 import { format } from "date-fns";
 
@@ -129,6 +129,23 @@ export default function ResearchAwardsPage() {
             <p className="mt-4 text-xl text-gray-500 max-w-3xl mx-auto">
               Recognizing excellence and innovation in statistical research
             </p>
+            
+            {/* ISPS Awards Download Button */}
+            <div className="mt-8">
+              <Button 
+                asChild
+                className="bg-primary hover:bg-primary-dark text-white px-6 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                <a 
+                  href="/uploads/awards.pdf" 
+                  download="ISPS_Awards.pdf"
+                  className="inline-flex items-center"
+                >
+                  <Download className="h-5 w-5 mr-2" />
+                  ISPS Awards
+                </a>
+              </Button>
+            </div>
           </div>
           
           <div className="mb-16">
@@ -242,7 +259,7 @@ export default function ResearchAwardsPage() {
                       <div className="text-sm">
                         <div className="flex items-center mb-1">
                           <span className="text-gray-500 mr-2">Email:</span>
-                          <span className="text-primary font-medium">awards@raiseds25.com</span>
+                          <span className="text-primary font-medium">raiseds25@vitap.ac.in</span>
                         </div>
                         <div className="flex items-center">
                           <span className="text-gray-500 mr-2">Response:</span>

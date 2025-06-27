@@ -88,11 +88,8 @@ export function registerAbstractRoutes(app: Express) {
         fileUrl: req.file ? `/uploads/${req.file.filename}` : undefined
       });
       
-      // Get the corresponding author for email
-      const correspondingAuthor = authors.find(author => author.isCorresponding);
-      const authorDisplay = correspondingAuthor 
-        ? `${correspondingAuthor.name} (Corresponding Author)` 
-        : authors.map(a => a.name).join(", ");
+      // Get author names for email display
+      const authorDisplay = authors.map(a => a.name).join(", ");
       
       // Send confirmation email with abstract ID
       try {

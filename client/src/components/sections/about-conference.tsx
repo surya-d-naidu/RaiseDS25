@@ -107,9 +107,10 @@ export default function AboutConference() {
                     <div className="ml-4">
                       <h3 className="text-lg font-medium text-gray-900">Important Dates</h3>
                       <div className="mt-2 text-sm text-gray-500 space-y-1">
-                        <p>• Abstract Submission Deadline: October 15, 2025</p>
+                        <p>• Abstract Submission Deadline: November 01, 2025</p>
                         <p>• Notification of Acceptance: November 10, 2025</p>
-                        <p>• Early Bird Registration: Until November 30, 2025</p>
+                        <p>• Submission of Full Length Paper: December 12, 2025</p>
+                        <p>• Early Bird Registration: Until November 20, 2025</p>
                         <p>• Workshop Day: December 21, 2025</p>
                         <p>• Main Conference: December 22-24, 2025</p>
                       </div>

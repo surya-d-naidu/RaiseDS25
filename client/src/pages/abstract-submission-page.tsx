@@ -10,13 +10,12 @@ import { Separator } from "@/components/ui/separator";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Abstract, Author } from "@shared/schema";
 import { useAuth } from "@/hooks/use-auth";
-import { InfoIcon, AlertTriangle, FileText, CheckCircle2, Clock, Loader2, Plus, Trash2, X, User } from "lucide-react";
+import { InfoIcon, AlertTriangle, FileText, CheckCircle2, Clock, Plus, Trash2, X, Loader2 } from "lucide-react";
 import MarkdownRenderer from "@/components/ui/markdown-renderer";
 import AbstractForm from "@/components/forms/abstract-form";
 import { getCategoryCode } from "@/lib/abstract-utils";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Badge } from "@/components/ui/badge";
 
 export default function AbstractSubmissionPage() {
   const { user } = useAuth();
@@ -28,11 +27,17 @@ export default function AbstractSubmissionPage() {
     keywords: "" 
   });
   const [authors, setAuthors] = useState<Author[]>([
-    { name: "", affiliation: "", category: "Presenter", isCorresponding: true }
+    { name: "", affiliation: "", category: "Presenter", email: "" }
   ]);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Function to count words in text
+  const countWords = (text: string) => {
+    return text.trim().split(/\s+/).filter(word => word.length > 0).length;
+  };
 
   const { data: abstracts, isLoading } = useQuery<Abstract[]>({
     queryKey: ["/api/abstracts"],
@@ -41,21 +46,27 @@ export default function AbstractSubmissionPage() {
 
   const submitMutation = useMutation({
     mutationFn: async (formData: FormData) => {
-      const response = await apiRequest("POST", "/api/abstracts", formData, true);
+      const response = await apiRequest("POST", "/api/abstracts", formData);
       return await response.json();
     },
     onSuccess: () => {
+      setShowSuccessMessage(true);
       toast({
         title: "Abstract Submitted",
         description: "Your abstract has been successfully submitted for review.",
       });
       setFormData({ title: "", category: "", content: "", keywords: "" });
-      setAuthors([{ name: "", affiliation: "", category: "Presenter", isCorresponding: true }]);
+      setAuthors([{ name: "", affiliation: "", category: "Presenter", email: "" }]);
       setSelectedFile(null);
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
       queryClient.invalidateQueries({ queryKey: ["/api/abstracts"] });
+      
+      // Hide success message after 10 seconds
+      setTimeout(() => {
+        setShowSuccessMessage(false);
+      }, 10000);
     },
     onError: (error) => {
       toast({
@@ -82,7 +93,7 @@ export default function AbstractSubmissionPage() {
   };
   
   const addAuthor = () => {
-    setAuthors(prev => [...prev, { name: "", affiliation: "", category: "Participant", isCorresponding: false }]);
+    setAuthors(prev => [...prev, { name: "", affiliation: "", category: "Participant", email: "" }]);
   };
   
   const removeAuthor = (index: number) => {
@@ -95,27 +106,7 @@ export default function AbstractSubmissionPage() {
       return;
     }
     
-    // If removing the corresponding author, set the first remaining author as corresponding
-    const isRemovingCorresponding = authors[index].isCorresponding;
-    
-    setAuthors(prev => {
-      const newAuthors = prev.filter((_, i) => i !== index);
-      
-      if (isRemovingCorresponding && newAuthors.length > 0) {
-        newAuthors[0] = { ...newAuthors[0], isCorresponding: true };
-      }
-      
-      return newAuthors;
-    });
-  };
-  
-  const setCorrespondingAuthor = (index: number) => {
-    setAuthors(prev => 
-      prev.map((author, i) => ({
-        ...author,
-        isCorresponding: i === index
-      }))
-    );
+    setAuthors(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -139,13 +130,13 @@ export default function AbstractSubmissionPage() {
 
     // Validate authors
     const invalidAuthorIndex = authors.findIndex(
-      author => !author.name.trim() || !author.affiliation.trim()
+      author => !author.name.trim() || !author.affiliation.trim() || !author.email.trim()
     );
     
     if (invalidAuthorIndex >= 0) {
       toast({
         title: "Incomplete Author Information",
-        description: `Please provide name and affiliation for author #${invalidAuthorIndex + 1}.`,
+        description: `Please provide name, affiliation, and email for author #${invalidAuthorIndex + 1}.`,
         variant: "destructive",
       });
       return;
@@ -169,10 +160,32 @@ export default function AbstractSubmissionPage() {
       return;
     }
 
+    // Validate word count for abstract content
+    const wordCount = countWords(formData.content);
+    if (wordCount > 250) {
+      toast({
+        title: "Content Too Long",
+        description: `Your abstract contains ${wordCount} words. Please limit it to 250 words.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!formData.keywords.trim()) {
       toast({
         title: "Missing Keywords",
         description: "Please provide keywords for your abstract.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate keywords count
+    const keywordsArray = formData.keywords.split(',').map(k => k.trim()).filter(k => k.length > 0);
+    if (keywordsArray.length > 5) {
+      toast({
+        title: "Too Many Keywords",
+        description: `You provided ${keywordsArray.length} keywords. Please limit to 5 keywords maximum.`,
         variant: "destructive",
       });
       return;
@@ -238,6 +251,43 @@ export default function AbstractSubmissionPage() {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
+                      {showSuccessMessage ? (
+                        <div className="text-center py-12">
+                          <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-6">
+                            <CheckCircle2 className="h-8 w-8 text-green-600" />
+                          </div>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                            Abstract Submitted Successfully!
+                          </h3>
+                          <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                            Thank you for submitting your abstract. Your submission has been received and will be reviewed by our committee. You will receive a notification about the status within the review period.
+                          </p>
+                          <div className="space-y-3 text-sm text-gray-600">
+                            <div className="flex items-center justify-center">
+                              <InfoIcon className="h-4 w-4 mr-2 text-blue-500" />
+                              <span>You can track your submission status in the "My Abstracts" tab</span>
+                            </div>
+                            <div className="flex items-center justify-center">
+                              <Clock className="h-4 w-4 mr-2 text-amber-500" />
+                              <span>Review results will be announced by November 10, 2025</span>
+                            </div>
+                          </div>
+                          <div className="mt-8 space-x-4">
+                            <button
+                              onClick={() => setActiveTab("my-abstracts")}
+                              className="bg-primary text-white px-6 py-2 rounded hover:bg-primary-dark transition-colors"
+                            >
+                              View My Abstracts
+                            </button>
+                            <button
+                              onClick={() => setShowSuccessMessage(false)}
+                              className="bg-gray-100 text-gray-700 px-6 py-2 rounded hover:bg-gray-200 transition-colors"
+                            >
+                              Submit Another Abstract
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
                       <form className="space-y-6" onSubmit={handleSubmit}>
                         <div>
                           <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
@@ -268,13 +318,7 @@ export default function AbstractSubmissionPage() {
                           
                           {authors.map((author, index) => (
                             <div key={index} className="border rounded-md p-4 bg-gray-50 relative">
-                              <div className="absolute top-2 right-2 flex items-center space-x-1">
-                                {author.isCorresponding && (
-                                  <Badge variant="outline" className="text-xs text-blue-700 bg-blue-50 border-blue-200">
-                                    <User className="h-3 w-3 mr-1" />
-                                    Corresponding
-                                  </Badge>
-                                )}
+                              <div className="absolute top-2 right-2">
                                 <button
                                   type="button"
                                   onClick={() => removeAuthor(index)}
@@ -288,13 +332,13 @@ export default function AbstractSubmissionPage() {
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
                                 <div>
                                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Name *
+                                    Full name (As per certificate) *
                                   </label>
                                   <input
                                     type="text"
                                     value={author.name}
                                     onChange={(e) => handleAuthorChange(index, 'name', e.target.value)}
-                                    placeholder="Full name"
+                                    placeholder="Full name as per certificate"
                                     required
                                     className="w-full border rounded px-3 py-2"
                                   />
@@ -318,13 +362,14 @@ export default function AbstractSubmissionPage() {
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                                 <div>
                                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Email
+                                    Email *
                                   </label>
                                   <input
                                     type="email"
                                     value={author.email || ''}
                                     onChange={(e) => handleAuthorChange(index, 'email', e.target.value)}
-                                    placeholder="Email address (optional)"
+                                    placeholder="Email address"
+                                    required
                                     className="w-full border rounded px-3 py-2"
                                   />
                                 </div>
@@ -346,18 +391,6 @@ export default function AbstractSubmissionPage() {
                                   </select>
                                 </div>
                               </div>
-                              
-                              <div className="mt-4">
-                                <label className="flex items-center">
-                                  <input
-                                    type="checkbox"
-                                    checked={author.isCorresponding}
-                                    onChange={() => setCorrespondingAuthor(index)}
-                                    className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
-                                  />
-                                  <span className="ml-2 text-sm text-gray-700">Corresponding author</span>
-                                </label>
-                              </div>
                             </div>
                           ))}
                         </div>
@@ -373,45 +406,39 @@ export default function AbstractSubmissionPage() {
                             className="w-full border rounded px-3 py-2"
                           >
                             <option value="">Select Category</option>
-                            {/* Column 1 themes */}
-                            <option value="Probability Theory">Probability Theory</option>
-                            <option value="AI & Machine Learning">AI & Machine Learning</option>
-                            <option value="Statistical Inference">Statistical Inference</option>
-                            <option value="Time Series Analysis">Time Series Analysis</option>
-                            <option value="Survey Sampling">Survey Sampling</option>
-                            <option value="Planning and Experimental Designs">Planning and Experimental Designs</option>
-                            <option value="Statistics in Management">Statistics in Management</option>
-                            <option value="Statistical Quality Control">Statistical Quality Control</option>
-                            <option value="Spatial Statistics">Spatial Statistics</option>
-                            
-                            {/* Column 2 themes */}
-                            <option value="Distribution Theory">Distribution Theory</option>
-                            <option value="Operations Research">Operations Research</option>
-                            <option value="Applied Mathematics">Applied Mathematics</option>
-                            <option value="Population Studies">Population Studies</option>
-                            <option value="Data Science Techniques">Data Science Techniques</option>
-                            <option value="Mathematical Modelling">Mathematical Modelling</option>
-                            <option value="Econometrics">Econometrics</option>
-                            <option value="Stochastic Modelling">Stochastic Modelling</option>
-                            <option value="Bayesian and Fuzzy Statistics">Bayesian and Fuzzy Statistics</option>
-                            
-                            {/* Column 3 themes */}
-                            <option value="Bio-Statistics">Bio-Statistics</option>
-                            <option value="Agricultural Statistics">Agricultural Statistics</option>
-                            <option value="Environmental Statistics">Environmental Statistics</option>
-                            <option value="Reliability and Survival Analysis">Reliability and Survival Analysis</option>
-                            <option value="Applied Statistics">Applied Statistics</option>
-                            <option value="Multivariate Analysis">Multivariate Analysis</option>
+                            {/* Alphabetically sorted categories */}
                             <option value="Actuarial Statistics">Actuarial Statistics</option>
-                            <option value="Official Statistics">Official Statistics</option>
+                            <option value="Agricultural Statistics">Agricultural Statistics</option>
+                            <option value="AI & Machine Learning">AI & Machine Learning</option>
+                            <option value="Applied Mathematics">Applied Mathematics</option>
+                            <option value="Applied Statistics">Applied Statistics</option>
+                            <option value="Bayesian and Fuzzy Statistics">Bayesian and Fuzzy Statistics</option>
+                            <option value="Bio-Statistics">Bio-Statistics</option>
+                            <option value="Data Science Techniques">Data Science Techniques</option>
+                            <option value="Distribution Theory">Distribution Theory</option>
+                            <option value="Econometrics">Econometrics</option>
+                            <option value="Environmental Statistics">Environmental Statistics</option>
+                            <option value="Mathematical Modelling">Mathematical Modelling</option>
                             <option value="Multi-Disciplinary Research">Multi-Disciplinary Research</option>
-                            
-                            <option value="Other">Other</option>
+                            <option value="Multivariate Analysis">Multivariate Analysis</option>
+                            <option value="Official Statistics">Official Statistics</option>
+                            <option value="Operations Research">Operations Research</option>
+                            <option value="Planning and Experimental Designs">Planning and Experimental Designs</option>
+                            <option value="Population Studies">Population Studies</option>
+                            <option value="Probability Theory">Probability Theory</option>
+                            <option value="Reliability and Survival Analysis">Reliability and Survival Analysis</option>
+                            <option value="Spatial Statistics">Spatial Statistics</option>
+                            <option value="Statistical Inference">Statistical Inference</option>
+                            <option value="Statistical Quality Control">Statistical Quality Control</option>
+                            <option value="Statistics in Management">Statistics in Management</option>
+                            <option value="Stochastic Modelling">Stochastic Modelling</option>
+                            <option value="Survey Sampling">Survey Sampling</option>
+                            <option value="Time Series Analysis">Time Series Analysis</option>
                           </select>
                         </div>
                         
                         <div>
-                          <label htmlFor="keywords" className="block text-sm font-medium text-gray-700 mb-1">Keywords * <span className="text-xs text-gray-500">(Comma separated)</span></label>
+                          <label htmlFor="keywords" className="block text-sm font-medium text-gray-700 mb-1">Keywords * <span className="text-xs text-gray-500">(Comma separated, max 5)</span></label>
                           <input
                             id="keywords"
                             type="text"
@@ -431,26 +458,40 @@ export default function AbstractSubmissionPage() {
                               (Markdown and LaTeX supported. Use $...$ for inline math and $$...$$ for display math)
                             </span>
                           </label>
-                          <textarea
-                            id="content"
-                            name="content"
-                            rows={10}
-                            placeholder="Enter your abstract content here..."
-                            value={formData.content}
-                            onChange={handleInputChange}
-                            required
-                            className="w-full border rounded px-3 py-2 font-mono"
-                          />
+                          <div className="relative">
+                            <textarea
+                              id="content"
+                              name="content"
+                              rows={10}
+                              placeholder="Enter your abstract content here..."
+                              value={formData.content}
+                              onChange={handleInputChange}
+                              required
+                              className="w-full border rounded px-3 py-2 font-mono"
+                            />
+                            <div className={`text-xs mt-1 ${
+                              countWords(formData.content) > 250 
+                                ? 'text-red-500 font-medium' 
+                                : countWords(formData.content) > 200 
+                                  ? 'text-amber-500' 
+                                  : 'text-gray-500'
+                            }`}>
+                              Word count: {countWords(formData.content)}/250
+                              {countWords(formData.content) > 250 && (
+                                <span className="ml-2 font-medium">⚠️ Exceeds limit</span>
+                              )}
+                            </div>
+                          </div>
                         </div>
                         
                         <div>
                           <label htmlFor="file" className="block text-sm font-medium text-gray-700 mb-1">
-                            Supporting Document <span className="text-xs text-gray-500">(Optional, PDF only, max 5MB)</span>
+                            Supporting Document <span className="text-xs text-gray-500">(Optional, DOCX only, max 5MB)</span>
                           </label>
                           <input
                             id="file"
                             type="file"
-                            accept=".pdf"
+                            accept=".docx"
                             ref={fileInputRef}
                             onChange={handleFileChange}
                             className="w-full border rounded px-3 py-2"
@@ -460,8 +501,88 @@ export default function AbstractSubmissionPage() {
                         <div className="pt-4 border-t">
                           <h4 className="text-sm font-medium text-gray-700 mb-3">Preview</h4>
                           <div className="border rounded p-4 bg-white">
-                            {formData.content ? (
-                              <MarkdownRenderer content={formData.content} />
+                            {formData.title || authors.some(a => a.name.trim()) || formData.content ? (
+                              <div className="space-y-4">
+                                {/* Title */}
+                                {formData.title && (
+                                  <div className="text-center">
+                                    <div className="text-lg font-bold text-gray-900">
+                                      <MarkdownRenderer content={formData.title} />
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                {/* Authors with superscript affiliation indices */}
+                                {authors.some(a => a.name.trim()) && (
+                                  <div className="text-center">
+                                    <div className="text-sm text-gray-800 mb-2">
+                                      {(() => {
+                                        // Get unique affiliations and create index mapping
+                                        const affiliations = authors.filter(a => a.affiliation.trim()).map(a => a.affiliation);
+                                        const uniqueAffiliations = affiliations.filter((value, index, self) => self.indexOf(value) === index);
+                                        const affiliationToIndex = Object.fromEntries(
+                                          uniqueAffiliations.map((affiliation, index) => [affiliation, index + 1])
+                                        );
+                                        
+                                        return (
+                                          <>
+                                            {/* Author names with superscript indices */}
+                                            <div className="mb-3">
+                                              {authors
+                                                .filter(a => a.name.trim())
+                                                .map((author, index) => (
+                                                  <span key={index}>
+                                                    {index > 0 && ", "}
+                                                    {author.name}
+                                                    {author.affiliation.trim() && (
+                                                      <sup className="text-xs">
+                                                        {affiliationToIndex[author.affiliation]}
+                                                      </sup>
+                                                    )}
+                                                  </span>
+                                                ))
+                                              }
+                                            </div>
+                                            
+                                            {/* Affiliation list */}
+                                            <div className="text-xs text-gray-600 space-y-1">
+                                              {uniqueAffiliations.map((affiliation, index) => (
+                                                <div key={index}>
+                                                  <sup>{index + 1}</sup> {affiliation}
+                                                </div>
+                                              ))}
+                                            </div>
+                                          </>
+                                        );
+                                      })()}
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                {/* Abstract content */}
+                                {formData.content && (
+                                  <div className="pt-3 border-t border-gray-200">
+                                    <MarkdownRenderer content={formData.content} />
+                                  </div>
+                                )}
+                                
+                                {/* Keywords */}
+                                {formData.keywords && (
+                                  <div className="pt-3 border-t border-gray-200">
+                                    <h4 className="text-sm font-semibold text-gray-700 mb-2">Keywords:</h4>
+                                    <div className="flex flex-wrap gap-2">
+                                      {formData.keywords.split(',').map((keyword, index) => (
+                                        <span
+                                          key={index}
+                                          className="inline-block bg-gray-100 text-gray-700 px-2 py-1 rounded-md text-xs font-medium"
+                                        >
+                                          {keyword.trim()}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
                             ) : (
                               <p className="text-gray-400 italic">Preview will appear here...</p>
                             )}
@@ -471,10 +592,10 @@ export default function AbstractSubmissionPage() {
                         <div className="pt-4">
                           <button
                             type="submit"
-                            disabled={submitMutation.isLoading}
+                            disabled={submitMutation.isPending}
                             className="w-full bg-primary text-white font-medium py-2 px-4 rounded hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50"
                           >
-                            {submitMutation.isLoading ? (
+                            {submitMutation.isPending ? (
                               <Loader2 className="h-5 w-5 animate-spin mx-auto" />
                             ) : (
                               "Submit Abstract"
@@ -482,6 +603,7 @@ export default function AbstractSubmissionPage() {
                           </button>
                         </div>
                       </form>
+                      )}
                     </CardContent>
                   </Card>
                 </div>
@@ -500,7 +622,7 @@ export default function AbstractSubmissionPage() {
                           <Clock className="h-5 w-5 text-amber-500 mr-2 flex-shrink-0" />
                           <div>
                             <p className="font-medium">Submission Deadline</p>
-                            <p className="text-gray-600">October 15, 2025</p>
+                            <p className="text-gray-600">November 01, 2025</p>
                           </div>
                         </div>
 
@@ -517,7 +639,7 @@ export default function AbstractSubmissionPage() {
                           <div>
                             <p className="font-medium">Abstract Format</p>
                             <p className="text-gray-600">
-                              300-500 words, PDF format, including research problem, methodology, results, and conclusions
+                              Maximum 250 words, DOCX format for supporting documents, including research problem, methodology, results, and conclusions
                             </p>
                           </div>
                         </div>
@@ -619,7 +741,7 @@ export default function AbstractSubmissionPage() {
                             <div className="mb-4">
                               <span className="text-sm font-medium text-gray-500">Submitted:</span>
                               <span className="ml-2 text-sm text-gray-900">
-                                {new Date(abstract.createdAt).toLocaleDateString()}
+                                {abstract.createdAt ? new Date(abstract.createdAt).toLocaleDateString() : 'N/A'}
                               </span>
                             </div>
                             <div className="prose prose-sm max-w-none">
@@ -651,7 +773,10 @@ export default function AbstractSubmissionPage() {
                         You haven't submitted any abstracts for the conference
                       </p>
                       <button
-                        onClick={() => document.querySelector('[data-value="submit"]')?.click()}
+                        onClick={() => {
+                          const submitTab = document.querySelector('[data-value="submit"]') as HTMLElement;
+                          submitTab?.click();
+                        }}
                         className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
                       >
                         Submit an Abstract

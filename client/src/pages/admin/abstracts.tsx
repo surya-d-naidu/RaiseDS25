@@ -255,7 +255,26 @@ export default function AdminAbstracts() {
 
                 <div>
                   <h4 className="text-sm font-medium mb-1">Authors</h4>
-                  <p className="text-sm">{selectedAbstract?.authors}</p>
+                  {selectedAbstract && Array.isArray(selectedAbstract.authors) ? (
+                    <div className="space-y-2">
+                      {selectedAbstract.authors.map((author, idx) => (
+                        <div key={idx} className="flex items-start space-x-2">
+                          <Badge variant="outline" className="mt-0.5">
+                            {author.category}
+                          </Badge>
+                          <div>
+                            <span className="text-sm font-medium">
+                              {author.name}
+                            </span>
+                            <div className="text-sm text-gray-500">{author.affiliation}</div>
+                            {author.email && <div className="text-xs text-gray-500">{author.email}</div>}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm">{JSON.stringify(selectedAbstract?.authors) || 'No author information'}</p>
+                  )}
                 </div>
 
                 <div>

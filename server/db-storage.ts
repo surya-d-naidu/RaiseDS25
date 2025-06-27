@@ -8,7 +8,7 @@ import { eq, gt, or, and, desc, asc } from "drizzle-orm";
 import { IStorage } from "./storage";
 import { randomBytes } from "crypto";
 import ConnectPgSimple from "connect-pg-simple";
-import { Pool } from "@neondatabase/serverless";
+import { Pool } from "pg";
 
 export class DbStorage implements IStorage {
   sessionStore: session.SessionStore;
@@ -25,20 +25,33 @@ export class DbStorage implements IStorage {
   // Helper function to generate category code
   getCategoryCode(category: string): string {
     const categoryCodeMap: Record<string, string> = {
+      "Actuarial Statistics": "AS",
+      "Agricultural Statistics": "AG",
+      "AI & Machine Learning": "ML",
+      "Applied Mathematics": "AM",
+      "Applied Statistics": "AP",
+      "Bayesian and Fuzzy Statistics": "BF",
+      "Bio-Statistics": "BS",
+      "Data Science Techniques": "DS",
+      "Distribution Theory": "DT",
+      "Econometrics": "EC",
+      "Environmental Statistics": "ES",
+      "Mathematical Modelling": "MM",
+      "Multi-Disciplinary Research": "MD",
+      "Multivariate Analysis": "MV",
+      "Official Statistics": "OS",
+      "Operations Research": "OR",
+      "Planning and Experimental Designs": "PE",
+      "Population Studies": "PS",
       "Probability Theory": "PT",
+      "Reliability and Survival Analysis": "RS",
+      "Spatial Statistics": "SP",
       "Statistical Inference": "SI",
-      "Statistical Computing": "SC",
-      "Biostatistics": "BS",
-      "Data Science": "DS",
-      "Machine Learning": "ML",
-      "Big Data Analytics": "BD",
-      "Time Series Analysis": "TS",
       "Statistical Quality Control": "SQ",
-      "Statistical Methods": "SM",
-      "Data Visualization": "DV",
-      "Computational Statistics": "CS",
-      "Bayesian Analysis": "BA",
-      "Applied Statistics": "AS",
+      "Statistics in Management": "SM",
+      "Stochastic Modelling": "ST",
+      "Survey Sampling": "SS",
+      "Time Series Analysis": "TS",
       "Other": "OT"
     };
     return categoryCodeMap[category] || "XX";
@@ -72,6 +85,21 @@ export class DbStorage implements IStorage {
       .where(eq(users.id, id))
       .returning();
     return result[0];
+  }
+  
+  async deleteUser(id: number): Promise<boolean> {
+    try {
+      // First delete related data
+      await db.delete(profiles).where(eq(profiles.userId, id));
+      await db.delete(abstracts).where(eq(abstracts.userId, id));
+      
+      // Then delete the user
+      const result = await db.delete(users).where(eq(users.id, id)).returning();
+      return result.length > 0;
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      return false;
+    }
   }
   
   async getAllUsers(): Promise<User[]> {
@@ -316,6 +344,102 @@ export class DbStorage implements IStorage {
   async deleteResearchAward(id: number): Promise<boolean> {
     const result = await db.delete(researchAwards).where(eq(researchAwards.id, id)).returning();
     return result.length > 0;
+  }
+  
+  // ----- Email Verification -----
+  
+  async setEmailVerificationToken(userId: number, token: string): Promise<void> {
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
+    await db.update(users)
+      .set({
+        emailVerificationToken: token,
+        emailVerificationExpires: expiresAt
+      })
+      .where(eq(users.id, userId));
+  }
+  
+  async verifyEmail(token: string): Promise<User | undefined> {
+    const now = new Date();
+    const result = await db.select().from(users)
+      .where(
+        and(
+          eq(users.emailVerificationToken, token),
+          gt(users.emailVerificationExpires, now)
+        )
+      )
+      .limit(1);
+    
+    if (result.length === 0) {
+      return undefined;
+    }
+    
+    const user = result[0];
+    
+    // Mark email as verified and clear verification token
+    await db.update(users)
+      .set({
+        emailVerified: true,
+        emailVerificationToken: null,
+        emailVerificationExpires: null
+      })
+      .where(eq(users.id, user.id));
+    
+    return user;
+  }
+  
+  async resendVerificationToken(email: string): Promise<User | undefined> {
+    const user = await this.getUserByEmail(email);
+    if (!user || user.emailVerified) {
+      return undefined;
+    }
+    return user;
+  }
+
+  // ----- Password Reset -----
+  
+  async setPasswordResetToken(email: string, token: string): Promise<User | undefined> {
+    const user = await this.getUserByEmail(email);
+    if (!user) {
+      return undefined;
+    }
+    
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
+    const result = await db.update(users)
+      .set({
+        passwordResetToken: token,
+        passwordResetExpires: expiresAt
+      })
+      .where(eq(users.id, user.id))
+      .returning();
+    
+    return result[0];
+  }
+  
+  async verifyPasswordResetToken(token: string): Promise<User | undefined> {
+    const now = new Date();
+    const result = await db.select().from(users)
+      .where(
+        and(
+          eq(users.passwordResetToken, token),
+          gt(users.passwordResetExpires, now)
+        )
+      )
+      .limit(1);
+    
+    return result[0];
+  }
+  
+  async updatePassword(userId: number, newPassword: string): Promise<User | undefined> {
+    const result = await db.update(users)
+      .set({
+        password: newPassword,
+        passwordResetToken: null,
+        passwordResetExpires: null
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    
+    return result[0];
   }
 }
 

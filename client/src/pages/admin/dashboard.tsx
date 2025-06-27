@@ -1,10 +1,21 @@
-import { useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import AdminLayout from "@/components/layout/admin-layout";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Link } from "wouter";
 import {
   BarChart,
@@ -19,7 +30,9 @@ import {
   CheckCircle,
   XCircle,
   Clock4,
-  ChevronRight
+  ChevronRight,
+  Trash2,
+  UserX
 } from "lucide-react";
 import { 
   BarChart as RechartsBarChart,
@@ -33,8 +46,14 @@ import {
   Pie,
   Cell
 } from "recharts";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 export default function AdminDashboard() {
+  const { toast } = useToast();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<any | null>(null);
+
   const { data: abstracts, isLoading: abstractsLoading } = useQuery<any[]>({
     queryKey: ["/api/admin/abstracts"],
   });
@@ -49,6 +68,29 @@ export default function AdminDashboard() {
 
   const { data: invitations, isLoading: invitationsLoading } = useQuery<any[]>({
     queryKey: ["/api/invitations"],
+  });
+
+  const deleteUserMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest("DELETE", `/api/admin/users/${id}`);
+      return await res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "User deleted",
+        description: "The user has been deleted successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      setDeleteDialogOpen(false);
+      setUserToDelete(null);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Delete failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
   });
 
   useEffect(() => {
@@ -87,6 +129,14 @@ export default function AdminDashboard() {
   ];
 
   const COLORS = ['#3b82f6', '#10b981', '#ef4444'];
+  
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase();
+  };
   
   const today = new Date();
   const conferenceDate = new Date('2025-12-22');
@@ -306,7 +356,7 @@ export default function AdminDashboard() {
             </Card>
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <Card>
               <CardHeader>
                 <CardTitle>Recent Activities</CardTitle>
@@ -344,6 +394,74 @@ export default function AdminDashboard() {
                   <Link href="/admin/abstracts">
                     <div className="flex items-center justify-center">
                       View All Abstracts
+                      <ChevronRight className="ml-2 h-4 w-4" />
+                    </div>
+                  </Link>
+                </Button>
+              </CardFooter>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Recent Users</CardTitle>
+                <CardDescription>
+                  Recently registered users
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {users && users.length > 0 ? (
+                    users.slice(0, 5).map((user) => (
+                      <div key={user.id} className="flex items-center justify-between bg-gray-50 p-3 rounded-md">
+                        <div className="flex items-center space-x-3">
+                          <Avatar className="h-8 w-8 text-xs">
+                            <AvatarFallback>
+                              {getInitials(`${user.firstName} ${user.lastName}`)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">
+                              {user.firstName} {user.lastName}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              @{user.username} • {user.role}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Badge 
+                            variant={user.emailVerified ? "default" : "secondary"}
+                            className="text-xs"
+                          >
+                            {user.emailVerified ? "Verified" : "Pending"}
+                          </Badge>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setUserToDelete(user);
+                              setDeleteDialogOpen(true);
+                            }}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8">
+                      <Users className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                      <p className="text-gray-500">No users registered yet</p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+              <CardFooter className="border-t px-6 py-4">
+                <Button variant="outline" className="w-full" asChild>
+                  <Link href="/admin/users">
+                    <div className="flex items-center justify-center">
+                      Manage All Users
                       <ChevronRight className="ml-2 h-4 w-4" />
                     </div>
                   </Link>
@@ -398,6 +516,57 @@ export default function AdminDashboard() {
           </div>
         </>
       )}
+
+      {/* Delete User Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete User Account</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete the account for{" "}
+              <span className="font-semibold">
+                {userToDelete?.firstName} {userToDelete?.lastName}
+              </span>{" "}
+              (@{userToDelete?.username})?
+              <br />
+              <br />
+              This action cannot be undone. This will permanently delete their account,
+              profile information, and any submitted abstracts.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setDeleteDialogOpen(false);
+                setUserToDelete(null);
+              }}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700"
+              onClick={() => {
+                if (userToDelete) {
+                  deleteUserMutation.mutate(userToDelete.id);
+                }
+              }}
+              disabled={deleteUserMutation.isPending}
+            >
+              {deleteUserMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete User
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AdminLayout>
   );
 }

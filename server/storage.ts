@@ -12,7 +12,13 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, data: Partial<User>): Promise<User | undefined>;
+  deleteUser(id: number): Promise<boolean>;
   getAllUsers(): Promise<User[]>;
+  
+  // Password Reset
+  setPasswordResetToken(email: string, token: string): Promise<User | undefined>;
+  verifyPasswordResetToken(token: string): Promise<User | undefined>;
+  updatePassword(userId: number, newPassword: string): Promise<User | undefined>;
   
   // Profiles
   getProfile(userId: number): Promise<Profile | undefined>;

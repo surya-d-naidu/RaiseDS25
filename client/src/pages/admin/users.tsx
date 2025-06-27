@@ -31,9 +31,19 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Search, Filter, UserCog, ShieldCheck, UserX, User, Mail, Calendar, Building } from "lucide-react";
+import { Loader2, Search, Filter, UserCog, ShieldCheck, UserX, User, Mail, Calendar, Building, Trash2 } from "lucide-react";
 
 export default function AdminUsers() {
   const { toast } = useToast();
@@ -41,6 +51,8 @@ export default function AdminUsers() {
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
   const [userDialogOpen, setUserDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<any | null>(null);
 
   const { data: users, isLoading } = useQuery<any[]>({
     queryKey: ["/api/admin/users"],
@@ -61,6 +73,29 @@ export default function AdminUsers() {
     onError: (error: Error) => {
       toast({
         title: "Update failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteUserMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest("DELETE", `/api/admin/users/${id}`);
+      return await res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "User deleted",
+        description: "The user has been deleted successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      setDeleteDialogOpen(false);
+      setUserToDelete(null);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Delete failed",
         description: error.message,
         variant: "destructive",
       });
@@ -200,14 +235,27 @@ export default function AdminUsers() {
                         {new Date(user.createdAt).toLocaleDateString()}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => viewUser(user)}
-                        >
-                          <UserCog className="h-4 w-4 mr-1" />
-                          Manage
-                        </Button>
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => viewUser(user)}
+                          >
+                            <UserCog className="h-4 w-4 mr-1" />
+                            Manage
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setUserToDelete(user);
+                              setDeleteDialogOpen(true);
+                            }}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -350,6 +398,35 @@ export default function AdminUsers() {
                           </div>
                         </div>
                       </div>
+
+                      {/* Danger Zone */}
+                      <div className="bg-red-50 border border-red-200 p-4 rounded-md mt-6">
+                        <div className="flex items-start">
+                          <div className="mr-3 mt-0.5">
+                            <UserX className="h-5 w-5 text-red-600" />
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="text-sm font-medium text-red-900">Danger Zone</h4>
+                            <p className="text-sm text-red-700 mt-1">
+                              Permanently delete this user account and all associated data.
+                              This action cannot be undone.
+                            </p>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              className="mt-3"
+                              onClick={() => {
+                                setUserToDelete(selectedUser);
+                                setDeleteDialogOpen(true);
+                                setUserDialogOpen(false);
+                              }}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete User Account
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </TabsContent>
                 </Tabs>
@@ -362,6 +439,57 @@ export default function AdminUsers() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+
+          {/* Delete User Confirmation Dialog */}
+          <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete User Account</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to delete the account for{" "}
+                  <span className="font-semibold">
+                    {userToDelete?.firstName} {userToDelete?.lastName}
+                  </span>{" "}
+                  (@{userToDelete?.username})?
+                  <br />
+                  <br />
+                  This action cannot be undone. This will permanently delete their account,
+                  profile information, and any submitted abstracts.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel
+                  onClick={() => {
+                    setDeleteDialogOpen(false);
+                    setUserToDelete(null);
+                  }}
+                >
+                  Cancel
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-red-600 hover:bg-red-700"
+                  onClick={() => {
+                    if (userToDelete) {
+                      deleteUserMutation.mutate(userToDelete.id);
+                    }
+                  }}
+                  disabled={deleteUserMutation.isPending}
+                >
+                  {deleteUserMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete User
+                    </>
+                  )}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </CardContent>
       </Card>
     </AdminLayout>

@@ -77,7 +77,12 @@ export default function NotificationForm({
 
   const createMutation = useMutation({
     mutationFn: async (data: NotificationFormValues) => {
-      const res = await apiRequest("POST", "/api/admin/notifications", data);
+      // Process the data to handle date formatting
+      const processedData = {
+        ...data,
+        expiresAt: data.expiresAt ? (typeof data.expiresAt === 'string' ? data.expiresAt : data.expiresAt.toISOString()) : null
+      };
+      const res = await apiRequest("POST", "/api/admin/notifications", processedData);
       return await res.json();
     },
     onSuccess: () => {
@@ -102,7 +107,12 @@ export default function NotificationForm({
   const updateMutation = useMutation({
     mutationFn: async (data: NotificationFormValues) => {
       if (!notification) throw new Error("Notification not found");
-      const res = await apiRequest("PUT", `/api/admin/notifications/${notification.id}`, data);
+      // Process the data to handle date formatting
+      const processedData = {
+        ...data,
+        expiresAt: data.expiresAt ? (typeof data.expiresAt === 'string' ? data.expiresAt : data.expiresAt.toISOString()) : null
+      };
+      const res = await apiRequest("PUT", `/api/admin/notifications/${notification.id}`, processedData);
       return await res.json();
     },
     onSuccess: () => {
@@ -169,7 +179,7 @@ export default function NotificationForm({
               <FormLabel>Content</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Abstract submission deadline extended to October 15, 2025"
+                  placeholder="Abstract submission deadline: November 01, 2025"
                   className="resize-none"
                   {...field}
                 />
