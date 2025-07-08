@@ -6,7 +6,7 @@
       "cwd": "/root/raiseds25/project",
       "env": {
         "NODE_ENV": "production",
-        "PORT": "80",
+        "PORT": "3000",
         "TRUST_PROXY": "true",
         "ENABLE_HTTPS": "true",
         "DATABASE_URL": "postgresql://postgres:Lucky_raiseds@25@localhost:5432/raiseds_25",

@@ -11,7 +11,7 @@ import fs from "fs";
 import nodemailer from "nodemailer";
 import { registerAbstractRoutes } from "./routes/abstracts";
 import { isAuthenticated, isAdmin } from "./auth-middleware";
-import { sendEmail } from "./email-utils";
+import { sendEmail, sendAttendanceInvitationEmail, sendAccountInvitationEmail } from "./email-utils";
 
 // Setup file uploads
 const upload = multer({
@@ -385,41 +385,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const clientUrl = process.env.CLIENT_URL || `${req.protocol}://${req.get('host')}`;
         const attendanceUrl = `${clientUrl}/attendance?token=${token}`;
         
-        await sendEmail(
+        await sendAttendanceInvitationEmail(
           invitation.email,
-          `Invitation to Attend RAISE DS 2025 Conference`,
-          `<p>Dear ${invitation.name},</p>
-          <p>You are cordially invited to attend the 45th Annual Convention of Indian Society for Probability and Statistics (ISPS) in conjunction with the International Conference on Recent Advances and Innovative Statistics with Enhancing Data Science (IC-RAISE DS).</p>
-          <p>${invitation.message || ""}</p>
-          <p>Please click the link below to confirm your attendance:</p>
-          <p style="text-align: center; margin: 30px 0;">
-            <a href="${attendanceUrl}" style="display: inline-block; padding: 12px 24px; background-color: #3b82f6; color: white; text-decoration: none; border-radius: 4px; font-weight: bold;">Respond to Invitation</a>
-          </p>
-          <p>If the button above doesn't work, you can copy and paste this link into your browser:</p>
-          <p>${attendanceUrl}</p>
-          <p>We look forward to your participation.</p>
-          <p>Thank you,</p>
-          <p>RAISE DS 2025 Team</p>`
+          invitation.name,
+          invitation.message || "",
+          attendanceUrl
         );
       } else {
         // For account registration invitations
         const clientUrl = process.env.CLIENT_URL || `${req.protocol}://${req.get('host')}`;
         const registerUrl = `${clientUrl}/register?token=${token}`;
         
-        await sendEmail(
+        await sendAccountInvitationEmail(
           invitation.email,
-          `Invitation to Join RAISE DS 2025 Conference Platform`,
-          `<p>Dear ${invitation.name},</p>
-          <p>You have been invited to join the 45th Annual Convention of Indian Society for Probability and Statistics (ISPS) in conjunction with the International Conference on Recent Advances and Innovative Statistics with Enhancing Data Science (IC-RAISE DS).</p>
-          <p>${invitation.message || ""}</p>
-          <p>Please click the link below to register on our platform:</p>
-          <p style="text-align: center; margin: 30px 0;">
-            <a href="${registerUrl}" style="display: inline-block; padding: 12px 24px; background-color: #3b82f6; color: white; text-decoration: none; border-radius: 4px; font-weight: bold;">Register Now</a>
-          </p>
-          <p>If the button above doesn't work, you can copy and paste this link into your browser:</p>
-          <p>${registerUrl}</p>
-          <p>Thank you,</p>
-          <p>RAISE DS 2025 Team</p>`
+          invitation.name,
+          invitation.message || "",
+          registerUrl
         );
       }
       

@@ -329,7 +329,7 @@ export default function AdminAwards() {
 
           {/* Create/Edit Award Dialog */}
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogContent className="max-w-lg">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>
                   {editingAward ? "Edit Research Award" : "Create Research Award"}
@@ -342,7 +342,7 @@ export default function AdminAwards() {
               </DialogHeader>
 
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pb-4">
                   <FormField
                     control={form.control}
                     name="title"
@@ -367,7 +367,7 @@ export default function AdminAwards() {
                           <Textarea
                             placeholder="A brief description of the award..."
                             {...field}
-                            className="min-h-[100px]"
+                            className="min-h-[120px] resize-y"
                           />
                         </FormControl>
                         <FormMessage />
@@ -385,7 +385,7 @@ export default function AdminAwards() {
                           <Textarea
                             placeholder="Who is eligible for this award..."
                             {...field}
-                            className="min-h-[80px]"
+                            className="min-h-[100px] resize-y"
                           />
                         </FormControl>
                         <FormMessage />

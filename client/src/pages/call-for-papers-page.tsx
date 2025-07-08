@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { Link } from "wouter";
 import Navbar from "@/components/layout/navbar";
 import Footer from "@/components/layout/footer";
-import NotificationBar from "@/components/layout/notification-bar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Helmet } from "react-helmet";
@@ -43,7 +42,6 @@ export default function CallForPapersPage() {
         <meta name="description" content="Submit your abstract for the 45th Annual Convention of Indian Society for Probability and Statistics (ISPS) and the International Conference on Recent Advances and Innovative Statistics with Enhancing Data Science (IC-RAISE DS)." />
       </Helmet>
       
-      <NotificationBar />
       <Navbar />
       
       <main className="bg-gray-50 py-12">

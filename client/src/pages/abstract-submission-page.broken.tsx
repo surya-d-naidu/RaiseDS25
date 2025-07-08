@@ -1,7 +1,6 @@
 import { useState } from "react";
 import Navbar from "@/components/layout/navbar";
 import Footer from "@/components/layout/footer";
-import NotificationBar from "@/components/layout/notification-bar";
 import { Helmet } from "react-helmet";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -124,7 +123,6 @@ export default function AbstractSubmissionPage() {
         />
       </Helmet>
 
-      <NotificationBar />
       <Navbar />
 
       <main className="bg-gray-50 py-12">
