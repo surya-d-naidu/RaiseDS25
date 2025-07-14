@@ -172,17 +172,17 @@ export default function ResearchAwardsPage() {
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <CardTitle className="text-xl font-bold text-gray-900 mb-2 leading-tight">
-                          {award.name}
+                          {award.title}
                         </CardTitle>
                         <CardDescription className="text-gray-600 font-medium">
-                          {award.category}
+                          Research Award
                         </CardDescription>
                       </div>
                       <div className="flex flex-col items-end space-y-2 ml-4">
                         <Award className="h-8 w-8 text-amber-500" />
-                        {award.value && (
+                        {award.amount && (
                           <Badge variant="secondary" className="bg-green-100 text-green-800 border border-green-200">
-                            {award.value}
+                            {award.amount}
                           </Badge>
                         )}
                       </div>
@@ -216,19 +216,6 @@ export default function ResearchAwardsPage() {
                       </div>
                     )}
 
-                    {/* Application Process */}
-                    {award.applicationProcess && (
-                      <div className="bg-green-50 p-4 rounded-lg border border-green-100">
-                        <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
-                          <Calendar className="h-4 w-4 mr-2 text-green-600" />
-                          Application Process
-                        </h4>
-                        <div className="text-gray-700">
-                          <CollapsibleText text={award.applicationProcess} maxLength={300} />
-                        </div>
-                      </div>
-                    )}
-
                     {/* Award Details Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
                       {award.deadline && (
@@ -239,32 +226,14 @@ export default function ResearchAwardsPage() {
                           </Badge>
                         </div>
                       )}
-                      {award.value && (
+                      {award.amount && (
                         <div className="flex items-center">
-                          <span className="text-gray-500 mr-2 font-medium">Value:</span>
-                          <span className="text-green-700 font-semibold">{award.value}</span>
+                          <span className="text-gray-500 mr-2 font-medium">Amount:</span>
+                          <span className="text-green-700 font-semibold">{award.amount}</span>
                         </div>
                       )}
                     </div>
 
-                    {/* Contact Information */}
-                    <Separator />
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                      <h4 className="font-semibold text-gray-900 mb-2">Need Help?</h4>
-                      <p className="text-sm text-gray-600 mb-2">
-                        For questions about this award or application assistance, please contact our awards committee.
-                      </p>
-                      <div className="text-sm">
-                        <div className="flex items-center mb-1">
-                          <span className="text-gray-500 mr-2">Email:</span>
-                          <span className="text-primary font-medium">raiseds25@vitap.ac.in</span>
-                        </div>
-                        <div className="flex items-center">
-                          <span className="text-gray-500 mr-2">Response:</span>
-                          <span className="text-gray-600">Within 24-48 hours</span>
-                        </div>
-                      </div>
-                    </div>
                   </CardContent>
                 </Card>
               ))}

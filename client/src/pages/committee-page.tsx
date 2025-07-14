@@ -33,6 +33,7 @@ export default function CommitteePage() {
     patron: allMembers?.filter(m => m.category === "patron") || [],
     organizing_committee: allMembers?.filter(m => m.category === "organizing_committee") || [],
     advisory_committee: allMembers?.filter(m => m.category === "advisory_committee") || [],
+    conference_secretaries: allMembers?.filter(m => m.category === "conference_secretaries") || [],
     isps_executive: allMembers?.filter(m => m.category === "isps_executive") || [],
   };
 
@@ -62,11 +63,12 @@ export default function CommitteePage() {
             </div>
           ) : (
             <Tabs defaultValue="chief_patrons" className="w-full">
-              <TabsList className="grid w-full grid-cols-5">
+              <TabsList className="grid w-full grid-cols-6">
                 <TabsTrigger value="chief_patrons">Chief Patrons</TabsTrigger>
                 <TabsTrigger value="patrons">Patrons</TabsTrigger>
                 <TabsTrigger value="organizing">Organizing Committee</TabsTrigger>
                 <TabsTrigger value="advisory">Advisory Committee</TabsTrigger>
+                <TabsTrigger value="conference_secretaries">Conference Secretaries</TabsTrigger>
                 <TabsTrigger value="isps">ISPS Executive</TabsTrigger>
               </TabsList>
               
@@ -473,6 +475,93 @@ export default function CommitteePage() {
                 </Card>
               </TabsContent>
               
+              <TabsContent value="conference_secretaries" className="mt-6">
+                <Card>
+                  <CardContent className="p-6">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                      <Users className="mr-2 h-6 w-6 text-green-600" />
+                      Conference Secretaries
+                    </h2>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      {membersByCategory.conference_secretaries.length > 0 ? (
+                        membersByCategory.conference_secretaries.map((member) => (
+                          <div key={member.id} className="bg-white rounded-lg shadow-sm p-5 border border-gray-200 hover:shadow-md transition-all group hover:border-green-100">
+                            <div className="flex items-center">
+                              <div className="relative">
+                                {member.image ? (
+                                  <div className="h-16 w-16 rounded-full overflow-hidden border-2 border-green-50 shadow-sm">
+                                    <img 
+                                      src={member.image} 
+                                      alt={member.name} 
+                                      className="h-full w-full object-cover"
+                                      onError={(e) => {
+                                        e.currentTarget.style.display = 'none';
+                                        const avatarEl = document.getElementById(`avatar-${member.id}`);
+                                        if (avatarEl) {
+                                          avatarEl.style.display = 'flex';
+                                        }
+                                      }}
+                                    />
+                                  </div>
+                                ) : (
+                                  <Avatar className="h-16 w-16 border-2 border-green-50 shadow-sm">
+                                    <AvatarFallback className="bg-green-100 text-green-800 font-semibold">
+                                      {getInitials(member.name)}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                )}
+                                <div 
+                                  id={`avatar-${member.id}`}
+                                  className="h-16 w-16 rounded-full bg-green-100 flex items-center justify-center border-2 border-green-50 shadow-sm absolute top-0 left-0"
+                                  style={{ display: 'none' }}
+                                >
+                                  <span className="text-green-800 font-semibold">
+                                    {getInitials(member.name)}
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="ml-4 flex-1">
+                                <h3 className="font-semibold text-gray-900 group-hover:text-green-700 transition-colors">
+                                  {member.name}
+                                </h3>
+                                <p className="text-sm text-gray-600 mt-1">
+                                  {member.role}
+                                </p>
+                                <p className="text-sm text-gray-500 mt-1">
+                                  {member.institution}
+                                </p>
+                                {member.country && (
+                                  <Badge variant="outline" className="mt-2 text-xs">
+                                    {member.country}
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                            {member.profileLink && (
+                              <div className="mt-4 pt-4 border-t border-gray-100">
+                                <a 
+                                  href={member.profileLink}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-green-600 hover:text-green-700 text-sm font-medium"
+                                >
+                                  View Profile →
+                                </a>
+                              </div>
+                            )}
+                          </div>
+                        ))
+                      ) : (
+                        <div className="col-span-3 text-center py-12 text-gray-500">
+                          <p>No conference secretaries to display</p>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
               <TabsContent value="isps" className="mt-6">
                 <Card>
                   <CardContent className="p-6">
