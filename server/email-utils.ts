@@ -240,7 +240,7 @@ export async function sendEmail(to: string, subject: string, html: string): Prom
     console.log(`Sending email to ${to}`);
     console.log(`Subject: ${subject}`);
     
-    const transporter = nodemailer.createTransporter({
+    const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
         user: process.env.GMAIL_USER,

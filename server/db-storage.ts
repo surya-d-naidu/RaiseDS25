@@ -148,9 +148,29 @@ export class DbStorage implements IStorage {
   async createAbstract(abstractData: InsertAbstract & { userId: number }): Promise<Abstract> {
     const now = new Date();
     const categoryCode = this.getCategoryCode(abstractData.category);
-    const randomNum = Math.floor(1000 + Math.random() * 9000);
-    const referenceId = `${categoryCode}-${randomNum}`;
     
+    // Find all reference IDs for this category to determine the next sequential number
+    const existingRefs = await db.select({ referenceId: abstracts.referenceId })
+      .from(abstracts)
+      .where(abstracts.referenceId.like(`${categoryCode}-%`));
+
+    let nextNum = 1;
+    if (existingRefs.length > 0) {
+      // Extract all numbers from existing reference IDs and find the maximum
+      const numbers = existingRefs
+        .map(ref => {
+          const match = ref.referenceId?.match(/-(\d+)$/);
+          return match ? parseInt(match[1], 10) : 0;
+        })
+        .filter(num => num > 0);
+      
+      if (numbers.length > 0) {
+        nextNum = Math.max(...numbers) + 1;
+      }
+    }
+    
+    const referenceId = `${categoryCode}-${String(nextNum).padStart(4, '0')}`;
+
     const result = await db.insert(abstracts).values({
       ...abstractData,
       referenceId,
@@ -158,7 +178,7 @@ export class DbStorage implements IStorage {
       createdAt: now,
       updatedAt: now
     }).returning();
-    
+
     return result[0];
   }
   
