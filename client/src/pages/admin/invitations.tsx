@@ -31,9 +31,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Mail, Search, Filter, CheckCircle, XCircle, Clock, Trash2, Send } from "lucide-react";
+import { Loader2, Mail, Search, Filter, CheckCircle, XCircle, Clock, Trash2, Send, Users } from "lucide-react";
 import { Invitation } from "@shared/schema";
 import InvitationForm from "@/components/forms/invitation-form";
+import BulkInvitationForm from "@/components/forms/bulk-invitation-form";
 
 export default function AdminInvitations() {
   const { toast } = useToast();
@@ -41,6 +42,7 @@ export default function AdminInvitations() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [bulkCreateDialogOpen, setBulkCreateDialogOpen] = useState(false);
   const [selectedInvitation, setSelectedInvitation] = useState<Invitation | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
@@ -189,10 +191,19 @@ export default function AdminInvitations() {
                 </SelectContent>
               </Select>
             </div>
-            <Button onClick={() => setCreateDialogOpen(true)}>
-              <Send className="mr-2 h-4 w-4" />
-              Send Invitation
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button onClick={() => setCreateDialogOpen(true)}>
+                <Send className="mr-2 h-4 w-4" />
+                Send Invitation
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => setBulkCreateDialogOpen(true)}
+              >
+                <Users className="mr-2 h-4 w-4" />
+                Bulk Invite
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -279,6 +290,21 @@ export default function AdminInvitations() {
               </DialogHeader>
               <div className="py-4">
                 <InvitationForm onSuccess={() => setCreateDialogOpen(false)} />
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Bulk Invitation Dialog */}
+          <Dialog open={bulkCreateDialogOpen} onOpenChange={setBulkCreateDialogOpen}>
+            <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Send Bulk Invitations</DialogTitle>
+                <DialogDescription>
+                  Send account creation invitations to multiple people at once
+                </DialogDescription>
+              </DialogHeader>
+              <div className="py-4">
+                <BulkInvitationForm onSuccess={() => setBulkCreateDialogOpen(false)} />
               </div>
             </DialogContent>
           </Dialog>

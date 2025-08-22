@@ -81,7 +81,12 @@ var insertAbstractSchema = z.object({
   title: z.string().min(1, "Title is required"),
   category: z.string().min(1, "Category is required"),
   content: z.string().min(1, "Content is required"),
-  authors: z.array(AuthorSchema).min(1, "At least one author is required"),
+  authors: z.array(AuthorSchema).min(1, "At least one author is required").refine((authors) => {
+    const presenters = authors.filter((author) => author.category === "Presenter");
+    return presenters.length === 1;
+  }, {
+    message: "Exactly one author must be designated as the Presenter"
+  }),
   keywords: z.string().min(1, "Keywords are required"),
   referenceId: z.string().optional(),
   fileUrl: z.string().optional()
@@ -200,7 +205,7 @@ var pool = new Pool({ connectionString: process.env.DATABASE_URL });
 var db = drizzle(pool, { schema: schema_exports });
 
 // server/db-storage.ts
-import { eq, gt, or, and, desc, asc } from "drizzle-orm";
+import { eq, gt, or, and, desc, asc, like } from "drizzle-orm";
 import ConnectPgSimple from "connect-pg-simple";
 import { Pool as Pool2 } from "pg";
 var DbStorage = class {
@@ -311,8 +316,18 @@ var DbStorage = class {
   async createAbstract(abstractData) {
     const now = /* @__PURE__ */ new Date();
     const categoryCode = this.getCategoryCode(abstractData.category);
-    const randomNum = Math.floor(1e3 + Math.random() * 9e3);
-    const referenceId = `${categoryCode}-${randomNum}`;
+    const existingRefs = await db.select({ referenceId: abstracts.referenceId }).from(abstracts).where(like(abstracts.referenceId, `${categoryCode}-%`));
+    let nextNum = 1;
+    if (existingRefs.length > 0) {
+      const numbers = existingRefs.map((ref) => {
+        const match = ref.referenceId?.match(/-(\d+)$/);
+        return match ? parseInt(match[1], 10) : 0;
+      }).filter((num) => num > 0);
+      if (numbers.length > 0) {
+        nextNum = Math.max(...numbers) + 1;
+      }
+    }
+    const referenceId = `${categoryCode}-${String(nextNum).padStart(4, "0")}`;
     const result = await db.insert(abstracts).values({
       ...abstractData,
       referenceId,
@@ -1672,6 +1687,82 @@ async function registerRoutes(app2) {
         return res.status(400).json({ errors: formatZodError2(error) });
       }
       res.status(500).json({ message: "Error creating invitation" });
+    }
+  });
+  app2.post("/api/invitations/bulk", isAdmin, async (req, res) => {
+    try {
+      const { emails, role, type, message, expiresAt, institution, position } = req.body;
+      if (!emails || typeof emails !== "string") {
+        return res.status(400).json({ message: "Email list is required" });
+      }
+      const emailList = emails.split(/[,;\n]/).map((email) => email.trim()).filter((email) => email.length > 0 && email.includes("@"));
+      if (emailList.length === 0) {
+        return res.status(400).json({ message: "No valid email addresses found" });
+      }
+      const results = {
+        success: 0,
+        failed: 0,
+        errors: []
+      };
+      for (const email of emailList) {
+        try {
+          const name = email.split("@")[0].replace(/[._-]/g, " ");
+          const invitationData = {
+            name,
+            email,
+            role: role || "user",
+            type: type || "account",
+            message: message || "",
+            institution: institution || "",
+            position: position || ""
+          };
+          const validatedData = insertInvitationSchema.parse(invitationData);
+          const token = randomBytes2(32).toString("hex");
+          const expiry = /* @__PURE__ */ new Date();
+          expiry.setDate(expiry.getDate() + 14);
+          const invitation = await storage.createInvitation({
+            ...validatedData,
+            token,
+            senderId: req.user.id,
+            expiresAt: expiresAt ? new Date(expiresAt) : expiry
+          });
+          if (validatedData.type === "attendance") {
+            const clientUrl = process.env.CLIENT_URL || `${req.protocol}://${req.get("host")}`;
+            const attendanceUrl = `${clientUrl}/attendance?token=${token}`;
+            await sendAttendanceInvitationEmail(
+              invitation.email,
+              invitation.name,
+              invitation.message || "",
+              attendanceUrl
+            );
+          } else {
+            const clientUrl = process.env.CLIENT_URL || `${req.protocol}://${req.get("host")}`;
+            const registerUrl = `${clientUrl}/register?token=${token}`;
+            await sendAccountInvitationEmail(
+              invitation.email,
+              invitation.name,
+              invitation.message || "",
+              registerUrl
+            );
+          }
+          results.success++;
+        } catch (error) {
+          results.failed++;
+          let errorMessage = "Unknown error";
+          if (error instanceof ZodError2) {
+            errorMessage = error.errors.map((e) => e.message).join(", ");
+          } else if (error instanceof Error) {
+            errorMessage = error.message;
+          }
+          results.errors.push({
+            email,
+            error: errorMessage
+          });
+        }
+      }
+      res.status(201).json(results);
+    } catch (error) {
+      res.status(500).json({ message: "Error processing bulk invitations" });
     }
   });
   app2.get("/api/invitations/:token", async (req, res) => {

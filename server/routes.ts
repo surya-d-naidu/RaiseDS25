@@ -412,6 +412,108 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Error creating invitation" });
     }
   });
+
+  // Bulk invitation endpoint
+  app.post("/api/invitations/bulk", isAdmin, async (req, res) => {
+    try {
+      const { emails, role, type, message, expiresAt, institution, position } = req.body;
+      
+      if (!emails || typeof emails !== 'string') {
+        return res.status(400).json({ message: "Email list is required" });
+      }
+
+      // Parse emails from the input string
+      const emailList = emails
+        .split(/[,;\n]/)
+        .map((email: string) => email.trim())
+        .filter((email: string) => email.length > 0 && email.includes('@'));
+
+      if (emailList.length === 0) {
+        return res.status(400).json({ message: "No valid email addresses found" });
+      }
+
+      const results = {
+        success: 0,
+        failed: 0,
+        errors: [] as Array<{ email: string; error: string }>
+      };
+
+      // Process each email
+      for (const email of emailList) {
+        try {
+          // Extract name from email (use the part before @)
+          const name = email.split('@')[0].replace(/[._-]/g, ' ');
+          
+          // Create invitation data
+          const invitationData = {
+            name,
+            email,
+            role: role || "user",
+            type: type || "account",
+            message: message || "",
+            institution: institution || "",
+            position: position || ""
+          };
+
+          // Validate the data
+          const validatedData = insertInvitationSchema.parse(invitationData);
+          const token = randomBytes(32).toString("hex");
+          const expiry = new Date();
+          expiry.setDate(expiry.getDate() + 14); // Expires in 14 days
+          
+          const invitation = await storage.createInvitation({
+            ...validatedData,
+            token,
+            senderId: req.user!.id,
+            expiresAt: expiresAt ? new Date(expiresAt) : expiry
+          });
+
+          // Send invitation email based on type
+          if (validatedData.type === "attendance") {
+            const clientUrl = process.env.CLIENT_URL || `${req.protocol}://${req.get('host')}`;
+            const attendanceUrl = `${clientUrl}/attendance?token=${token}`;
+            
+            await sendAttendanceInvitationEmail(
+              invitation.email,
+              invitation.name,
+              invitation.message || "",
+              attendanceUrl
+            );
+          } else {
+            const clientUrl = process.env.CLIENT_URL || `${req.protocol}://${req.get('host')}`;
+            const registerUrl = `${clientUrl}/register?token=${token}`;
+            
+            await sendAccountInvitationEmail(
+              invitation.email,
+              invitation.name,
+              invitation.message || "",
+              registerUrl
+            );
+          }
+
+          results.success++;
+        } catch (error) {
+          results.failed++;
+          let errorMessage = "Unknown error";
+          
+          if (error instanceof ZodError) {
+            errorMessage = error.errors.map(e => e.message).join(", ");
+          } else if (error instanceof Error) {
+            errorMessage = error.message;
+          }
+          
+          results.errors.push({
+            email,
+            error: errorMessage
+          });
+        }
+      }
+
+      res.status(201).json(results);
+    } catch (error) {
+      res.status(500).json({ message: "Error processing bulk invitations" });
+    }
+  });
   
   app.get("/api/invitations/:token", async (req, res) => {
     try {

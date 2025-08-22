@@ -86,6 +86,16 @@ export default function AbstractSubmissionPage() {
   const handleAuthorChange = (index: number, field: keyof Author, value: string | boolean) => {
     setAuthors(prev => {
       const newAuthors = [...prev];
+      
+      // If changing category to "Presenter", ensure no other author is already a presenter
+      if (field === 'category' && value === 'Presenter') {
+        const currentPresenterIndex = newAuthors.findIndex((author, i) => i !== index && author.category === 'Presenter');
+        if (currentPresenterIndex !== -1) {
+          // Change the current presenter to participant
+          newAuthors[currentPresenterIndex] = { ...newAuthors[currentPresenterIndex], category: 'Participant' };
+        }
+      }
+      
       newAuthors[index] = { ...newAuthors[index], [field]: value };
       return newAuthors;
     });
@@ -136,6 +146,26 @@ export default function AbstractSubmissionPage() {
       toast({
         title: "Incomplete Author Information",
         description: `Please provide name, affiliation, and email for author #${invalidAuthorIndex + 1}.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate presenter constraint
+    const presenters = authors.filter(author => author.category === "Presenter");
+    if (presenters.length === 0) {
+      toast({
+        title: "No Presenter Designated",
+        description: "At least one author must be designated as the Presenter.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (presenters.length > 1) {
+      toast({
+        title: "Multiple Presenters",
+        description: "Only one author can be designated as the Presenter.",
         variant: "destructive",
       });
       return;
@@ -313,15 +343,29 @@ export default function AbstractSubmissionPage() {
                               Add Author
                             </button>
                           </div>
+                          <p className="text-sm text-gray-600">
+                            <strong>Note:</strong> Exactly one author must be designated as the "Presenter". 
+                            The presenter will be responsible for presenting the paper at the conference.
+                          </p>
                           
                           {authors.map((author, index) => (
-                            <div key={index} className="border rounded-md p-4 bg-gray-50 relative">
+                            <div key={index} className={`border rounded-md p-4 relative ${
+                              author.category === 'Presenter' 
+                                ? 'bg-blue-50 border-blue-200' 
+                                : 'bg-gray-50'
+                            }`}>
+                              {author.category === 'Presenter' && (
+                                <div className="absolute top-2 left-2 bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded">
+                                  Presenter
+                                </div>
+                              )}
                               <div className="absolute top-2 right-2">
                                 <button
                                   type="button"
                                   onClick={() => removeAuthor(index)}
                                   className="text-gray-400 hover:text-red-500 p-1"
                                   title="Remove author"
+                                  disabled={authors.length <= 1}
                                 >
                                   <X className="h-4 w-4" />
                                 </button>
@@ -498,7 +542,7 @@ export default function AbstractSubmissionPage() {
                         
                         <div className="pt-4 border-t">
                           <h4 className="text-sm font-medium text-gray-700 mb-3">Preview</h4>
-                          <div className="border rounded p-4 bg-white">
+                          <div className="border rounded p-4 bg-white max-h-96 overflow-y-auto">
                             {formData.title || authors.some(a => a.name.trim()) || formData.content ? (
                               <div className="space-y-4">
                                 {/* Title */}

@@ -60,7 +60,14 @@ export const insertAbstractSchema = z.object({
   title: z.string().min(1, "Title is required"),
   category: z.string().min(1, "Category is required"),
   content: z.string().min(1, "Content is required"),
-  authors: z.array(AuthorSchema).min(1, "At least one author is required"),
+  authors: z.array(AuthorSchema)
+    .min(1, "At least one author is required")
+    .refine((authors) => {
+      const presenters = authors.filter(author => author.category === "Presenter");
+      return presenters.length === 1;
+    }, {
+      message: "Exactly one author must be designated as the Presenter"
+    }),
   keywords: z.string().min(1, "Keywords are required"),
   referenceId: z.string().optional(),
   fileUrl: z.string().optional()

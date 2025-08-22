@@ -4,7 +4,7 @@ import { users, type User, type InsertUser, profiles, type Profile, type InsertP
   type InsertCommitteeMember, researchAwards, type ResearchAward, type InsertResearchAward } from "@shared/schema";
 import session from "express-session";
 import { db } from "./db";
-import { eq, gt, or, and, desc, asc } from "drizzle-orm";
+import { eq, gt, or, and, desc, asc, like } from "drizzle-orm";
 import { IStorage } from "./storage";
 import { randomBytes } from "crypto";
 import ConnectPgSimple from "connect-pg-simple";
@@ -152,7 +152,7 @@ export class DbStorage implements IStorage {
     // Find all reference IDs for this category to determine the next sequential number
     const existingRefs = await db.select({ referenceId: abstracts.referenceId })
       .from(abstracts)
-      .where(abstracts.referenceId.like(`${categoryCode}-%`));
+      .where(like(abstracts.referenceId, `${categoryCode}-%`));
 
     let nextNum = 1;
     if (existingRefs.length > 0) {
