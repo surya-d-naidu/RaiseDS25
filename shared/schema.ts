@@ -206,6 +206,8 @@ export const accommodationRequests = pgTable("accommodation_requests", {
   departureDate: timestamp("departure_date").notNull(),
   arrivalPlace: text("arrival_place").notNull(), // airport, bus stand, railway station, etc.
   accommodationType: text("accommodation_type"), // single, double, shared, etc.
+  age: integer("age").notNull(),
+  gender: text("gender").notNull(), // male, female, other, prefer-not-to-say
   specialRequests: text("special_requests"),
   status: text("status").notNull().default("pending"), // pending, confirmed, cancelled
   createdAt: timestamp("created_at").defaultNow(),
@@ -221,6 +223,10 @@ export const insertAccommodationRequestSchema = createInsertSchema(accommodation
 }).extend({
   arrivalDate: z.union([z.string(), z.date()]).transform((val) => typeof val === 'string' ? new Date(val) : val),
   departureDate: z.union([z.string(), z.date()]).transform((val) => typeof val === 'string' ? new Date(val) : val),
+  age: z.number().min(1, "Age is required").max(120, "Please enter a valid age"),
+  gender: z.enum(["male", "female", "other", "prefer-not-to-say"], {
+    required_error: "Gender selection is required"
+  }),
 });
 
 export type InsertAccommodationRequest = z.infer<typeof insertAccommodationRequestSchema>;

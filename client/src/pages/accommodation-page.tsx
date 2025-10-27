@@ -19,6 +19,8 @@ const accommodationFormSchema = z.object({
   departureDate: z.string().min(1, "Departure date is required"),
   arrivalPlace: z.string().min(1, "Place of arrival is required"),
   accommodationType: z.string().optional(),
+  age: z.string().min(1, "Age is required").transform((val) => parseInt(val, 10)),
+  gender: z.string().min(1, "Gender selection is required"),
   specialRequests: z.string().optional(),
 });
 
@@ -29,6 +31,8 @@ export default function AccommodationPage() {
     departureDate: '',
     arrivalPlace: '',
     accommodationType: '',
+    age: '',
+    gender: '',
     specialRequests: '',
   });
 
@@ -139,6 +143,24 @@ export default function AccommodationPage() {
                           {existingRequest.status.charAt(0).toUpperCase() + existingRequest.status.slice(1)}
                         </p>
                       </div>
+                      {existingRequest.accommodationType && (
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">Accommodation Type</Label>
+                          <p className="text-gray-900">{existingRequest.accommodationType}</p>
+                        </div>
+                      )}
+                      {existingRequest.age && (
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">Age</Label>
+                          <p className="text-gray-900">{existingRequest.age}</p>
+                        </div>
+                      )}
+                      {existingRequest.gender && (
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">Gender</Label>
+                          <p className="text-gray-900">{existingRequest.gender.charAt(0).toUpperCase() + existingRequest.gender.slice(1)}</p>
+                        </div>
+                      )}
                     </div>
                     {existingRequest.specialRequests && (
                       <div className="mt-4">
@@ -211,6 +233,44 @@ export default function AccommodationPage() {
                             <SelectItem value="any">Any Available</SelectItem>
                           </SelectContent>
                         </Select>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="age">Age *</Label>
+                          <Input
+                            id="age"
+                            type="number"
+                            min="1"
+                            max="120"
+                            placeholder="Enter your age"
+                            value={formData.age}
+                            onChange={(e) => handleInputChange('age', e.target.value)}
+                            required
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="gender">Gender *</Label>
+                          <Select onValueChange={(value) => handleInputChange('gender', value)} required>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select gender" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="male">Male</SelectItem>
+                              <SelectItem value="female">Female</SelectItem>
+                              <SelectItem value="other">Other</SelectItem>
+                              <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <p className="text-sm text-blue-800">
+                          <strong>Privacy Note:</strong> Age and gender information will be used solely for accommodation allocation 
+                          purposes to ensure appropriate room assignments and comply with university accommodation policies. 
+                          This data will be kept confidential and used only by the organizing committee.
+                        </p>
                       </div>
 
                       <div>

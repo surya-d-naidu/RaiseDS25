@@ -17,6 +17,7 @@ import {
   Award,
   ChevronRight,
   Menu,
+  Building2,
 } from "lucide-react";
 
 type AdminLayoutProps = {
@@ -71,6 +72,11 @@ export default function AdminLayout({ children, title, description }: AdminLayou
       name: "Invitations",
       href: "/admin/invitations",
       icon: <Mail className="h-5 w-5" />,
+    },
+    {
+      name: "Accommodations",
+      href: "/admin/accommodations",
+      icon: <Building2 className="h-5 w-5" />,
     },
     {
       name: "Notifications",

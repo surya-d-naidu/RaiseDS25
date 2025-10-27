@@ -476,7 +476,48 @@ export class DbStorage implements IStorage {
   }
 
   async getAllAccommodationRequests(): Promise<AccommodationRequest[]> {
-    return await db.select().from(accommodationRequests).orderBy(desc(accommodationRequests.createdAt));
+    const result = await db
+      .select({
+        id: accommodationRequests.id,
+        userId: accommodationRequests.userId,
+        arrivalDate: accommodationRequests.arrivalDate,
+        departureDate: accommodationRequests.departureDate,
+        arrivalPlace: accommodationRequests.arrivalPlace,
+        accommodationType: accommodationRequests.accommodationType,
+        age: accommodationRequests.age,
+        gender: accommodationRequests.gender,
+        specialRequests: accommodationRequests.specialRequests,
+        status: accommodationRequests.status,
+        createdAt: accommodationRequests.createdAt,
+        updatedAt: accommodationRequests.updatedAt,
+        userFirstName: users.firstName,
+        userLastName: users.lastName,
+        userEmail: users.email,
+      })
+      .from(accommodationRequests)
+      .leftJoin(users, eq(accommodationRequests.userId, users.id))
+      .orderBy(desc(accommodationRequests.createdAt));
+    
+    // Transform the result to match the expected interface
+    return result.map(row => ({
+      id: row.id,
+      userId: row.userId,
+      arrivalDate: row.arrivalDate,
+      departureDate: row.departureDate,
+      arrivalPlace: row.arrivalPlace,
+      accommodationType: row.accommodationType,
+      age: row.age,
+      gender: row.gender,
+      specialRequests: row.specialRequests,
+      status: row.status,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      user: row.userFirstName ? {
+        firstName: row.userFirstName,
+        lastName: row.userLastName,
+        email: row.userEmail,
+      } : undefined,
+    })) as AccommodationRequest[];
   }
 
   async createAccommodationRequest(request: InsertAccommodationRequest & { userId: number }): Promise<AccommodationRequest> {

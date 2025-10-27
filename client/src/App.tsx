@@ -32,6 +32,7 @@ import AdminInvitations from "@/pages/admin/invitations";
 import AdminNotifications from "@/pages/admin/notifications";
 import AdminCommittee from "@/pages/admin/committee";
 import AdminAwards from "@/pages/admin/awards";
+import AdminAccommodations from "@/pages/admin/accommodations";
 
 function Router() {
   return (
@@ -59,6 +60,7 @@ function Router() {
       <AdminRoute path="/admin/notifications" component={AdminNotifications} />
       <AdminRoute path="/admin/awards" component={AdminAwards} />
       <AdminRoute path="/admin/committee" component={AdminCommittee} />
+      <AdminRoute path="/admin/accommodations" component={AdminAccommodations} />
       
       {/* Fallback to 404 */}
       <Route component={NotFound} />

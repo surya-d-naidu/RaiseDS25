@@ -196,6 +196,9 @@ var accommodationRequests = pgTable("accommodation_requests", {
   // airport, bus stand, railway station, etc.
   accommodationType: text("accommodation_type"),
   // single, double, shared, etc.
+  age: integer("age").notNull(),
+  gender: text("gender").notNull(),
+  // male, female, other, prefer-not-to-say
   specialRequests: text("special_requests"),
   status: text("status").notNull().default("pending"),
   // pending, confirmed, cancelled
@@ -210,7 +213,11 @@ var insertAccommodationRequestSchema = createInsertSchema(accommodationRequests)
   updatedAt: true
 }).extend({
   arrivalDate: z.union([z.string(), z.date()]).transform((val) => typeof val === "string" ? new Date(val) : val),
-  departureDate: z.union([z.string(), z.date()]).transform((val) => typeof val === "string" ? new Date(val) : val)
+  departureDate: z.union([z.string(), z.date()]).transform((val) => typeof val === "string" ? new Date(val) : val),
+  age: z.number().min(1, "Age is required").max(120, "Please enter a valid age"),
+  gender: z.enum(["male", "female", "other", "prefer-not-to-say"], {
+    required_error: "Gender selection is required"
+  })
 });
 
 // server/db-storage.ts
@@ -572,7 +579,42 @@ var DbStorage = class {
     return result[0];
   }
   async getAllAccommodationRequests() {
-    return await db.select().from(accommodationRequests).orderBy(desc(accommodationRequests.createdAt));
+    const result = await db.select({
+      id: accommodationRequests.id,
+      userId: accommodationRequests.userId,
+      arrivalDate: accommodationRequests.arrivalDate,
+      departureDate: accommodationRequests.departureDate,
+      arrivalPlace: accommodationRequests.arrivalPlace,
+      accommodationType: accommodationRequests.accommodationType,
+      age: accommodationRequests.age,
+      gender: accommodationRequests.gender,
+      specialRequests: accommodationRequests.specialRequests,
+      status: accommodationRequests.status,
+      createdAt: accommodationRequests.createdAt,
+      updatedAt: accommodationRequests.updatedAt,
+      userFirstName: users.firstName,
+      userLastName: users.lastName,
+      userEmail: users.email
+    }).from(accommodationRequests).leftJoin(users, eq(accommodationRequests.userId, users.id)).orderBy(desc(accommodationRequests.createdAt));
+    return result.map((row) => ({
+      id: row.id,
+      userId: row.userId,
+      arrivalDate: row.arrivalDate,
+      departureDate: row.departureDate,
+      arrivalPlace: row.arrivalPlace,
+      accommodationType: row.accommodationType,
+      age: row.age,
+      gender: row.gender,
+      specialRequests: row.specialRequests,
+      status: row.status,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      user: row.userFirstName ? {
+        firstName: row.userFirstName,
+        lastName: row.userLastName,
+        email: row.userEmail
+      } : void 0
+    }));
   }
   async createAccommodationRequest(request) {
     const result = await db.insert(accommodationRequests).values(request).returning();
