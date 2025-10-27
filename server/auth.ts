@@ -146,7 +146,36 @@ export function setupAuth(app: Express) {
 
   app.post("/api/register", async (req, res, next) => {
     try {
-      const { username, email, password, firstName, lastName, institution } = req.body;
+      const { username, email, password, firstName, lastName, institution, invitationToken } = req.body;
+      
+      // If there's an invitation token, validate it first
+      if (invitationToken) {
+        const invitation = await storage.getInvitationByToken(invitationToken);
+        
+        if (!invitation) {
+          return res.status(400).json({ message: "Invalid invitation token" });
+        }
+        
+        // Check if invitation has expired
+        if (invitation.expiresAt && new Date() > invitation.expiresAt) {
+          return res.status(400).json({ message: "Invitation has expired" });
+        }
+        
+        // Check if invitation is for account creation (not attendance)
+        if (invitation.type !== "account") {
+          return res.status(400).json({ message: "This invitation is not for account creation" });
+        }
+        
+        // Ensure the email matches the invitation
+        if (invitation.email !== email) {
+          return res.status(400).json({ message: "Email must match the invitation email" });
+        }
+        
+        // Check if invitation is still pending
+        if (invitation.status !== "pending") {
+          return res.status(400).json({ message: `This invitation has already been ${invitation.status}` });
+        }
+      }
       
       // Check if username or email already exists
       const existingUsername = await storage.getUserByUsername(username);
@@ -179,6 +208,11 @@ export function setupAuth(app: Express) {
         socialLinks: {}
       });
       
+      // If there was an invitation token, mark it as accepted
+      if (invitationToken) {
+        await storage.updateInvitationStatus(invitationToken, "accepted");
+      }
+      
       // Generate and send OTP
       const otp = generateOTP();
       await storage.setEmailVerificationToken(user.id, otp);
@@ -188,17 +222,23 @@ export function setupAuth(app: Express) {
         console.log(`OTP sent to ${email}: ${otp}`); // For development
         
         res.status(201).json({
-          message: "Registration successful. Please check your email for verification code.",
+          message: invitationToken ? 
+            "Registration successful via invitation. Please check your email for verification code." :
+            "Registration successful. Please check your email for verification code.",
           requiresVerification: true,
-          email: email
+          email: email,
+          fromInvitation: !!invitationToken
         });
       } catch (emailError) {
         console.error("Failed to send OTP email:", emailError);
         // Still allow registration but inform user about email issue
         res.status(201).json({
-          message: "Registration successful but failed to send verification email. Please contact support.",
+          message: invitationToken ?
+            "Registration successful via invitation but failed to send verification email. Please contact support." :
+            "Registration successful but failed to send verification email. Please contact support.",
           requiresVerification: false,
-          email: email
+          email: email,
+          fromInvitation: !!invitationToken
         });
       }
     } catch (error) {

@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import Navbar from "@/components/layout/navbar";
 import Footer from "@/components/layout/footer";
 import { Button } from "@/components/ui/button";
@@ -23,10 +23,20 @@ import {
 
 export default function RegisterPage() {
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
   
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+    
+    // Check if there's an invitation token in the URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get("token");
+    if (token) {
+      // Redirect to auth page with the token
+      setLocation(`/auth?token=${token}`);
+      return;
+    }
+  }, [setLocation]);
 
   return (
     <>
@@ -338,42 +348,6 @@ export default function RegisterPage() {
                     Download Brochure
                   </Button>
                 </a>
-              </div>
-            </div>
-          </div>
-          
-          <div className="mt-16 bg-white rounded-lg shadow-sm p-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
-              Frequently Asked Questions
-            </h2>
-            
-            <div className="grid gap-6 md:grid-cols-2">
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Is on-site registration available?</h3>
-                <p className="text-gray-600">
-                  Yes, on-site registration will be available at the conference venue. However, on-site registrants will be charged a higher fee and cannot be guaranteed conference materials or participation in social events due to limited availability.
-                </p>
-              </div>
-              
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Can I attend specific days of the conference?</h3>
-                <p className="text-gray-600">
-                  Yes, single-day registration options will be available. Please contact the organizing committee at raiseds25@vitap.ac.in for details on single-day registration fees and arrangements.
-                </p>
-              </div>
-              
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">How can I become an ISPS member to avail discounted rates?</h3>
-                <p className="text-gray-600">
-                  To become an ISPS member, please visit the ISPS website and complete the membership application process. Once approved, you will receive a membership ID that you can use during the registration process.
-                </p>
-              </div>
-              
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Is accommodation included in the registration fee?</h3>
-                <p className="text-gray-600">
-                  No, the registration fee does not include accommodation. However, we have arranged special rates with several local hotels. Details will be provided after registration.
-                </p>
               </div>
             </div>
           </div>

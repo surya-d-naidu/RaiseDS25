@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { InfoIcon, AlertTriangle, FileText, CheckCircle2, Clock, Plus, Trash2, X, Loader2 } from "lucide-react";
 import MarkdownRenderer from "@/components/ui/markdown-renderer";
 import AbstractForm from "@/components/forms/abstract-form";
+import FullPaperUpload from "@/components/forms/full-paper-upload";
 import { getCategoryCode } from "@/lib/abstract-utils";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -801,6 +802,35 @@ export default function AbstractSubmissionPage() {
                                   <FileText className="mr-1.5 h-3.5 w-3.5" />
                                   View Uploaded File
                                 </a>
+                              </div>
+                            )}
+                            {abstract.status === "accepted" && (
+                              <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                                <h4 className="text-sm font-medium text-green-800 mb-2">
+                                  Full-Length Paper Submission
+                                </h4>
+                                <p className="text-sm text-green-700 mb-3">
+                                  Your abstract has been accepted! You can now upload your full-length paper.
+                                </p>
+                                {abstract.fullPaperUrl ? (
+                                  <div className="space-y-2">
+                                    <div className="flex items-center justify-between">
+                                      <a
+                                        href={`/api/abstracts/${abstract.id}/full-paper`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200"
+                                      >
+                                        <FileText className="mr-1.5 h-3.5 w-3.5" />
+                                        View Full Paper
+                                      </a>
+                                      <span className="text-xs text-green-600">✓ Full paper uploaded</span>
+                                    </div>
+                                    <FullPaperUpload abstractId={abstract.id} isReplacement={true} />
+                                  </div>
+                                ) : (
+                                  <FullPaperUpload abstractId={abstract.id} isReplacement={false} />
+                                )}
                               </div>
                             )}
                           </div>

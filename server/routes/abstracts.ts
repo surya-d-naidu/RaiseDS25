@@ -194,4 +194,89 @@ export function registerAbstractRoutes(app: Express) {
       res.status(500).json({ message: "Error deleting abstract" });
     }
   });
+
+  // Upload full paper (only for accepted abstracts)
+  app.post("/api/abstracts/:id/full-paper", isAuthenticated, upload.single("fullPaper"), async (req, res) => {
+    try {
+      const abstractId = parseInt(req.params.id);
+      const abstract = await storage.getAbstract(abstractId);
+      
+      if (!abstract) {
+        return res.status(404).json({ message: "Abstract not found" });
+      }
+      
+      if (abstract.userId !== req.user!.id && req.user!.role !== "admin") {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+
+      if (abstract.status !== "accepted") {
+        return res.status(400).json({ message: "Full paper can only be uploaded for accepted abstracts" });
+      }
+      
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      // Check if file is PDF
+      if (req.file.mimetype !== 'application/pdf') {
+        // Delete uploaded file if not PDF
+        fs.unlinkSync(req.file.path);
+        return res.status(400).json({ message: "Only PDF files are allowed for full papers" });
+      }
+
+      // Delete old full paper if exists
+      if (abstract.fullPaperUrl) {
+        const oldFilePath = path.join(process.cwd(), abstract.fullPaperUrl.replace(/^\/uploads\//, "uploads/"));
+        if (fs.existsSync(oldFilePath)) {
+          fs.unlinkSync(oldFilePath);
+        }
+      }
+
+      const fileUrl = `/uploads/${req.file.filename}`;
+      
+      const updatedAbstract = await storage.updateAbstract(abstractId, {
+        fullPaperUrl: fileUrl
+      });
+
+      res.json({
+        message: "Full paper uploaded successfully",
+        abstract: updatedAbstract
+      });
+    } catch (error) {
+      console.error('Error uploading full paper:', error);
+      res.status(500).json({ message: "Error uploading full paper" });
+    }
+  });
+
+  // Download full paper
+  app.get("/api/abstracts/:id/full-paper", isAuthenticated, async (req, res) => {
+    try {
+      const abstractId = parseInt(req.params.id);
+      const abstract = await storage.getAbstract(abstractId);
+      
+      if (!abstract) {
+        return res.status(404).json({ message: "Abstract not found" });
+      }
+
+      if (!abstract.fullPaperUrl) {
+        return res.status(404).json({ message: "Full paper not found" });
+      }
+
+      // Check permissions - user can download their own, admin can download all
+      if (abstract.userId !== req.user!.id && req.user!.role !== "admin") {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+
+      const filePath = path.join(process.cwd(), abstract.fullPaperUrl.replace(/^\/uploads\//, "uploads/"));
+      
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ message: "File not found on server" });
+      }
+
+      res.download(filePath);
+    } catch (error) {
+      console.error('Error downloading full paper:', error);
+      res.status(500).json({ message: "Error downloading full paper" });
+    }
+  });
 }

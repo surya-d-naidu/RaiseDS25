@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { randomBytes } from "crypto";
-import { insertAbstractSchema, insertInvitationSchema, insertNotificationSchema, insertCommitteeMemberSchema, insertResearchAwardSchema } from "@shared/schema";
+import { insertAbstractSchema, insertInvitationSchema, insertNotificationSchema, insertCommitteeMemberSchema, insertResearchAwardSchema, insertAccommodationRequestSchema } from "@shared/schema";
 import { ZodError } from "zod";
 import multer from "multer";
 import path from "path";
@@ -364,6 +364,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Error fetching invitations" });
     }
   });
+
+  app.delete("/api/admin/invitations/:id", isAdmin, async (req, res) => {
+    try {
+      const invitationId = parseInt(req.params.id);
+      const success = await storage.deleteInvitation(invitationId);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Invitation not found" });
+      }
+      
+      res.json({ message: "Invitation deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Error deleting invitation" });
+    }
+  });
   
   app.post("/api/invitations", isAdmin, async (req, res) => {
     try {
@@ -512,6 +527,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(results);
     } catch (error) {
       res.status(500).json({ message: "Error processing bulk invitations" });
+    }
+  });
+
+  // Delete all invitations
+  app.delete("/api/admin/invitations/delete-all", isAdmin, async (req, res) => {
+    try {
+      const deletedCount = await storage.deleteAllInvitations();
+      res.json({ deletedCount, message: `Successfully deleted ${deletedCount} invitation(s)` });
+    } catch (error) {
+      console.error('Error deleting all invitations:', error);
+      res.status(500).json({ error: 'Failed to delete all invitations' });
     }
   });
   
@@ -746,6 +772,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
     fs.renameSync(oldPath, newPath);
     
     res.status(201).json({ message: "Brochure uploaded successfully" });
+  });
+
+  // ----- Accommodation Routes -----
+
+  // Get user's accommodation request
+  app.get("/api/accommodation-request", isAuthenticated, async (req, res) => {
+    try {
+      const request = await storage.getAccommodationRequest(req.user!.id);
+      res.json(request || null);
+    } catch (error) {
+      console.error('Error fetching accommodation request:', error);
+      res.status(500).json({ error: 'Failed to fetch accommodation request' });
+    }
+  });
+
+  // Create accommodation request
+  app.post("/api/accommodation-request", isAuthenticated, async (req, res) => {
+    try {
+      // Check if user already has a request
+      const existingRequest = await storage.getAccommodationRequest(req.user!.id);
+      if (existingRequest) {
+        return res.status(400).json({ error: 'You have already submitted an accommodation request' });
+      }
+
+      const validatedData = insertAccommodationRequestSchema.parse(req.body);
+      const request = await storage.createAccommodationRequest({
+        ...validatedData,
+        userId: req.user!.id
+      });
+      
+      res.status(201).json(request);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: error.errors 
+        });
+      }
+      console.error('Error creating accommodation request:', error);
+      res.status(500).json({ error: 'Failed to create accommodation request' });
+    }
+  });
+
+  // Admin: Get all accommodation requests
+  app.get("/api/admin/accommodation-requests", isAdmin, async (req, res) => {
+    try {
+      const requests = await storage.getAllAccommodationRequests();
+      res.json(requests);
+    } catch (error) {
+      console.error('Error fetching accommodation requests:', error);
+      res.status(500).json({ error: 'Failed to fetch accommodation requests' });
+    }
+  });
+
+  // Admin: Update accommodation request status
+  app.put("/api/admin/accommodation-requests/:id", isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      
+      if (!status || !['pending', 'confirmed', 'cancelled'].includes(status)) {
+        return res.status(400).json({ error: 'Valid status is required' });
+      }
+
+      const request = await storage.updateAccommodationRequest(parseInt(id), { status });
+      
+      if (!request) {
+        return res.status(404).json({ error: 'Accommodation request not found' });
+      }
+      
+      res.json(request);
+    } catch (error) {
+      console.error('Error updating accommodation request:', error);
+      res.status(500).json({ error: 'Failed to update accommodation request' });
+    }
   });
 
   // Register abstract routes

@@ -201,54 +201,6 @@ export default function AboutPage() {
               </div>
             </div>
           </div>
-          
-          <div className="mt-16 bg-white rounded-lg shadow-sm p-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Frequently Asked Questions</h2>
-            
-            <div className="grid gap-6 md:grid-cols-2">
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Who can attend the conference?</h3>
-                <p className="text-gray-600">
-                  The conference is open to researchers, academicians, professionals, and students from the fields of statistics, mathematics, data science, and related disciplines. Anyone with an interest in statistical methods and their applications is welcome to participate.
-                </p>
-              </div>
-              
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">How can I register for the conference?</h3>
-                <p className="text-gray-600">
-                  Registration can be completed online through our registration portal. Visit the Register page for more information on registration fees, deadlines, and the registration process.
-                </p>
-              </div>
-              
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Can I present my research at the conference?</h3>
-                <p className="text-gray-600">
-                  Yes, the conference welcomes abstract submissions for oral and poster presentations. Visit the Call for Papers page for submission guidelines, important dates, and the review process.
-                </p>
-              </div>
-              
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Is there an accommodation arrangement for participants?</h3>
-                <p className="text-gray-600">
-                  The conference has partnered with local hotels to provide discounted rates for participants. Information on accommodation options will be available on the website closer to the event date. Participants are encouraged to book early.
-                </p>
-              </div>
-              
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Will the conference proceedings be published?</h3>
-                <p className="text-gray-600">
-                  Yes, selected papers presented at the conference will be considered for publication in partner journals and conference proceedings. Detailed information will be provided to authors whose abstracts are accepted.
-                </p>
-              </div>
-              
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">How can I contact the organizers?</h3>
-                <p className="text-gray-600">
-                  For general inquiries, you can contact the conference secretariat at raiseds25@vitap.ac.in. For specific queries, please refer to the contact information of the conveners and organizing team members on the Committee page.
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
       </main>
       

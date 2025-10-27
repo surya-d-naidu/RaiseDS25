@@ -36,6 +36,19 @@ import { Abstract } from "@shared/schema";
 import MarkdownRenderer from "@/components/ui/markdown-renderer";
 import { getCategoryCode } from "@/lib/abstract-utils";
 
+// Export utility function
+const downloadCSV = (data: string, filename: string) => {
+  const blob = new Blob([data], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.setAttribute('href', url);
+  link.setAttribute('download', filename);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
 export default function AdminAbstracts() {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
@@ -96,6 +109,42 @@ export default function AdminAbstracts() {
     setViewDialogOpen(true);
   };
 
+  const exportAbstracts = () => {
+    if (!abstracts || abstracts.length === 0) {
+      toast({
+        title: "No data to export",
+        description: "There are no abstracts to export.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const csvData = [
+      ['ID', 'Title', 'Category', 'Keywords', 'Status', 'Submitted By', 'Email', 'Institution', 'Country', 'Authors', 'Created At', 'Updated At'],
+      ...abstracts.map(abstract => [
+        abstract.referenceId || `${getCategoryCode(abstract.category)}-${abstract.id.toString().padStart(4, '0')}`,
+        `"${abstract.title.replace(/"/g, '""')}"`,
+        abstract.category,
+        `"${abstract.keywords.replace(/"/g, '""')}"`,
+        abstract.status,
+        `"${abstract.authorName || ''}"`,
+        abstract.authorEmail || '',
+        `"${abstract.institution || ''}"`,
+        `"${abstract.country || ''}"`,
+        `"${Array.isArray(abstract.authors) ? abstract.authors.map(a => `${a.name} (${a.affiliation})`).join('; ') : JSON.stringify(abstract.authors || '')}"`,
+        new Date(abstract.createdAt).toLocaleDateString(),
+        new Date(abstract.updatedAt).toLocaleDateString()
+      ])
+    ].map(row => row.join(',')).join('\n');
+
+    downloadCSV(csvData, `abstracts-export-${new Date().toISOString().split('T')[0]}.csv`);
+
+    toast({
+      title: "Export successful",
+      description: `${abstracts.length} abstracts exported successfully.`,
+    });
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "pending":
@@ -135,6 +184,14 @@ export default function AdminAbstracts() {
             </CardDescription>
           </div>
           <div className="flex flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={exportAbstracts}
+              className="w-full sm:w-auto"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Export Abstracts
+            </Button>
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
               <Input
@@ -235,14 +292,15 @@ export default function AdminAbstracts() {
 
           {/* Abstract Details Dialog */}
           <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
-            <DialogContent className="max-w-3xl">              <DialogHeader>
+            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
                 <DialogTitle>{selectedAbstract?.title}</DialogTitle>
                 <DialogDescription>
                   ID: {selectedAbstract?.referenceId || (selectedAbstract && `${getCategoryCode(selectedAbstract.category)}-${selectedAbstract.id.toString().padStart(4, '0')}`)} | Submitted on {selectedAbstract?.createdAt && new Date(selectedAbstract.createdAt).toLocaleDateString()}
                 </DialogDescription>
               </DialogHeader>
 
-              <div className="grid gap-4">
+              <div className="grid gap-4 pr-2">{/* Added right padding for scrollbar space */}
                 <div>
                   <h4 className="text-sm font-medium mb-1">Category</h4>
                   <p className="text-sm">{selectedAbstract?.category}</p>

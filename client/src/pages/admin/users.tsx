@@ -43,12 +43,26 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Search, Filter, UserCog, ShieldCheck, UserX, User, Mail, Calendar, Building, Trash2 } from "lucide-react";
+import { Loader2, Search, Filter, UserCog, ShieldCheck, UserX, User, Mail, Calendar, Building, Trash2, CheckCircle, Download } from "lucide-react";
+
+// Export utility function
+const downloadCSV = (data: string, filename: string) => {
+  const blob = new Blob([data], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.setAttribute('href', url);
+  link.setAttribute('download', filename);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
 
 export default function AdminUsers() {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
   const [userDialogOpen, setUserDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -108,6 +122,14 @@ export default function AdminUsers() {
           if (roleFilter !== "all" && user.role !== roleFilter) {
             return false;
           }
+          if (statusFilter !== "all") {
+            if (statusFilter === "verified" && !user.emailVerified) {
+              return false;
+            }
+            if (statusFilter === "unverified" && user.emailVerified) {
+              return false;
+            }
+          }
           if (searchQuery === "") return true;
           
           return (
@@ -127,6 +149,40 @@ export default function AdminUsers() {
   const viewUser = (user: any) => {
     setSelectedUser(user);
     setUserDialogOpen(true);
+  };
+
+  const exportUsers = () => {
+    if (!users || users.length === 0) {
+      toast({
+        title: "No data to export",
+        description: "There are no users to export.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const csvData = [
+      ['ID', 'Username', 'First Name', 'Last Name', 'Email', 'Institution', 'Country', 'Role', 'Email Verified', 'Created At'],
+      ...users.map(user => [
+        user.id.toString(),
+        user.username,
+        user.firstName,
+        user.lastName,
+        user.email,
+        `"${user.institution || ''}"`,
+        `"${user.country || ''}"`,
+        user.role,
+        user.emailVerified ? 'Yes' : 'No',
+        new Date(user.createdAt).toLocaleDateString()
+      ])
+    ].map(row => row.join(',')).join('\n');
+
+    downloadCSV(csvData, `users-export-${new Date().toISOString().split('T')[0]}.csv`);
+
+    toast({
+      title: "Export successful",
+      description: `${users.length} users exported successfully.`,
+    });
   };
 
   const getInitials = (name: string) => {
@@ -151,6 +207,14 @@ export default function AdminUsers() {
             </CardDescription>
           </div>
           <div className="flex flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={exportUsers}
+              className="w-full sm:w-auto"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Export Users
+            </Button>
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
               <Input
@@ -176,6 +240,21 @@ export default function AdminUsers() {
                 </SelectGroup>
               </SelectContent>
             </Select>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full sm:w-40">
+                <div className="flex items-center">
+                  <Mail className="mr-2 h-4 w-4" />
+                  <SelectValue placeholder="Filter by status" />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="verified">Verified</SelectItem>
+                  <SelectItem value="unverified">Unverified</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
           </div>
         </CardHeader>
         <CardContent>
@@ -191,6 +270,7 @@ export default function AdminUsers() {
                     <TableHead>User</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Institution</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead>Role</TableHead>
                     <TableHead>Joined Date</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
@@ -214,6 +294,28 @@ export default function AdminUsers() {
                       </TableCell>
                       <TableCell>{user.email}</TableCell>
                       <TableCell className="max-w-[200px] truncate">{user.institution}</TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={user.emailVerified ? "outline" : "secondary"}
+                          className={`${
+                            user.emailVerified
+                              ? "bg-green-50 text-green-700 border-green-200"
+                              : "bg-amber-50 text-amber-700 border-amber-200"
+                          }`}
+                        >
+                          {user.emailVerified ? (
+                            <>
+                              <CheckCircle className="mr-1 h-3 w-3" />
+                              Verified
+                            </>
+                          ) : (
+                            <>
+                              <Mail className="mr-1 h-3 w-3" />
+                              Unverified
+                            </>
+                          )}
+                        </Badge>
+                      </TableCell>
                       <TableCell>
                         <Badge
                           variant={user.role === "admin" ? "secondary" : "outline"}
@@ -267,7 +369,7 @@ export default function AdminUsers() {
               <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-1">No users found</h3>
               <p className="text-gray-500">
-                {searchQuery || roleFilter !== "all"
+                {searchQuery || roleFilter !== "all" || statusFilter !== "all"
                   ? "Try adjusting your search or filter criteria"
                   : "No users have registered yet"}
               </p>
@@ -317,7 +419,29 @@ export default function AdminUsers() {
                           <h4 className="text-sm font-medium text-gray-500 mb-1 flex items-center">
                             <Mail className="mr-1 h-4 w-4" /> Email
                           </h4>
-                          <p className="text-base">{selectedUser.email}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="text-base">{selectedUser.email}</p>
+                            <Badge
+                              variant={selectedUser.emailVerified ? "outline" : "secondary"}
+                              className={`text-xs ${
+                                selectedUser.emailVerified
+                                  ? "bg-green-50 text-green-700 border-green-200"
+                                  : "bg-amber-50 text-amber-700 border-amber-200"
+                              }`}
+                            >
+                              {selectedUser.emailVerified ? (
+                                <>
+                                  <CheckCircle className="mr-1 h-3 w-3" />
+                                  Verified
+                                </>
+                              ) : (
+                                <>
+                                  <Mail className="mr-1 h-3 w-3" />
+                                  Unverified
+                                </>
+                              )}
+                            </Badge>
+                          </div>
                         </div>
                         
                         <div>

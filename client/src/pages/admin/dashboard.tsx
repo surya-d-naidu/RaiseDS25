@@ -32,7 +32,8 @@ import {
   Clock4,
   ChevronRight,
   Trash2,
-  UserX
+  UserX,
+  Download
 } from "lucide-react";
 import { 
   BarChart as RechartsBarChart,
@@ -52,6 +53,7 @@ import { useToast } from "@/hooks/use-toast";
 export default function AdminDashboard() {
   const { toast } = useToast();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteAllInvitationsDialogOpen, setDeleteAllInvitationsDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<any | null>(null);
 
   const { data: abstracts, isLoading: abstractsLoading } = useQuery<any[]>({
@@ -88,6 +90,27 @@ export default function AdminDashboard() {
       toast({
         title: "Delete failed",
         description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteAllInvitationsMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("DELETE", "/api/admin/invitations/delete-all");
+      return await res.json();
+    },
+    onSuccess: (result) => {
+      toast({
+        title: "All invitations deleted",
+        description: `Successfully deleted ${result.deletedCount} invitation(s).`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/invitations"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Delete failed",
+        description: error.message || "Failed to delete invitations",
         variant: "destructive",
       });
     },
@@ -136,6 +159,122 @@ export default function AdminDashboard() {
       .map((n) => n[0])
       .join("")
       .toUpperCase();
+  };
+
+  // Export utility functions
+  const downloadCSV = (data: string, filename: string) => {
+    const blob = new Blob([data], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const exportDashboardStats = () => {
+    const csvData = [
+      ['Metric', 'Value'],
+      ['Total Abstracts', stats.totalAbstracts.toString()],
+      ['Pending Abstracts', stats.pendingAbstracts.toString()],
+      ['Accepted Abstracts', stats.acceptedAbstracts.toString()],
+      ['Rejected Abstracts', stats.rejectedAbstracts.toString()],
+      ['Total Users', stats.totalUsers.toString()],
+      ['Regular Users', stats.regularUsers.toString()],
+      ['Admin Users', stats.adminUsers.toString()],
+      ['Total Invitations', stats.totalInvitations.toString()],
+      ['Pending Invitations', stats.pendingInvitations.toString()],
+      ['Accepted Invitations', stats.acceptedInvitations.toString()],
+      ['Rejected Invitations', stats.rejectedInvitations.toString()],
+      ['Active Notifications', stats.activeNotifications.toString()],
+      ['Days Remaining', daysRemaining.toString()],
+      ['Export Date', new Date().toISOString()]
+    ].map(row => row.join(',')).join('\n');
+
+    downloadCSV(csvData, `dashboard-stats-${new Date().toISOString().split('T')[0]}.csv`);
+  };
+
+  const exportAbstracts = () => {
+    if (!abstracts || abstracts.length === 0) {
+      toast({
+        title: "No data to export",
+        description: "There are no abstracts to export.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const csvData = [
+      ['ID', 'Title', 'Status', 'Submitted By', 'Email', 'Institution', 'Country', 'Created At', 'Updated At'],
+      ...abstracts.map(abstract => [
+        abstract.id.toString(),
+        `"${abstract.title.replace(/"/g, '""')}"`,
+        abstract.status,
+        `"${abstract.authorName || ''}"`,
+        abstract.authorEmail || '',
+        `"${abstract.institution || ''}"`,
+        `"${abstract.country || ''}"`,
+        new Date(abstract.createdAt).toLocaleDateString(),
+        new Date(abstract.updatedAt).toLocaleDateString()
+      ])
+    ].map(row => row.join(',')).join('\n');
+
+    downloadCSV(csvData, `abstracts-export-${new Date().toISOString().split('T')[0]}.csv`);
+  };
+
+  const exportUsers = () => {
+    if (!users || users.length === 0) {
+      toast({
+        title: "No data to export",
+        description: "There are no users to export.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const csvData = [
+      ['ID', 'Username', 'First Name', 'Last Name', 'Email', 'Institution', 'Country', 'Role', 'Email Verified', 'Created At'],
+      ...users.map(user => [
+        user.id.toString(),
+        user.username,
+        user.firstName,
+        user.lastName,
+        user.email,
+        `"${user.institution || ''}"`,
+        `"${user.country || ''}"`,
+        user.role,
+        user.emailVerified ? 'Yes' : 'No',
+        new Date(user.createdAt).toLocaleDateString()
+      ])
+    ].map(row => row.join(',')).join('\n');
+
+    downloadCSV(csvData, `users-export-${new Date().toISOString().split('T')[0]}.csv`);
+  };
+
+  const exportInvitations = () => {
+    if (!invitations || invitations.length === 0) {
+      toast({
+        title: "No data to export",
+        description: "There are no invitations to export.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const csvData = [
+      ['ID', 'Email', 'Status', 'Invited At', 'Responded At'],
+      ...invitations.map(invitation => [
+        invitation.id.toString(),
+        invitation.email,
+        invitation.status,
+        new Date(invitation.createdAt).toLocaleDateString(),
+        invitation.respondedAt ? new Date(invitation.respondedAt).toLocaleDateString() : 'N/A'
+      ])
+    ].map(row => row.join(',')).join('\n');
+
+    downloadCSV(csvData, `invitations-export-${new Date().toISOString().split('T')[0]}.csv`);
   };
   
   const today = new Date();
@@ -481,27 +620,82 @@ export default function AdminDashboard() {
                       Send New Invitation
                     </Link>
                   </Button>
-                  
+
                   <Button className="w-full justify-start" asChild>
                     <Link href="/admin/notifications">
                       <Bell className="mr-2 h-5 w-5" />
                       Create Notification
                     </Link>
                   </Button>
-                  
+
                   <Button className="w-full justify-start" asChild>
                     <Link href="/admin/abstracts">
                       <FileText className="mr-2 h-5 w-5" />
                       Review Pending Abstracts ({stats.pendingAbstracts})
                     </Link>
                   </Button>
-                  
+
                   <Button className="w-full justify-start" asChild>
                     <Link href="/admin/users">
                       <Users className="mr-2 h-5 w-5" />
                       Manage Users ({stats.totalUsers})
                     </Link>
                   </Button>
+
+                  {stats.totalInvitations > 0 && (
+                    <Button 
+                      variant="destructive"
+                      className="w-full justify-start"
+                      onClick={() => setDeleteAllInvitationsDialogOpen(true)}
+                    >
+                      <Trash2 className="mr-2 h-5 w-5" />
+                      Delete All Invitations ({stats.totalInvitations})
+                    </Button>
+                  )}
+
+                  <div className="border-t pt-4">
+                    <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
+                      <Download className="mr-2 h-4 w-4" />
+                      Export Data
+                    </h4>
+                    <div className="grid grid-cols-1 gap-2">
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start text-sm"
+                        onClick={exportDashboardStats}
+                      >
+                        <BarChart className="mr-2 h-4 w-4" />
+                        Export Dashboard Stats
+                      </Button>
+
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start text-sm"
+                        onClick={exportAbstracts}
+                      >
+                        <FileText className="mr-2 h-4 w-4" />
+                        Export All Abstracts ({stats.totalAbstracts})
+                      </Button>
+
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start text-sm"
+                        onClick={exportUsers}
+                      >
+                        <Users className="mr-2 h-4 w-4" />
+                        Export All Users ({stats.totalUsers})
+                      </Button>
+
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start text-sm"
+                        onClick={exportInvitations}
+                      >
+                        <Mail className="mr-2 h-4 w-4" />
+                        Export All Invitations ({stats.totalInvitations})
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
               <CardFooter className="border-t px-6 py-4 bg-gray-50">
@@ -561,6 +755,53 @@ export default function AdminDashboard() {
                 <>
                   <Trash2 className="mr-2 h-4 w-4" />
                   Delete User
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete All Invitations Confirmation Dialog */}
+      <AlertDialog open={deleteAllInvitationsDialogOpen} onOpenChange={setDeleteAllInvitationsDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete All Invitations</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete all {stats.totalInvitations} invitation(s)?
+              <br />
+              <br />
+              This action cannot be undone. This will permanently delete all invitations including:
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li>Pending invitations: {stats.pendingInvitations}</li>
+                <li>Accepted invitations: {stats.acceptedInvitations}</li>
+                <li>Rejected invitations: {stats.rejectedInvitations}</li>
+              </ul>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => setDeleteAllInvitationsDialogOpen(false)}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700"
+              onClick={() => {
+                deleteAllInvitationsMutation.mutate();
+                setDeleteAllInvitationsDialogOpen(false);
+              }}
+              disabled={deleteAllInvitationsMutation.isPending}
+            >
+              {deleteAllInvitationsMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting All...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete All Invitations
                 </>
               )}
             </AlertDialogAction>

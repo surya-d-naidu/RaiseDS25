@@ -16,8 +16,10 @@ var schema_exports = {};
 __export(schema_exports, {
   AuthorSchema: () => AuthorSchema,
   abstracts: () => abstracts,
+  accommodationRequests: () => accommodationRequests,
   committeeMembers: () => committeeMembers,
   insertAbstractSchema: () => insertAbstractSchema,
+  insertAccommodationRequestSchema: () => insertAccommodationRequestSchema,
   insertCommitteeMemberSchema: () => insertCommitteeMemberSchema,
   insertInvitationSchema: () => insertInvitationSchema,
   insertNotificationSchema: () => insertNotificationSchema,
@@ -74,6 +76,8 @@ var abstracts = pgTable("abstracts", {
   status: text("status").notNull().default("pending"),
   // pending, accepted, rejected
   fileUrl: text("file_url"),
+  fullPaperUrl: text("full_paper_url"),
+  // URL for full-length paper upload
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow()
 });
@@ -89,7 +93,8 @@ var insertAbstractSchema = z.object({
   }),
   keywords: z.string().min(1, "Keywords are required"),
   referenceId: z.string().optional(),
-  fileUrl: z.string().optional()
+  fileUrl: z.string().optional(),
+  fullPaperUrl: z.string().optional()
 });
 var profiles = pgTable("profiles", {
   id: serial("id").primaryKey(),
@@ -181,6 +186,31 @@ var researchAwards = pgTable("research_awards", {
 });
 var insertResearchAwardSchema = createInsertSchema(researchAwards).omit({
   id: true
+});
+var accommodationRequests = pgTable("accommodation_requests", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  arrivalDate: timestamp("arrival_date").notNull(),
+  departureDate: timestamp("departure_date").notNull(),
+  arrivalPlace: text("arrival_place").notNull(),
+  // airport, bus stand, railway station, etc.
+  accommodationType: text("accommodation_type"),
+  // single, double, shared, etc.
+  specialRequests: text("special_requests"),
+  status: text("status").notNull().default("pending"),
+  // pending, confirmed, cancelled
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+var insertAccommodationRequestSchema = createInsertSchema(accommodationRequests).omit({
+  id: true,
+  userId: true,
+  status: true,
+  createdAt: true,
+  updatedAt: true
+}).extend({
+  arrivalDate: z.union([z.string(), z.date()]).transform((val) => typeof val === "string" ? new Date(val) : val),
+  departureDate: z.union([z.string(), z.date()]).transform((val) => typeof val === "string" ? new Date(val) : val)
 });
 
 // server/db-storage.ts
@@ -379,6 +409,10 @@ var DbStorage = class {
     const result = await db.delete(invitations).where(eq(invitations.id, id)).returning();
     return result.length > 0;
   }
+  async deleteAllInvitations() {
+    const result = await db.delete(invitations).returning();
+    return result.length;
+  }
   // ----- Notifications -----
   async getNotification(id) {
     const result = await db.select().from(notifications).where(eq(notifications.id, id)).limit(1);
@@ -531,6 +565,26 @@ var DbStorage = class {
       passwordResetExpires: null
     }).where(eq(users.id, userId)).returning();
     return result[0];
+  }
+  // ----- Accommodation Requests -----
+  async getAccommodationRequest(userId) {
+    const result = await db.select().from(accommodationRequests).where(eq(accommodationRequests.userId, userId)).limit(1);
+    return result[0];
+  }
+  async getAllAccommodationRequests() {
+    return await db.select().from(accommodationRequests).orderBy(desc(accommodationRequests.createdAt));
+  }
+  async createAccommodationRequest(request) {
+    const result = await db.insert(accommodationRequests).values(request).returning();
+    return result[0];
+  }
+  async updateAccommodationRequest(id, data) {
+    const result = await db.update(accommodationRequests).set({ ...data, updatedAt: /* @__PURE__ */ new Date() }).where(eq(accommodationRequests.id, id)).returning();
+    return result[0];
+  }
+  async deleteAccommodationRequest(id) {
+    const result = await db.delete(accommodationRequests).where(eq(accommodationRequests.id, id)).returning();
+    return result.length > 0;
   }
 };
 var storage = new DbStorage();
@@ -995,7 +1049,25 @@ function setupAuth(app2) {
   });
   app2.post("/api/register", async (req, res, next) => {
     try {
-      const { username, email, password, firstName, lastName, institution } = req.body;
+      const { username, email, password, firstName, lastName, institution, invitationToken } = req.body;
+      if (invitationToken) {
+        const invitation = await storage.getInvitationByToken(invitationToken);
+        if (!invitation) {
+          return res.status(400).json({ message: "Invalid invitation token" });
+        }
+        if (invitation.expiresAt && /* @__PURE__ */ new Date() > invitation.expiresAt) {
+          return res.status(400).json({ message: "Invitation has expired" });
+        }
+        if (invitation.type !== "account") {
+          return res.status(400).json({ message: "This invitation is not for account creation" });
+        }
+        if (invitation.email !== email) {
+          return res.status(400).json({ message: "Email must match the invitation email" });
+        }
+        if (invitation.status !== "pending") {
+          return res.status(400).json({ message: `This invitation has already been ${invitation.status}` });
+        }
+      }
       const existingUsername = await storage.getUserByUsername(username);
       if (existingUsername) {
         return res.status(400).json({ message: "Username already exists" });
@@ -1020,22 +1092,27 @@ function setupAuth(app2) {
         isCommitteeMember: false,
         socialLinks: {}
       });
+      if (invitationToken) {
+        await storage.updateInvitationStatus(invitationToken, "accepted");
+      }
       const otp = generateOTP();
       await storage.setEmailVerificationToken(user.id, otp);
       try {
         await sendOTPEmail(email, otp, firstName);
         console.log(`OTP sent to ${email}: ${otp}`);
         res.status(201).json({
-          message: "Registration successful. Please check your email for verification code.",
+          message: invitationToken ? "Registration successful via invitation. Please check your email for verification code." : "Registration successful. Please check your email for verification code.",
           requiresVerification: true,
-          email
+          email,
+          fromInvitation: !!invitationToken
         });
       } catch (emailError) {
         console.error("Failed to send OTP email:", emailError);
         res.status(201).json({
-          message: "Registration successful but failed to send verification email. Please contact support.",
+          message: invitationToken ? "Registration successful via invitation but failed to send verification email. Please contact support." : "Registration successful but failed to send verification email. Please contact support.",
           requiresVerification: false,
-          email
+          email,
+          fromInvitation: !!invitationToken
         });
       }
     } catch (error) {
@@ -1368,6 +1445,68 @@ function registerAbstractRoutes(app2) {
       res.status(500).json({ message: "Error deleting abstract" });
     }
   });
+  app2.post("/api/abstracts/:id/full-paper", isAuthenticated, upload.single("fullPaper"), async (req, res) => {
+    try {
+      const abstractId = parseInt(req.params.id);
+      const abstract = await storage.getAbstract(abstractId);
+      if (!abstract) {
+        return res.status(404).json({ message: "Abstract not found" });
+      }
+      if (abstract.userId !== req.user.id && req.user.role !== "admin") {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+      if (abstract.status !== "accepted") {
+        return res.status(400).json({ message: "Full paper can only be uploaded for accepted abstracts" });
+      }
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+      if (req.file.mimetype !== "application/pdf") {
+        fs.unlinkSync(req.file.path);
+        return res.status(400).json({ message: "Only PDF files are allowed for full papers" });
+      }
+      if (abstract.fullPaperUrl) {
+        const oldFilePath = path2.join(process.cwd(), abstract.fullPaperUrl.replace(/^\/uploads\//, "uploads/"));
+        if (fs.existsSync(oldFilePath)) {
+          fs.unlinkSync(oldFilePath);
+        }
+      }
+      const fileUrl = `/uploads/${req.file.filename}`;
+      const updatedAbstract = await storage.updateAbstract(abstractId, {
+        fullPaperUrl: fileUrl
+      });
+      res.json({
+        message: "Full paper uploaded successfully",
+        abstract: updatedAbstract
+      });
+    } catch (error) {
+      console.error("Error uploading full paper:", error);
+      res.status(500).json({ message: "Error uploading full paper" });
+    }
+  });
+  app2.get("/api/abstracts/:id/full-paper", isAuthenticated, async (req, res) => {
+    try {
+      const abstractId = parseInt(req.params.id);
+      const abstract = await storage.getAbstract(abstractId);
+      if (!abstract) {
+        return res.status(404).json({ message: "Abstract not found" });
+      }
+      if (!abstract.fullPaperUrl) {
+        return res.status(404).json({ message: "Full paper not found" });
+      }
+      if (abstract.userId !== req.user.id && req.user.role !== "admin") {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+      const filePath = path2.join(process.cwd(), abstract.fullPaperUrl.replace(/^\/uploads\//, "uploads/"));
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ message: "File not found on server" });
+      }
+      res.download(filePath);
+    } catch (error) {
+      console.error("Error downloading full paper:", error);
+      res.status(500).json({ message: "Error downloading full paper" });
+    }
+  });
 }
 
 // server/routes.ts
@@ -1650,6 +1789,18 @@ async function registerRoutes(app2) {
       res.status(500).json({ message: "Error fetching invitations" });
     }
   });
+  app2.delete("/api/admin/invitations/:id", isAdmin, async (req, res) => {
+    try {
+      const invitationId = parseInt(req.params.id);
+      const success = await storage.deleteInvitation(invitationId);
+      if (!success) {
+        return res.status(404).json({ message: "Invitation not found" });
+      }
+      res.json({ message: "Invitation deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Error deleting invitation" });
+    }
+  });
   app2.post("/api/invitations", isAdmin, async (req, res) => {
     try {
       const validatedData = insertInvitationSchema.parse(req.body);
@@ -1763,6 +1914,15 @@ async function registerRoutes(app2) {
       res.status(201).json(results);
     } catch (error) {
       res.status(500).json({ message: "Error processing bulk invitations" });
+    }
+  });
+  app2.delete("/api/admin/invitations/delete-all", isAdmin, async (req, res) => {
+    try {
+      const deletedCount = await storage.deleteAllInvitations();
+      res.json({ deletedCount, message: `Successfully deleted ${deletedCount} invitation(s)` });
+    } catch (error) {
+      console.error("Error deleting all invitations:", error);
+      res.status(500).json({ error: "Failed to delete all invitations" });
     }
   });
   app2.get("/api/invitations/:token", async (req, res) => {
@@ -1937,6 +2097,64 @@ async function registerRoutes(app2) {
     }
     fs2.renameSync(oldPath, newPath);
     res.status(201).json({ message: "Brochure uploaded successfully" });
+  });
+  app2.get("/api/accommodation-request", isAuthenticated, async (req, res) => {
+    try {
+      const request = await storage.getAccommodationRequest(req.user.id);
+      res.json(request || null);
+    } catch (error) {
+      console.error("Error fetching accommodation request:", error);
+      res.status(500).json({ error: "Failed to fetch accommodation request" });
+    }
+  });
+  app2.post("/api/accommodation-request", isAuthenticated, async (req, res) => {
+    try {
+      const existingRequest = await storage.getAccommodationRequest(req.user.id);
+      if (existingRequest) {
+        return res.status(400).json({ error: "You have already submitted an accommodation request" });
+      }
+      const validatedData = insertAccommodationRequestSchema.parse(req.body);
+      const request = await storage.createAccommodationRequest({
+        ...validatedData,
+        userId: req.user.id
+      });
+      res.status(201).json(request);
+    } catch (error) {
+      if (error instanceof ZodError2) {
+        return res.status(400).json({
+          error: "Validation failed",
+          details: error.errors
+        });
+      }
+      console.error("Error creating accommodation request:", error);
+      res.status(500).json({ error: "Failed to create accommodation request" });
+    }
+  });
+  app2.get("/api/admin/accommodation-requests", isAdmin, async (req, res) => {
+    try {
+      const requests = await storage.getAllAccommodationRequests();
+      res.json(requests);
+    } catch (error) {
+      console.error("Error fetching accommodation requests:", error);
+      res.status(500).json({ error: "Failed to fetch accommodation requests" });
+    }
+  });
+  app2.put("/api/admin/accommodation-requests/:id", isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      if (!status || !["pending", "confirmed", "cancelled"].includes(status)) {
+        return res.status(400).json({ error: "Valid status is required" });
+      }
+      const request = await storage.updateAccommodationRequest(parseInt(id), { status });
+      if (!request) {
+        return res.status(404).json({ error: "Accommodation request not found" });
+      }
+      res.json(request);
+    } catch (error) {
+      console.error("Error updating accommodation request:", error);
+      res.status(500).json({ error: "Failed to update accommodation request" });
+    }
   });
   registerAbstractRoutes(app2);
   const httpServer = createServer(app2);

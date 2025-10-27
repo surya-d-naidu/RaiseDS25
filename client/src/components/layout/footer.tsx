@@ -81,13 +81,6 @@ export default function Footer() {
                   </a>
                 </Link>
               </li>
-              <li>
-                <Link href="/about">
-                  <a className="text-base text-gray-500 hover:text-gray-900">
-                    FAQ
-                  </a>
-                </Link>
-              </li>
             </ul>
           </div>
           

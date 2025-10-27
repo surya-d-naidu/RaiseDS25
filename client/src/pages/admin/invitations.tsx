@@ -31,10 +31,23 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Mail, Search, Filter, CheckCircle, XCircle, Clock, Trash2, Send, Users } from "lucide-react";
+import { Loader2, Mail, Search, Filter, CheckCircle, XCircle, Clock, Trash2, Send, Users, Download } from "lucide-react";
 import { Invitation } from "@shared/schema";
 import InvitationForm from "@/components/forms/invitation-form";
 import BulkInvitationForm from "@/components/forms/bulk-invitation-form";
+
+// Export utility function
+const downloadCSV = (data: string, filename: string) => {
+  const blob = new Blob([data], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.setAttribute('href', url);
+  link.setAttribute('download', filename);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
 
 export default function AdminInvitations() {
   const { toast } = useToast();
@@ -109,6 +122,40 @@ export default function AdminInvitations() {
     }
   };
 
+  const exportInvitations = () => {
+    if (!invitations || invitations.length === 0) {
+      toast({
+        title: "No data to export",
+        description: "There are no invitations to export.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const csvData = [
+      ['ID', 'Name', 'Email', 'Institution', 'Position', 'Type', 'Status', 'Message', 'Invited At', 'Responded At'],
+      ...invitations.map(invitation => [
+        invitation.id.toString(),
+        `"${invitation.name || ''}"`,
+        invitation.email,
+        `"${invitation.institution || ''}"`,
+        `"${invitation.position || ''}"`,
+        invitation.type,
+        invitation.status,
+        `"${invitation.message || ''}"`,
+        new Date(invitation.createdAt).toLocaleDateString(),
+        invitation.respondedAt ? new Date(invitation.respondedAt).toLocaleDateString() : 'N/A'
+      ])
+    ].map(row => row.join(',')).join('\n');
+
+    downloadCSV(csvData, `invitations-export-${new Date().toISOString().split('T')[0]}.csv`);
+
+    toast({
+      title: "Export successful",
+      description: `${invitations.length} invitations exported successfully.`,
+    });
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "pending":
@@ -148,6 +195,14 @@ export default function AdminInvitations() {
             </CardDescription>
           </div>
           <div className="flex flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={exportInvitations}
+              className="w-full sm:w-auto"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Export Invitations
+            </Button>
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
               <Input

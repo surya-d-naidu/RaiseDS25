@@ -184,9 +184,7 @@ export default function AdminCommitteePage() {
                 <SelectItem value="chief_patron">Chief Patron</SelectItem>
                 <SelectItem value="patron">Patron</SelectItem>
                 <SelectItem value="organizing_committee">Organizing Committee</SelectItem>
-                <SelectItem value="advisory_committee">Advisory Committee</SelectItem>
                 <SelectItem value="conference_secretaries">Conference Secretaries</SelectItem>
-                <SelectItem value="isps_executive">ISPS Executive</SelectItem>
               </SelectContent>
             </Select>
             <Button onClick={() => {
@@ -340,9 +338,7 @@ export default function AdminCommitteePage() {
                 <SelectItem value="chief_patron">Chief Patron</SelectItem>
                 <SelectItem value="patron">Patron</SelectItem>
                 <SelectItem value="organizing_committee">Organizing Committee</SelectItem>
-                <SelectItem value="advisory_committee">Advisory Committee</SelectItem>
                 <SelectItem value="conference_secretaries">Conference Secretaries</SelectItem>
-                <SelectItem value="isps_executive">ISPS Executive</SelectItem>
                 </SelectContent>
               </Select>
             </div>

@@ -27,6 +27,24 @@ export default function HostInstitutions() {
                 <p className="mt-2 text-gray-600">
                   With a strong emphasis on ethical values, sustainability, and inclusivity, the university nurtures well-rounded individuals to make a positive impact on society.
                 </p>
+                
+                {/* VIT-AP University Video */}
+                <div className="mt-6">
+                  <div className="aspect-w-16 aspect-h-9 rounded-lg overflow-hidden">
+                    <iframe 
+                      className="w-full h-64 rounded-lg"
+                      src="https://www.youtube.com/embed/YOUR_VITAP_VIDEO_ID" 
+                      title="VIT-AP University Overview"
+                      frameBorder="0" 
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                      allowFullScreen
+                    ></iframe>
+                  </div>
+                  <p className="mt-2 text-sm text-gray-500 text-center">
+                    Discover VIT-AP University - Campus Life and Academic Excellence
+                  </p>
+                </div>
+                
                 <div className="mt-6 text-center">
                   <a href="https://vitap.ac.in" target="_blank" rel="noopener noreferrer" className="inline-flex items-center text-primary hover:text-primary-700">
                     Visit website

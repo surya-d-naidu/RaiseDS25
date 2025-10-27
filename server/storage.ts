@@ -2,7 +2,8 @@
 import { users, type User, type InsertUser, profiles, type Profile, type InsertProfile, 
   abstracts, type Abstract, type InsertAbstract, invitations, type Invitation, type InsertInvitation,
   notifications, type Notification, type InsertNotification, committeeMembers, type CommitteeMember, 
-  type InsertCommitteeMember, researchAwards, type ResearchAward, type InsertResearchAward } from "@shared/schema";
+  type InsertCommitteeMember, researchAwards, type ResearchAward, type InsertResearchAward,
+  accommodationRequests, type AccommodationRequest, type InsertAccommodationRequest } from "@shared/schema";
 import session from "express-session";
 
 export interface IStorage {
@@ -41,6 +42,7 @@ export interface IStorage {
   createInvitation(invitation: InsertInvitation & { senderId: number; token: string }): Promise<Invitation>;
   updateInvitationStatus(token: string, status: string): Promise<Invitation | undefined>;
   deleteInvitation(id: number): Promise<boolean>;
+  deleteAllInvitations(): Promise<number>;
   
   // Notifications
   getNotification(id: number): Promise<Notification | undefined>;
@@ -65,6 +67,13 @@ export interface IStorage {
   createResearchAward(award: InsertResearchAward): Promise<ResearchAward>;
   updateResearchAward(id: number, data: Partial<InsertResearchAward>): Promise<ResearchAward | undefined>;
   deleteResearchAward(id: number): Promise<boolean>;
+  
+  // Accommodation Requests
+  getAccommodationRequest(userId: number): Promise<AccommodationRequest | undefined>;
+  getAllAccommodationRequests(): Promise<AccommodationRequest[]>;
+  createAccommodationRequest(request: InsertAccommodationRequest & { userId: number }): Promise<AccommodationRequest>;
+  updateAccommodationRequest(id: number, data: Partial<InsertAccommodationRequest>): Promise<AccommodationRequest | undefined>;
+  deleteAccommodationRequest(id: number): Promise<boolean>;
   
   // Helper methods
   getCategoryCode(category: string): string;

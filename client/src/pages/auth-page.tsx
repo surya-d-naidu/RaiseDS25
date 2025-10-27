@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Loader2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import Navbar from "@/components/layout/navbar";
 import Footer from "@/components/layout/footer";
 
@@ -26,6 +28,7 @@ const registerSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   institution: z.string().min(1, "Institution is required"),
+  invitationToken: z.string().optional(),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -34,6 +37,34 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 export default function AuthPage() {
   const [, navigate] = useLocation();
   const { user, loginMutation, registerMutation } = useAuth();
+  const [invitationToken, setInvitationToken] = useState<string | null>(null);
+  const [defaultTab, setDefaultTab] = useState("login");
+
+  // Check for invitation token in URL
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get("token");
+    if (token) {
+      setInvitationToken(token);
+      setDefaultTab("register"); // Switch to register tab when there's an invitation
+    }
+  }, []);
+
+  // Query to validate invitation token
+  const { data: invitation, isLoading: invitationLoading, isError: invitationError } = useQuery({
+    queryKey: ["/api/invitations", invitationToken],
+    queryFn: async () => {
+      if (!invitationToken) return null;
+      try {
+        const res = await apiRequest("GET", `/api/invitations/${invitationToken}`);
+        return await res.json();
+      } catch (error) {
+        console.error("Error fetching invitation:", error);
+        throw error;
+      }
+    },
+    enabled: !!invitationToken,
+  });
 
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -52,8 +83,25 @@ export default function AuthPage() {
       firstName: "",
       lastName: "",
       institution: "",
+      invitationToken: invitationToken || "",
     },
   });
+
+  // Update form when invitation data is loaded
+  useEffect(() => {
+    if (invitation) {
+      // Pre-fill form with invitation data
+      registerForm.setValue("email", invitation.email);
+      registerForm.setValue("firstName", invitation.name.split(" ")[0] || "");
+      registerForm.setValue("lastName", invitation.name.split(" ").slice(1).join(" ") || "");
+      registerForm.setValue("institution", invitation.institution || "");
+      registerForm.setValue("invitationToken", invitationToken || "");
+      
+      // Generate a username suggestion based on email
+      const emailUsername = invitation.email.split("@")[0];
+      registerForm.setValue("username", emailUsername);
+    }
+  }, [invitation, registerForm, invitationToken]);
 
   const onLoginSubmit = (values: LoginFormValues) => {
     loginMutation.mutate(values);
@@ -81,7 +129,7 @@ export default function AuthPage() {
       <div className="flex min-h-screen bg-gray-50">
         <div className="flex flex-col justify-center flex-1 px-4 py-12 sm:px-6 lg:flex-none lg:px-20 xl:px-24">
           <div className="w-full max-w-sm mx-auto lg:w-96">
-            <Tabs defaultValue="login" className="w-full">
+            <Tabs value={defaultTab} onValueChange={setDefaultTab} className="w-full">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="login">Login</TabsTrigger>
                 <TabsTrigger value="register">Register</TabsTrigger>
@@ -162,8 +210,29 @@ export default function AuthPage() {
                   <CardHeader>
                     <CardTitle>Create Account</CardTitle>
                     <CardDescription>
-                      Join the RAISE DS 2025 Conference community
+                      {invitation ? 
+                        `Complete your account setup for the invitation from ${invitation.name}` :
+                        "Join the RAISE DS 2025 Conference community"
+                      }
                     </CardDescription>
+                    {invitationToken && (
+                      <div className="mt-2">
+                        {invitationLoading ? (
+                          <div className="flex items-center text-sm text-blue-600">
+                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                            Verifying invitation...
+                          </div>
+                        ) : invitationError ? (
+                          <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg">
+                            ⚠️ Invalid or expired invitation token. You can still register normally.
+                          </div>
+                        ) : invitation ? (
+                          <div className="text-sm text-green-600 bg-green-50 p-3 rounded-lg">
+                            ✅ Valid invitation for {invitation.email}
+                          </div>
+                        ) : null}
+                      </div>
+                    )}
                   </CardHeader>
                   <CardContent>
                     <Form {...registerForm}>

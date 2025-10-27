@@ -241,9 +241,7 @@ export default function ResearchAwardsPage() {
           ) : (
             <div className="text-center py-12">
               <Award className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-xl font-medium text-gray-900 mb-2">No Awards Available</h3>
               <p className="text-gray-500">
-                Award information will be posted here as it becomes available.
               </p>
             </div>
           )}

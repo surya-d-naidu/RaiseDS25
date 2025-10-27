@@ -1,7 +1,8 @@
 import { users, type User, type InsertUser, profiles, type Profile, type InsertProfile, 
   abstracts, type Abstract, type InsertAbstract, invitations, type Invitation, type InsertInvitation,
   notifications, type Notification, type InsertNotification, committeeMembers, type CommitteeMember, 
-  type InsertCommitteeMember, researchAwards, type ResearchAward, type InsertResearchAward } from "@shared/schema";
+  type InsertCommitteeMember, researchAwards, type ResearchAward, type InsertResearchAward,
+  accommodationRequests, type AccommodationRequest, type InsertAccommodationRequest } from "@shared/schema";
 import session from "express-session";
 import { db } from "./db";
 import { eq, gt, or, and, desc, asc, like } from "drizzle-orm";
@@ -242,6 +243,11 @@ export class DbStorage implements IStorage {
     const result = await db.delete(invitations).where(eq(invitations.id, id)).returning();
     return result.length > 0;
   }
+
+  async deleteAllInvitations(): Promise<number> {
+    const result = await db.delete(invitations).returning();
+    return result.length;
+  }
   
   // ----- Notifications -----
   
@@ -460,6 +466,35 @@ export class DbStorage implements IStorage {
       .returning();
     
     return result[0];
+  }
+
+  // ----- Accommodation Requests -----
+
+  async getAccommodationRequest(userId: number): Promise<AccommodationRequest | undefined> {
+    const result = await db.select().from(accommodationRequests).where(eq(accommodationRequests.userId, userId)).limit(1);
+    return result[0];
+  }
+
+  async getAllAccommodationRequests(): Promise<AccommodationRequest[]> {
+    return await db.select().from(accommodationRequests).orderBy(desc(accommodationRequests.createdAt));
+  }
+
+  async createAccommodationRequest(request: InsertAccommodationRequest & { userId: number }): Promise<AccommodationRequest> {
+    const result = await db.insert(accommodationRequests).values(request).returning();
+    return result[0];
+  }
+
+  async updateAccommodationRequest(id: number, data: Partial<InsertAccommodationRequest>): Promise<AccommodationRequest | undefined> {
+    const result = await db.update(accommodationRequests)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(accommodationRequests.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteAccommodationRequest(id: number): Promise<boolean> {
+    const result = await db.delete(accommodationRequests).where(eq(accommodationRequests.id, id)).returning();
+    return result.length > 0;
   }
 }
 

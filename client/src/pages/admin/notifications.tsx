@@ -32,9 +32,22 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Search, Filter, Bell, Info, AlertCircle, Clock, Pencil, Trash2, Eye, Plus } from "lucide-react";
+import { Loader2, Search, Filter, Bell, Info, AlertCircle, Clock, Pencil, Trash2, Eye, Plus, Download } from "lucide-react";
 import { Notification } from "@shared/schema";
 import NotificationForm from "@/components/forms/notification-form";
+
+// Export utility function
+const downloadCSV = (data: string, filename: string) => {
+  const blob = new Blob([data], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.setAttribute('href', url);
+  link.setAttribute('download', filename);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
 
 export default function AdminNotifications() {
   const { toast } = useToast();
@@ -130,6 +143,37 @@ export default function AdminNotifications() {
     });
   };
 
+  const exportNotifications = () => {
+    if (!notifications || notifications.length === 0) {
+      toast({
+        title: "No data to export",
+        description: "There are no notifications to export.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const csvData = [
+      ['ID', 'Title', 'Type', 'Content', 'Is Active', 'Created At', 'Updated At'],
+      ...notifications.map(notification => [
+        notification.id.toString(),
+        `"${notification.title.replace(/"/g, '""')}"`,
+        notification.type,
+        `"${notification.content.replace(/"/g, '""')}"`,
+        notification.isActive ? 'Yes' : 'No',
+        new Date(notification.createdAt).toLocaleDateString(),
+        new Date(notification.updatedAt).toLocaleDateString()
+      ])
+    ].map(row => row.join(',')).join('\n');
+
+    downloadCSV(csvData, `notifications-export-${new Date().toISOString().split('T')[0]}.csv`);
+
+    toast({
+      title: "Export successful",
+      description: `${notifications.length} notifications exported successfully.`,
+    });
+  };
+
   const getTypeIcon = (type: string) => {
     switch (type) {
       case "general":
@@ -157,6 +201,14 @@ export default function AdminNotifications() {
             </CardDescription>
           </div>
           <div className="flex flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={exportNotifications}
+              className="w-full sm:w-auto"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Export Notifications
+            </Button>
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
               <Input

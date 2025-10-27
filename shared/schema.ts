@@ -51,6 +51,7 @@ export const abstracts = pgTable("abstracts", {
   referenceId: text("reference_id"),
   status: text("status").notNull().default("pending"), // pending, accepted, rejected
   fileUrl: text("file_url"),
+  fullPaperUrl: text("full_paper_url"), // URL for full-length paper upload
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -70,7 +71,8 @@ export const insertAbstractSchema = z.object({
     }),
   keywords: z.string().min(1, "Keywords are required"),
   referenceId: z.string().optional(),
-  fileUrl: z.string().optional()
+  fileUrl: z.string().optional(),
+  fullPaperUrl: z.string().optional()
 });
 
 export type InsertAbstract = z.infer<typeof insertAbstractSchema>;
@@ -195,3 +197,31 @@ export const insertResearchAwardSchema = createInsertSchema(researchAwards).omit
 
 export type InsertResearchAward = z.infer<typeof insertResearchAwardSchema>;
 export type ResearchAward = typeof researchAwards.$inferSelect;
+
+// Accommodation requests
+export const accommodationRequests = pgTable("accommodation_requests", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  arrivalDate: timestamp("arrival_date").notNull(),
+  departureDate: timestamp("departure_date").notNull(),
+  arrivalPlace: text("arrival_place").notNull(), // airport, bus stand, railway station, etc.
+  accommodationType: text("accommodation_type"), // single, double, shared, etc.
+  specialRequests: text("special_requests"),
+  status: text("status").notNull().default("pending"), // pending, confirmed, cancelled
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertAccommodationRequestSchema = createInsertSchema(accommodationRequests).omit({ 
+  id: true, 
+  userId: true,
+  status: true,
+  createdAt: true,
+  updatedAt: true
+}).extend({
+  arrivalDate: z.union([z.string(), z.date()]).transform((val) => typeof val === 'string' ? new Date(val) : val),
+  departureDate: z.union([z.string(), z.date()]).transform((val) => typeof val === 'string' ? new Date(val) : val),
+});
+
+export type InsertAccommodationRequest = z.infer<typeof insertAccommodationRequestSchema>;
+export type AccommodationRequest = typeof accommodationRequests.$inferSelect;

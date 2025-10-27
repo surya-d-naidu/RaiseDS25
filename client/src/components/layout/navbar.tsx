@@ -105,6 +105,15 @@ export default function Navbar() {
                   Register
                 </a>
               </Link>
+              <Link href="/accommodation">
+                <a className={`inline-flex items-center px-2 py-2 border-b-2 text-sm font-medium transition-colors duration-150 ${
+                  isActive("/accommodation") 
+                    ? "border-white text-white font-bold" 
+                    : "border-transparent text-white/90 hover:border-white/70 hover:text-white"
+                }`}>
+                  Accommodation
+                </a>
+              </Link>
             </div>
           </div>
           <div className="hidden md:flex md:items-center">
@@ -239,6 +248,15 @@ export default function Navbar() {
                 : "border-transparent text-white/90 hover:bg-primary-800/20 hover:border-white/60 hover:text-white"
             }`}>
               Register
+            </a>
+          </Link>
+          <Link href="/accommodation">
+            <a className={`block pl-4 pr-4 py-2.5 border-l-4 text-base font-medium transition-colors duration-150 ${
+              isActive("/accommodation") 
+                ? "bg-primary-700/30 border-white text-white font-bold" 
+                : "border-transparent text-white/90 hover:bg-primary-800/20 hover:border-white/60 hover:text-white"
+            }`}>
+              Accommodation
             </a>
           </Link>
         </div>        <div className="pt-4 pb-4 border-t border-white/20">
