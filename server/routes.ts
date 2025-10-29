@@ -815,6 +815,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update accommodation request
+  app.put("/api/accommodation-request", isAuthenticated, async (req, res) => {
+    try {
+      // Check if user has an existing request
+      const existingRequest = await storage.getAccommodationRequest(req.user!.id);
+      if (!existingRequest) {
+        return res.status(404).json({ error: 'No accommodation request found to update' });
+      }
+
+      const validatedData = insertAccommodationRequestSchema.parse(req.body);
+      const updatedRequest = await storage.updateAccommodationRequestByUserId(req.user!.id, validatedData);
+      
+      if (!updatedRequest) {
+        return res.status(404).json({ error: 'Failed to update accommodation request' });
+      }
+      
+      res.json(updatedRequest);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: error.errors 
+        });
+      }
+      console.error('Error updating accommodation request:', error);
+      res.status(500).json({ error: 'Failed to update accommodation request' });
+    }
+  });
+
   // Admin: Get all accommodation requests
   app.get("/api/admin/accommodation-requests", isAdmin, async (req, res) => {
     try {

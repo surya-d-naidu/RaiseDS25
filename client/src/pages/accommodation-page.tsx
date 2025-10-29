@@ -14,6 +14,21 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 
+interface AccommodationRequest {
+  id: number;
+  userId: number;
+  arrivalDate: string;
+  departureDate: string;
+  arrivalPlace: string;
+  accommodationType?: string;
+  age?: number;
+  gender?: string;
+  specialRequests?: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 const accommodationFormSchema = z.object({
   arrivalDate: z.string().min(1, "Arrival date is required"),
   departureDate: z.string().min(1, "Departure date is required"),
@@ -26,6 +41,7 @@ const accommodationFormSchema = z.object({
 
 export default function AccommodationPage() {
   const { toast } = useToast();
+  const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     arrivalDate: '',
     departureDate: '',
@@ -40,26 +56,30 @@ export default function AccommodationPage() {
     queryKey: ["/api/user"],
   });
 
-  const { data: existingRequest } = useQuery({
+  const { data: existingRequest } = useQuery<AccommodationRequest | null>({
     queryKey: ["/api/accommodation-request"],
     enabled: !!user,
   });
 
   const accommodationMutation = useMutation({
     mutationFn: async (data: any) => {
-      const res = await apiRequest("POST", "/api/accommodation-request", data);
+      const method = isEditing ? "PUT" : "POST";
+      const res = await apiRequest(method, "/api/accommodation-request", data);
       return res.json();
     },
     onSuccess: () => {
       toast({
-        title: "Request submitted",
-        description: "Your accommodation request has been submitted successfully.",
+        title: isEditing ? "Request updated" : "Request submitted",
+        description: isEditing 
+          ? "Your accommodation request has been updated successfully."
+          : "Your accommodation request has been submitted successfully.",
       });
+      setIsEditing(false);
       queryClient.invalidateQueries({ queryKey: ["/api/accommodation-request"] });
     },
     onError: (error: Error) => {
       toast({
-        title: "Submission failed",
+        title: isEditing ? "Update failed" : "Submission failed",
         description: error.message,
         variant: "destructive",
       });
@@ -85,6 +105,34 @@ export default function AccommodationPage() {
 
   const handleInputChange = (name: string, value: string) => {
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleEdit = () => {
+    if (existingRequest) {
+      setFormData({
+        arrivalDate: existingRequest.arrivalDate ? new Date(existingRequest.arrivalDate).toISOString().split('T')[0] : '',
+        departureDate: existingRequest.departureDate ? new Date(existingRequest.departureDate).toISOString().split('T')[0] : '',
+        arrivalPlace: existingRequest.arrivalPlace || '',
+        accommodationType: existingRequest.accommodationType || '',
+        age: existingRequest.age?.toString() || '',
+        gender: existingRequest.gender || '',
+        specialRequests: existingRequest.specialRequests || '',
+      });
+      setIsEditing(true);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setFormData({
+      arrivalDate: '',
+      departureDate: '',
+      arrivalPlace: '',
+      accommodationType: '',
+      age: '',
+      gender: '',
+      specialRequests: '',
+    });
   };
 
   useEffect(() => {
@@ -113,15 +161,27 @@ export default function AccommodationPage() {
           </div>
 
           {user ? (
-            existingRequest ? (
+            existingRequest && !isEditing ? (
               /* Show existing request */
               <div className="max-w-3xl mx-auto">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-green-700">Accommodation Request Submitted</CardTitle>
-                    <CardDescription>
-                      Your accommodation request has been received and is being processed.
-                    </CardDescription>
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <CardTitle className="text-green-700">Accommodation Request Submitted</CardTitle>
+                        <CardDescription>
+                          Your accommodation request has been received and is being processed.
+                        </CardDescription>
+                      </div>
+                      <Button 
+                        onClick={handleEdit}
+                        variant="outline"
+                        size="sm"
+                        className="ml-4"
+                      >
+                        Edit Request
+                      </Button>
+                    </div>
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-2 gap-4">
@@ -176,10 +236,28 @@ export default function AccommodationPage() {
               <div className="max-w-3xl mx-auto">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Accommodation Request Form</CardTitle>
-                    <CardDescription>
-                      Please provide your accommodation requirements for the conference period (December 22-24, 2025)
-                    </CardDescription>
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <CardTitle>{isEditing ? "Edit Accommodation Request" : "Accommodation Request Form"}</CardTitle>
+                        <CardDescription>
+                          {isEditing 
+                            ? "Update your accommodation requirements for the conference period (December 22-24, 2025)"
+                            : "Please provide your accommodation requirements for the conference period (December 22-24, 2025)"
+                          }
+                        </CardDescription>
+                      </div>
+                      {isEditing && (
+                        <Button 
+                          onClick={handleCancelEdit}
+                          variant="outline"
+                          size="sm"
+                          type="button"
+                          className="ml-4"
+                        >
+                          Cancel
+                        </Button>
+                      )}
+                    </div>
                   </CardHeader>
                   <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-6">
@@ -292,10 +370,10 @@ export default function AccommodationPage() {
                         {accommodationMutation.isPending ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Submitting Request...
+                            {isEditing ? 'Updating Request...' : 'Submitting Request...'}
                           </>
                         ) : (
-                          'Submit Accommodation Request'
+                          isEditing ? 'Update Accommodation Request' : 'Submit Accommodation Request'
                         )}
                       </Button>
                     </form>

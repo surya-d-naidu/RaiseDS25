@@ -73,6 +73,7 @@ export interface IStorage {
   getAllAccommodationRequests(): Promise<AccommodationRequest[]>;
   createAccommodationRequest(request: InsertAccommodationRequest & { userId: number }): Promise<AccommodationRequest>;
   updateAccommodationRequest(id: number, data: Partial<InsertAccommodationRequest>): Promise<AccommodationRequest | undefined>;
+  updateAccommodationRequestByUserId(userId: number, data: Partial<InsertAccommodationRequest>): Promise<AccommodationRequest | undefined>;
   deleteAccommodationRequest(id: number): Promise<boolean>;
   
   // Helper methods

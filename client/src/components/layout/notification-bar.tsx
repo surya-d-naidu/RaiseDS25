@@ -13,7 +13,8 @@ export default function NotificationBar() {
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
-  const activeNotifications = notifications.filter(n => n.isActive);
+  // Backend already filters for active notifications, no need to filter again
+  const activeNotifications = notifications;
 
   useEffect(() => {
     if (activeNotifications.length > 1) {

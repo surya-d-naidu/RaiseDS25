@@ -242,7 +242,7 @@ var pool = new Pool({ connectionString: process.env.DATABASE_URL });
 var db = drizzle(pool, { schema: schema_exports });
 
 // server/db-storage.ts
-import { eq, gt, or, and, desc, asc, like } from "drizzle-orm";
+import { eq, gt, and, desc, asc, like } from "drizzle-orm";
 import ConnectPgSimple from "connect-pg-simple";
 import { Pool as Pool2 } from "pg";
 var DbStorage = class {
@@ -427,15 +427,11 @@ var DbStorage = class {
   }
   async getActiveNotifications() {
     const now = /* @__PURE__ */ new Date();
-    return db.select().from(notifications).where(
-      and(
-        eq(notifications.isActive, true),
-        or(
-          eq(notifications.expiresAt, null),
-          gt(notifications.expiresAt, now)
-        )
-      )
-    ).orderBy(desc(notifications.createdAt));
+    const allActiveNotifications = await db.select().from(notifications).where(eq(notifications.isActive, true)).orderBy(desc(notifications.createdAt));
+    const activeNotifications = allActiveNotifications.filter((notification) => {
+      return notification.expiresAt === null || new Date(notification.expiresAt) > now;
+    });
+    return activeNotifications;
   }
   async getAllNotifications() {
     return db.select().from(notifications).orderBy(desc(notifications.createdAt));
@@ -622,6 +618,10 @@ var DbStorage = class {
   }
   async updateAccommodationRequest(id, data) {
     const result = await db.update(accommodationRequests).set({ ...data, updatedAt: /* @__PURE__ */ new Date() }).where(eq(accommodationRequests.id, id)).returning();
+    return result[0];
+  }
+  async updateAccommodationRequestByUserId(userId, data) {
+    const result = await db.update(accommodationRequests).set({ ...data, updatedAt: /* @__PURE__ */ new Date() }).where(eq(accommodationRequests.userId, userId)).returning();
     return result[0];
   }
   async deleteAccommodationRequest(id) {
@@ -2170,6 +2170,29 @@ async function registerRoutes(app2) {
       }
       console.error("Error creating accommodation request:", error);
       res.status(500).json({ error: "Failed to create accommodation request" });
+    }
+  });
+  app2.put("/api/accommodation-request", isAuthenticated, async (req, res) => {
+    try {
+      const existingRequest = await storage.getAccommodationRequest(req.user.id);
+      if (!existingRequest) {
+        return res.status(404).json({ error: "No accommodation request found to update" });
+      }
+      const validatedData = insertAccommodationRequestSchema.parse(req.body);
+      const updatedRequest = await storage.updateAccommodationRequestByUserId(req.user.id, validatedData);
+      if (!updatedRequest) {
+        return res.status(404).json({ error: "Failed to update accommodation request" });
+      }
+      res.json(updatedRequest);
+    } catch (error) {
+      if (error instanceof ZodError2) {
+        return res.status(400).json({
+          error: "Validation failed",
+          details: error.errors
+        });
+      }
+      console.error("Error updating accommodation request:", error);
+      res.status(500).json({ error: "Failed to update accommodation request" });
     }
   });
   app2.get("/api/admin/accommodation-requests", isAdmin, async (req, res) => {

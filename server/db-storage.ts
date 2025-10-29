@@ -258,17 +258,19 @@ export class DbStorage implements IStorage {
   
   async getActiveNotifications(): Promise<Notification[]> {
     const now = new Date();
-    return db.select().from(notifications)
-      .where(
-        and(
-          eq(notifications.isActive, true),
-          or(
-            eq(notifications.expiresAt, null),
-            gt(notifications.expiresAt, now)
-          )
-        )
-      )
+    
+    // Get all active notifications first, then filter in memory for expiry
+    // This avoids the Drizzle ORM issue with null handling in OR conditions
+    const allActiveNotifications = await db.select().from(notifications)
+      .where(eq(notifications.isActive, true))
       .orderBy(desc(notifications.createdAt));
+    
+    // Filter for non-expired notifications
+    const activeNotifications = allActiveNotifications.filter(notification => {
+      return notification.expiresAt === null || new Date(notification.expiresAt) > now;
+    });
+    
+    return activeNotifications;
   }
   
   async getAllNotifications(): Promise<Notification[]> {
@@ -529,6 +531,14 @@ export class DbStorage implements IStorage {
     const result = await db.update(accommodationRequests)
       .set({ ...data, updatedAt: new Date() })
       .where(eq(accommodationRequests.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async updateAccommodationRequestByUserId(userId: number, data: Partial<InsertAccommodationRequest>): Promise<AccommodationRequest | undefined> {
+    const result = await db.update(accommodationRequests)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(accommodationRequests.userId, userId))
       .returning();
     return result[0];
   }
