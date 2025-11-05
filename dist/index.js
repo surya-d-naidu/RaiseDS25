@@ -1552,6 +1552,7 @@ function registerAbstractRoutes(app2) {
 }
 
 // server/routes.ts
+import { eq as eq2 } from "drizzle-orm";
 var upload2 = multer2({
   storage: multer2.diskStorage({
     destination: function(req, file, cb) {
@@ -1594,6 +1595,35 @@ async function registerRoutes(app2) {
       res.json(profile);
     } catch (error) {
       res.status(500).json({ message: "Error updating profile" });
+    }
+  });
+  app2.post("/api/profile/upload-image", isAuthenticated, upload2.single("profileImage"), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+      const imageUrl = `/uploads/${req.file.filename}`;
+      await db.update(users).set({ profilePictureUrl: imageUrl }).where(eq2(users.id, req.user.id));
+      res.json({ message: "Profile picture uploaded successfully", imageUrl });
+    } catch (error) {
+      console.error("Error uploading profile image:", error);
+      res.status(500).json({ message: "Error uploading profile image" });
+    }
+  });
+  app2.delete("/api/profile/delete-image", isAuthenticated, async (req, res) => {
+    try {
+      const user = await storage.getUser(req.user.id);
+      if (user?.profilePictureUrl) {
+        const filePath = path3.join(process.cwd(), user.profilePictureUrl);
+        if (fs2.existsSync(filePath)) {
+          fs2.unlinkSync(filePath);
+        }
+        await db.update(users).set({ profilePictureUrl: null }).where(eq2(users.id, req.user.id));
+      }
+      res.json({ message: "Profile picture removed successfully" });
+    } catch (error) {
+      console.error("Error deleting profile image:", error);
+      res.status(500).json({ message: "Error deleting profile image" });
     }
   });
   app2.get("/api/admin/abstracts", isAdmin, async (req, res) => {

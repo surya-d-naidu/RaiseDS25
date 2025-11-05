@@ -428,9 +428,9 @@ export default function AbstractSubmissionPage() {
                                     className="w-full border rounded px-3 py-2"
                                   >
                                     <option value="Delegate (Keynote speaker)">Delegate (Keynote speaker)</option>
-                                    <option value="Delegate (Invited speaker)">Delegate (Invited speaker)</option>
+                                    <option value="Delegate (Invited speaker)">Delegate</option>
                                     <option value="Presenter">Presenter</option>
-                                    <option value="Participant">Participant</option>
+                                    <option value="Participant">Other Authors</option>
                                   </select>
                                 </div>
                               </div>

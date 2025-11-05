@@ -17,6 +17,7 @@ import ResearchAwardsPage from "@/pages/research-awards-page";
 import CommitteePage from "@/pages/committee-page";
 import RegisterPage from "@/pages/register-page";
 import AbstractSubmissionPage from "@/pages/abstract-submission-page";
+import FullPaperSubmissionPage from "@/pages/full-paper-submission-page";
 import ProfilePage from "@/pages/profile-page";
 import AttendanceResponse from "@/pages/attendance-response";
 import OTPVerificationPage from "@/pages/otp-verification-page";
@@ -27,6 +28,7 @@ import AccommodationPage from "@/pages/accommodation-page";
 // Admin Pages
 import AdminDashboard from "@/pages/admin/dashboard";
 import AdminAbstracts from "@/pages/admin/abstracts";
+import AdminFullPapers from "@/pages/admin/full-papers";
 import AdminUsers from "@/pages/admin/users";
 import AdminInvitations from "@/pages/admin/invitations";
 import AdminNotifications from "@/pages/admin/notifications";
@@ -52,9 +54,12 @@ function Router() {
       
       {/* Protected Routes */}
       <ProtectedRoute path="/abstracts/submit" component={AbstractSubmissionPage} />
+      <ProtectedRoute path="/full-paper/submit" component={FullPaperSubmissionPage} />
       <ProtectedRoute path="/profile" component={ProfilePage} />
         {/* Admin Routes */}
-      <AdminRoute path="/admin" component={AdminDashboard} />      <AdminRoute path="/admin/abstracts" component={AdminAbstracts} />
+      <AdminRoute path="/admin" component={AdminDashboard} />
+      <AdminRoute path="/admin/abstracts" component={AdminAbstracts} />
+      <AdminRoute path="/admin/full-papers" component={AdminFullPapers} />
       <AdminRoute path="/admin/users" component={AdminUsers} />
       <AdminRoute path="/admin/invitations" component={AdminInvitations} />
       <AdminRoute path="/admin/notifications" component={AdminNotifications} />

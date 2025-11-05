@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -20,7 +21,8 @@ import {
   XCircle,
   Search,
   Download,
-  Filter
+  Filter,
+  Eye
 } from "lucide-react";
 
 interface AccommodationRequest {
@@ -302,7 +304,7 @@ export default function AdminAccommodations() {
                     <TableHead>Arrival Details</TableHead>
                     <TableHead>Stay Period</TableHead>
                     <TableHead>Demographics</TableHead>
-                    <TableHead>Preferences</TableHead>
+                    <TableHead>Details</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
@@ -346,14 +348,109 @@ export default function AdminAccommodations() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div>
-                            <p className="text-sm">{request.accommodationType || 'Any'}</p>
-                            {request.specialRequests && (
-                              <p className="text-xs text-gray-500 truncate max-w-32" title={request.specialRequests}>
-                                {request.specialRequests}
-                              </p>
-                            )}
-                          </div>
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button variant="outline" size="sm">
+                                <Eye className="h-4 w-4 mr-2" />
+                                View Details
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-2xl">
+                              <DialogHeader>
+                                <DialogTitle>Accommodation Request Details</DialogTitle>
+                                <DialogDescription>
+                                  Complete information for {user ? `${user.firstName} ${user.lastName}` : 'Unknown User'}
+                                </DialogDescription>
+                              </DialogHeader>
+                              <div className="space-y-6">
+                                {/* Personal Information */}
+                                <div>
+                                  <h4 className="text-sm font-semibold text-gray-900 mb-3">Personal Information</h4>
+                                  <div className="grid grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                      <span className="font-medium text-gray-600">Name:</span>
+                                      <p className="text-gray-900">{user ? `${user.firstName} ${user.lastName}` : 'Unknown'}</p>
+                                    </div>
+                                    <div>
+                                      <span className="font-medium text-gray-600">Email:</span>
+                                      <p className="text-gray-900">{user?.email || 'Unknown'}</p>
+                                    </div>
+                                    <div>
+                                      <span className="font-medium text-gray-600">Age:</span>
+                                      <p className="text-gray-900">{request.age || 'Not specified'}</p>
+                                    </div>
+                                    <div>
+                                      <span className="font-medium text-gray-600">Gender:</span>
+                                      <p className="text-gray-900">{request.gender ? request.gender.charAt(0).toUpperCase() + request.gender.slice(1) : 'Not specified'}</p>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Travel Information */}
+                                <div>
+                                  <h4 className="text-sm font-semibold text-gray-900 mb-3">Travel Information</h4>
+                                  <div className="grid grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                      <span className="font-medium text-gray-600">Arrival Date:</span>
+                                      <p className="text-gray-900">{new Date(request.arrivalDate).toLocaleDateString()}</p>
+                                    </div>
+                                    <div>
+                                      <span className="font-medium text-gray-600">Departure Date:</span>
+                                      <p className="text-gray-900">{new Date(request.departureDate).toLocaleDateString()}</p>
+                                    </div>
+                                    <div className="col-span-2">
+                                      <span className="font-medium text-gray-600">Arrival Place:</span>
+                                      <p className="text-gray-900 flex items-center">
+                                        <MapPin className="h-4 w-4 mr-1" />
+                                        {request.arrivalPlace}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Accommodation Preferences */}
+                                <div>
+                                  <h4 className="text-sm font-semibold text-gray-900 mb-3">Accommodation Preferences</h4>
+                                  <div className="space-y-3 text-sm">
+                                    <div>
+                                      <span className="font-medium text-gray-600">Accommodation Type:</span>
+                                      <p className="text-gray-900">{request.accommodationType || 'Any type'}</p>
+                                    </div>
+                                    {request.specialRequests && (
+                                      <div>
+                                        <span className="font-medium text-gray-600">Special Requests:</span>
+                                        <p className="text-gray-900 mt-1 p-3 bg-gray-50 rounded-md">
+                                          {request.specialRequests}
+                                        </p>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Request Status */}
+                                <div>
+                                  <h4 className="text-sm font-semibold text-gray-900 mb-3">Request Status</h4>
+                                  <div className="grid grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                      <span className="font-medium text-gray-600">Current Status:</span>
+                                      <p className="mt-1">
+                                        <Badge variant={
+                                          request.status === 'confirmed' ? 'default' :
+                                          request.status === 'cancelled' ? 'destructive' : 'secondary'
+                                        }>
+                                          {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
+                                        </Badge>
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <span className="font-medium text-gray-600">Submitted:</span>
+                                      <p className="text-gray-900">{new Date(request.createdAt).toLocaleDateString()}</p>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
                         </TableCell>
                         <TableCell>
                           <Badge variant={

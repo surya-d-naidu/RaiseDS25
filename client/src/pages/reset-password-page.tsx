@@ -28,11 +28,12 @@ export default function ResetPasswordPage() {
   const [location, navigate] = useLocation();
   const { user, resetPasswordMutation, forgotPasswordMutation } = useAuth();
 
-  // Get email from URL parameters
-  const searchParams = new URLSearchParams(location.split('?')[1] || '');
+  // Get email from URL parameters - use window.location.search for reliability
+  const searchParams = new URLSearchParams(window.location.search);
   const email = searchParams.get('email') || '';
 
   console.log("Reset password page - location:", location);
+  console.log("Reset password page - window.location.search:", window.location.search);
   console.log("Reset password page - email from URL:", email);
 
   const form = useForm<ResetPasswordFormValues>({
@@ -168,11 +169,6 @@ export default function ResetPasswordPage() {
                       type="submit" 
                       className="w-full" 
                       disabled={resetPasswordMutation.isPending}
-                      onClick={(e) => {
-                        console.log("Reset password button clicked");
-                        console.log("Button disabled:", resetPasswordMutation.isPending);
-                        console.log("Form values:", form.getValues());
-                      }}
                     >
                       {resetPasswordMutation.isPending ? (
                         <>

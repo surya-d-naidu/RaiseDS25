@@ -1,0 +1,48 @@
+\documentclass[preprint,11pt,authoryear]{elsarticle}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath, amssymb}
+\usepackage{hyperref}
+\usepackage{titlesec}
+\usepackage{graphicx}
+\usepackage{subcaption}
+
+\usepackage[ruled,vlined]{algorithm2e}
+
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{longtable}
+
+\usepackage{setspace}
+%\onehalfspacing
+\setstretch{1.5}
+
+% Remove italics from subsections and subsubsections
+\titleformat{\subsection}[hang]{\normalfont\normalsize\bfseries}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}[hang]{\normalfont\normalsize\bfseries}{\thesubsubsection}{1em}{}
+
+\journal{---} % Fill in journal name
+
+\begin{document}
+
+\begin{frontmatter}
+
+\title{\textbf{Kolmogorov–Arnold Networks (KANs) for Modeling Survival Data}}
+
+%\author[a]{Mebin Jose}
+%\author[a]{Jisha Francis\corref{cor1}}
+%\cortext[cor1]{Corresponding author: Jisha Francis, Email: jishafrancis@vit.ac.in}
+\author{Sudheesh Kumar Kattumannil}
+
+%\address[a]{Department of Mathematics, School of Advanced Sciences, \\ Vellore Institute of Technology, Vellore, India,  632014.}
+\address{Applied Statistics Unit, Indian Statistical Institute, Chennai, India.}
+
+\begin{abstract}
+Survival analysis has long been dominated by the semi-parametric Cox Proportional Hazards (CoxPH) model and the parametric Accelerated Failure Time (AFT) model. However, CoxPH’s assumption of constant hazard ratios and the rigid distributional constraints of AFT often limit their real-world applicability. While deep learning extensions such as DeepAFT improve prediction and censoring handling, they remain opaque and difficult to interpret. Kolmogorov–Arnold Networks (KANs), inspired by the Kolmogorov–Arnold representation theorem, offer a compelling solution by providing interpretable functional decompositions within neural architectures. Building on the recent success of CoxKAN, this work introduces KAN-AFT, the first integration of KANs into the AFT framework. KAN-AFT effectively models complex nonlinear relationships in survival data while retaining interpretability and flexibility. We further outline several open research directions in lifetime data analysis, including dependent censoring, dynamic covariates, and longitudinal data, that can benefit from the KAN-based paradigm.
+
+\end{abstract}
+
+\begin{keyword}
+Accelerated Failure Time (AFT) model, Kolmogorov-Arnold Networks (KANs) \sep Interpretable Machine Learning \sep Survival Analysis \sep Deep Learning. 
+\end{keyword}
+\end{frontmatter}
+\end{document}

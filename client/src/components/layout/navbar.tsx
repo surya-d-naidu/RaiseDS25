@@ -20,6 +20,7 @@ import {
   Settings,
   ChevronRight
 } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getImageWithFallback } from "@/lib/asset-utils";
 
 export default function Navbar() {
@@ -121,7 +122,12 @@ export default function Navbar() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="flex items-center gap-2 text-white hover:bg-primary-800/50 px-4">
-                    <User size={18} />
+                    <Avatar className="h-7 w-7">
+                      {user.profilePictureUrl && <AvatarImage src={user.profilePictureUrl} alt={user.firstName} />}
+                      <AvatarFallback className="bg-white text-primary text-xs">
+                        {user.firstName[0]}{user.lastName[0]}
+                      </AvatarFallback>
+                    </Avatar>
                     <span className="font-medium">{user.firstName}</span>
                     <ChevronDown size={16} />
                   </Button>
@@ -139,6 +145,12 @@ export default function Navbar() {
                     <DropdownMenuItem className="cursor-pointer">
                       <FileText className="mr-2 h-4 w-4" />
                       <span>Submit Abstract</span>
+                    </DropdownMenuItem>
+                  </Link>
+                  <Link href="/full-paper/submit">
+                    <DropdownMenuItem className="cursor-pointer">
+                      <FileText className="mr-2 h-4 w-4" />
+                      <span>Submit Full Paper</span>
                     </DropdownMenuItem>
                   </Link>
                   {user.role === "admin" && (
@@ -276,6 +288,11 @@ export default function Navbar() {
               <Link href="/abstracts/submit">
                 <a className="block px-4 py-2.5 text-base font-medium text-white/90 hover:text-white hover:bg-primary-800/30 transition-colors duration-150">
                   Submit Abstract
+                </a>
+              </Link>
+              <Link href="/full-paper/submit">
+                <a className="block px-4 py-2.5 text-base font-medium text-white/90 hover:text-white hover:bg-primary-800/30 transition-colors duration-150">
+                  Submit Full Paper
                 </a>
               </Link>
               {user.role === "admin" && (

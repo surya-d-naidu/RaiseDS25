@@ -55,6 +55,11 @@ export default function AdminLayout({ children, title, description }: AdminLayou
       icon: <FileText className="h-5 w-5" />,
     },
     {
+      name: "Full Papers",
+      href: "/admin/full-papers",
+      icon: <FileText className="h-5 w-5" />,
+    },
+    {
       name: "Users",
       href: "/admin/users",
       icon: <Users className="h-5 w-5" />,

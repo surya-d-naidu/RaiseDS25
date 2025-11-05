@@ -11,9 +11,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Profile } from "@shared/schema";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { FileText, User, Mail, Calendar, Clock, Building, Award, Loader2 } from "lucide-react";
 import ProfileForm from "@/components/forms/profile-form";
+import ProfileImageUpload from "@/components/forms/profile-image-upload";
 
 export default function ProfilePage() {
   const { user } = useAuth();
@@ -70,9 +71,20 @@ export default function ProfilePage() {
                 <Card className="mb-6">
                   <CardContent className="pt-6">
                     <div className="flex flex-col items-center text-center">
-                      <Avatar className="h-24 w-24 mb-4 bg-primary text-primary-foreground">
-                        <AvatarFallback>{user ? getInitials(user.firstName + " " + user.lastName) : "U"}</AvatarFallback>
-                      </Avatar>
+                      <div className="relative mb-4">
+                        <Avatar className="h-24 w-24 bg-primary text-primary-foreground">
+                          {user?.profilePictureUrl ? (
+                            <AvatarImage src={user.profilePictureUrl} alt={`${user.firstName} ${user.lastName}`} />
+                          ) : null}
+                          <AvatarFallback>{user ? getInitials(user.firstName + " " + user.lastName) : "U"}</AvatarFallback>
+                        </Avatar>
+                        {user && (
+                          <ProfileImageUpload 
+                            currentImageUrl={user.profilePictureUrl} 
+                            userName={`${user.firstName} ${user.lastName}`}
+                          />
+                        )}
+                      </div>
                       {user && (
                         <div>
                           <h2 className="text-xl font-bold text-gray-900">{user.firstName} {user.lastName}</h2>

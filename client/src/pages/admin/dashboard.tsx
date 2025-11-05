@@ -636,6 +636,13 @@ export default function AdminDashboard() {
                   </Button>
 
                   <Button className="w-full justify-start" asChild>
+                    <Link href="/admin/full-papers">
+                      <FileText className="mr-2 h-5 w-5" />
+                      View Full Papers
+                    </Link>
+                  </Button>
+
+                  <Button className="w-full justify-start" asChild>
                     <Link href="/admin/users">
                       <Users className="mr-2 h-5 w-5" />
                       Manage Users ({stats.totalUsers})
