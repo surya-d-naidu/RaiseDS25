@@ -73,7 +73,7 @@ export const insertAbstractSchema = z.object({
   keywords: z.string().min(1, "Keywords are required"),
   referenceId: z.string().optional(),
   fileUrl: z.string().optional(),
-  fullPaperUrl: z.string().optional()
+  fullPaperUrl: z.string().url().optional().or(z.literal(""))
 });
 
 export type InsertAbstract = z.infer<typeof insertAbstractSchema>;
@@ -263,3 +263,47 @@ export const insertInvitedSpeakerSchema = createInsertSchema(invitedSpeakers).om
 
 export type InsertInvitedSpeaker = z.infer<typeof insertInvitedSpeakerSchema>;
 export type InvitedSpeaker = typeof invitedSpeakers.$inferSelect;
+
+// Full Papers
+export const fullPapers = pgTable("full_papers", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  abstractId: integer("abstract_id"), // Link to original abstract if exists
+  title: text("title").notNull(),
+  abstract: text("abstract").notNull(),
+  keywords: text("keywords").notNull(),
+  authors: json("authors").$type<Author[]>(), // Using same Author type as abstracts
+  correspondingAuthor: text("corresponding_author").notNull(),
+  paperFile: text("paper_file").notNull(), // File path or URL
+  originalFilename: text("original_filename").notNull(),
+  fileSize: integer("file_size"), // File size in bytes
+  mimeType: text("mime_type"), // application/pdf, etc.
+  trackId: integer("track_id"),
+  status: text("status").notNull().default("pending"), // pending, under_review, accepted, rejected
+  submissionDate: timestamp("submission_date").defaultNow(),
+  lastModified: timestamp("last_modified").defaultNow(),
+});
+
+export const insertFullPaperSchema = z.object({
+  abstractId: z.number().optional(),
+  title: z.string().min(1, "Title is required").max(500, "Title too long"),
+  abstract: z.string().min(50, "Abstract must be at least 50 characters").max(5000, "Abstract too long"),
+  keywords: z.string().min(1, "Keywords are required").max(500, "Keywords too long"),
+  authors: z.array(AuthorSchema)
+    .min(1, "At least one author is required")
+    .refine((authors) => {
+      const presenters = authors.filter(author => author.category === "Presenter");
+      return presenters.length === 1;
+    }, {
+      message: "Exactly one author must be designated as the Presenter"
+    }),
+  correspondingAuthor: z.string().email("Invalid corresponding author email format"),
+  paperFile: z.string().min(1, "Paper file is required"),
+  originalFilename: z.string().min(1, "Original filename is required"),
+  fileSize: z.number().positive().optional(),
+  mimeType: z.string().optional(),
+  trackId: z.number().positive().optional(),
+});
+
+export type InsertFullPaper = z.infer<typeof insertFullPaperSchema>;
+export type FullPaper = typeof fullPapers.$inferSelect;
