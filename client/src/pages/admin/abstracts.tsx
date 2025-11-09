@@ -120,12 +120,13 @@ export default function AdminAbstracts() {
     }
 
     const csvData = [
-      ['ID', 'Title', 'Category', 'Keywords', 'Status', 'Submitted By', 'Email', 'Institution', 'Country', 'Authors', 'Created At', 'Updated At'],
+      ['ID', 'Title', 'Category', 'Keywords', 'Abstract Content', 'Status', 'Submitted By', 'Email', 'Institution', 'Country', 'Authors', 'Created At', 'Updated At'],
       ...abstracts.map(abstract => [
         abstract.referenceId || `${getCategoryCode(abstract.category)}-${abstract.id.toString().padStart(4, '0')}`,
         `"${abstract.title.replace(/"/g, '""')}"`,
         abstract.category,
         `"${abstract.keywords.replace(/"/g, '""')}"`,
+        `"${abstract.content.replace(/"/g, '""').replace(/\n/g, ' ').replace(/\r/g, ' ')}"`,
         abstract.status,
         `"${abstract.authorName || ''}"`,
         abstract.authorEmail || '',

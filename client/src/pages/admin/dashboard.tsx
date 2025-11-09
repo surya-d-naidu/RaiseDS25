@@ -49,6 +49,7 @@ import {
 } from "recharts";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { getCategoryCode } from "@/lib/abstract-utils";
 
 export default function AdminDashboard() {
   const { toast } = useToast();
@@ -207,15 +208,19 @@ export default function AdminDashboard() {
     }
 
     const csvData = [
-      ['ID', 'Title', 'Status', 'Submitted By', 'Email', 'Institution', 'Country', 'Created At', 'Updated At'],
+      ['ID', 'Title', 'Category', 'Keywords', 'Abstract Content', 'Status', 'Submitted By', 'Email', 'Institution', 'Country', 'Authors', 'Created At', 'Updated At'],
       ...abstracts.map(abstract => [
-        abstract.id.toString(),
+        abstract.referenceId || `${abstract.category ? getCategoryCode(abstract.category) : 'ABS'}-${abstract.id.toString().padStart(4, '0')}`,
         `"${abstract.title.replace(/"/g, '""')}"`,
+        abstract.category || '',
+        `"${abstract.keywords ? abstract.keywords.replace(/"/g, '""') : ''}"`,
+        `"${abstract.content ? abstract.content.replace(/"/g, '""').replace(/\n/g, ' ').replace(/\r/g, ' ') : ''}"`,
         abstract.status,
         `"${abstract.authorName || ''}"`,
         abstract.authorEmail || '',
         `"${abstract.institution || ''}"`,
         `"${abstract.country || ''}"`,
+        `"${Array.isArray(abstract.authors) ? abstract.authors.map(a => `${a.name} (${a.affiliation})`).join('; ') : JSON.stringify(abstract.authors || '')}"`,
         new Date(abstract.createdAt).toLocaleDateString(),
         new Date(abstract.updatedAt).toLocaleDateString()
       ])

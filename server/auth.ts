@@ -433,10 +433,22 @@ export function setupAuth(app: Express) {
     }
   });
 
-  app.get("/api/user", (req, res) => {
+  app.get("/api/user", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    const safeUser: any = { ...req.user };
-    delete safeUser.password;
-    res.json(safeUser);
+    
+    try {
+      // Fetch fresh user data from database to include latest updates
+      const user = await storage.getUser(req.user!.id);
+      if (!user) {
+        return res.sendStatus(404);
+      }
+      
+      const safeUser: any = { ...user };
+      delete safeUser.password;
+      res.json(safeUser);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Error fetching user data" });
+    }
   });
 }

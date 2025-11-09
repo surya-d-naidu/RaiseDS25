@@ -196,13 +196,25 @@ export function registerAbstractRoutes(app: Express) {
   });
 
   // Upload full paper (only for accepted abstracts)
-  app.post("/api/abstracts/:id/full-paper", isAuthenticated, upload.single("fullPaper"), async (req, res) => {
+  app.post("/api/abstracts/:id/full-paper", isAuthenticated, upload.single("file"), async (req, res) => {
     try {
-      const abstractId = parseInt(req.params.id);
-      const abstract = await storage.getAbstract(abstractId);
+      const idParam = req.params.id;
+      let abstract;
+      
+      // Try to parse as numeric ID first
+      const numericId = parseInt(idParam);
+      if (!isNaN(numericId)) {
+        abstract = await storage.getAbstract(numericId);
+      }
+      
+      // If not found and it looks like a reference ID, search by reference ID
+      if (!abstract && idParam.match(/^[A-Z]+\d+$/)) {
+        const allAbstracts = await storage.getAbstractsByUser(req.user!.id);
+        abstract = allAbstracts.find(a => a.referenceId === idParam);
+      }
       
       if (!abstract) {
-        return res.status(404).json({ message: "Abstract not found" });
+        return res.status(404).json({ message: "Abstract not found. Please check your Abstract ID." });
       }
       
       if (abstract.userId !== req.user!.id && req.user!.role !== "admin") {
@@ -234,7 +246,7 @@ export function registerAbstractRoutes(app: Express) {
 
       const fileUrl = `/uploads/${req.file.filename}`;
       
-      const updatedAbstract = await storage.updateAbstract(abstractId, {
+      const updatedAbstract = await storage.updateAbstract(abstract.id, {
         fullPaperUrl: fileUrl
       });
 

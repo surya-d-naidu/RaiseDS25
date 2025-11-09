@@ -50,6 +50,7 @@ var users = pgTable("users", {
   emailVerificationExpires: timestamp("email_verification_expires"),
   passwordResetToken: text("password_reset_token"),
   passwordResetExpires: timestamp("password_reset_expires"),
+  profilePictureUrl: text("profile_picture_url"),
   createdAt: timestamp("created_at").defaultNow()
 });
 var insertUserSchema = createInsertSchema(users).omit({
@@ -1303,11 +1304,20 @@ function setupAuth(app2) {
       res.status(500).json({ message: "Error resetting password" });
     }
   });
-  app2.get("/api/user", (req, res) => {
+  app2.get("/api/user", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    const safeUser = { ...req.user };
-    delete safeUser.password;
-    res.json(safeUser);
+    try {
+      const user = await storage.getUser(req.user.id);
+      if (!user) {
+        return res.sendStatus(404);
+      }
+      const safeUser = { ...user };
+      delete safeUser.password;
+      res.json(safeUser);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Error fetching user data" });
+    }
   });
 }
 
@@ -1487,12 +1497,20 @@ function registerAbstractRoutes(app2) {
       res.status(500).json({ message: "Error deleting abstract" });
     }
   });
-  app2.post("/api/abstracts/:id/full-paper", isAuthenticated, upload.single("fullPaper"), async (req, res) => {
+  app2.post("/api/abstracts/:id/full-paper", isAuthenticated, upload.single("file"), async (req, res) => {
     try {
-      const abstractId = parseInt(req.params.id);
-      const abstract = await storage.getAbstract(abstractId);
+      const idParam = req.params.id;
+      let abstract;
+      const numericId = parseInt(idParam);
+      if (!isNaN(numericId)) {
+        abstract = await storage.getAbstract(numericId);
+      }
+      if (!abstract && idParam.match(/^[A-Z]+\d+$/)) {
+        const allAbstracts = await storage.getAbstractsByUser(req.user.id);
+        abstract = allAbstracts.find((a) => a.referenceId === idParam);
+      }
       if (!abstract) {
-        return res.status(404).json({ message: "Abstract not found" });
+        return res.status(404).json({ message: "Abstract not found. Please check your Abstract ID." });
       }
       if (abstract.userId !== req.user.id && req.user.role !== "admin") {
         return res.status(403).json({ message: "Forbidden" });
@@ -1514,7 +1532,7 @@ function registerAbstractRoutes(app2) {
         }
       }
       const fileUrl = `/uploads/${req.file.filename}`;
-      const updatedAbstract = await storage.updateAbstract(abstractId, {
+      const updatedAbstract = await storage.updateAbstract(abstract.id, {
         fullPaperUrl: fileUrl
       });
       res.json({
@@ -1552,7 +1570,7 @@ function registerAbstractRoutes(app2) {
 }
 
 // server/routes.ts
-import { eq as eq2 } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 var upload2 = multer2({
   storage: multer2.diskStorage({
     destination: function(req, file, cb) {
@@ -1599,15 +1617,23 @@ async function registerRoutes(app2) {
   });
   app2.post("/api/profile/upload-image", isAuthenticated, upload2.single("profileImage"), async (req, res) => {
     try {
+      console.log("Profile image upload request received");
+      console.log("User:", req.user);
+      console.log("File:", req.file);
       if (!req.file) {
+        console.log("No file found in request");
         return res.status(400).json({ message: "No file uploaded" });
       }
       const imageUrl = `/uploads/${req.file.filename}`;
-      await db.update(users).set({ profilePictureUrl: imageUrl }).where(eq2(users.id, req.user.id));
+      console.log("Generated image URL:", imageUrl);
+      const result = await db.execute(
+        sql`UPDATE users SET profile_picture_url = ${imageUrl} WHERE id = ${req.user.id} RETURNING *`
+      );
+      console.log("Database update result:", result);
       res.json({ message: "Profile picture uploaded successfully", imageUrl });
     } catch (error) {
       console.error("Error uploading profile image:", error);
-      res.status(500).json({ message: "Error uploading profile image" });
+      res.status(500).json({ message: "Error uploading profile image", error: error.message });
     }
   });
   app2.delete("/api/profile/delete-image", isAuthenticated, async (req, res) => {
@@ -1618,7 +1644,9 @@ async function registerRoutes(app2) {
         if (fs2.existsSync(filePath)) {
           fs2.unlinkSync(filePath);
         }
-        await db.update(users).set({ profilePictureUrl: null }).where(eq2(users.id, req.user.id));
+        await db.execute(
+          sql`UPDATE users SET profile_picture_url = NULL WHERE id = ${req.user.id}`
+        );
       }
       res.json({ message: "Profile picture removed successfully" });
     } catch (error) {

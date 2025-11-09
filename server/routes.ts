@@ -14,7 +14,7 @@ import { isAuthenticated, isAdmin } from "./auth-middleware";
 import { sendEmail, sendAttendanceInvitationEmail, sendAccountInvitationEmail } from "./email-utils";
 import { db } from "./db";
 import { users } from "@shared/schema";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 // Setup file uploads
 const upload = multer({
@@ -80,21 +80,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Profile image upload
   app.post("/api/profile/upload-image", isAuthenticated, upload.single('profileImage'), async (req, res) => {
     try {
+      console.log("Profile image upload request received");
+      console.log("User:", req.user);
+      console.log("File:", req.file);
+      
       if (!req.file) {
+        console.log("No file found in request");
         return res.status(400).json({ message: "No file uploaded" });
       }
 
       const imageUrl = `/uploads/${req.file.filename}`;
+      console.log("Generated image URL:", imageUrl);
       
-      // Update user's profile picture URL in database
-      await db.update(users)
-        .set({ profilePictureUrl: imageUrl })
-        .where(eq(users.id, req.user!.id));
+      // Update user's profile picture URL using raw SQL
+      const result = await db.execute(
+        sql`UPDATE users SET profile_picture_url = ${imageUrl} WHERE id = ${req.user!.id} RETURNING *`
+      );
+      
+      console.log("Database update result:", result);
 
       res.json({ message: "Profile picture uploaded successfully", imageUrl });
     } catch (error) {
       console.error("Error uploading profile image:", error);
-      res.status(500).json({ message: "Error uploading profile image" });
+      res.status(500).json({ message: "Error uploading profile image", error: error.message });
     }
   });
 
@@ -110,10 +118,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           fs.unlinkSync(filePath);
         }
         
-        // Remove URL from database
-        await db.update(users)
-          .set({ profilePictureUrl: null })
-          .where(eq(users.id, req.user!.id));
+        // Remove URL from database using raw SQL
+        await db.execute(
+          sql`UPDATE users SET profile_picture_url = NULL WHERE id = ${req.user!.id}`
+        );
       }
 
       res.json({ message: "Profile picture removed successfully" });

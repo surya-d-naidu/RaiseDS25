@@ -136,7 +136,6 @@ export default function FullPaperSubmissionPage() {
                 <li>Full paper should be <strong>12 to 15 pages</strong> maximum, including references</li>
                 <li>File format: <strong>PDF only</strong></li>
                 <li>Maximum file size: <strong>5 MB</strong></li>
-                <li>Please format your paper according to the conference template</li>
                 <li>You need the Abstract ID from your accepted abstract submission</li>
               </ul>
             </AlertDescription>
@@ -279,7 +278,7 @@ export default function FullPaperSubmissionPage() {
                 </div>
                 <div>
                   <p className="font-medium text-gray-900">Format</p>
-                  <p>Use the official RAISE DS 2025 conference template. Ensure proper formatting of headings, citations, and references.</p>
+                  <p>Ensure proper formatting of headings, citations, and references.</p>
                 </div>
               </div>
               <div className="flex gap-3">
