@@ -69,6 +69,11 @@ export default function AdminLayout({ children, title, description }: AdminLayou
       icon: <Users className="h-5 w-5" />,
     },
     {
+      name: "Invited Speakers",
+      href: "/admin/invited-speakers",
+      icon: <Users className="h-5 w-5" />,
+    },
+    {
       name: "Awards",
       href: "/admin/awards",
       icon: <Award className="h-5 w-5" />,

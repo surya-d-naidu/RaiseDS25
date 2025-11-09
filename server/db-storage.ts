@@ -2,7 +2,8 @@ import { users, type User, type InsertUser, profiles, type Profile, type InsertP
   abstracts, type Abstract, type InsertAbstract, invitations, type Invitation, type InsertInvitation,
   notifications, type Notification, type InsertNotification, committeeMembers, type CommitteeMember, 
   type InsertCommitteeMember, researchAwards, type ResearchAward, type InsertResearchAward,
-  accommodationRequests, type AccommodationRequest, type InsertAccommodationRequest } from "@shared/schema";
+  accommodationRequests, type AccommodationRequest, type InsertAccommodationRequest,
+  invitedSpeakers, type InvitedSpeaker, type InsertInvitedSpeaker } from "@shared/schema";
 import session from "express-session";
 import { db } from "./db";
 import { eq, gt, or, and, desc, asc, like } from "drizzle-orm";
@@ -545,6 +546,45 @@ export class DbStorage implements IStorage {
 
   async deleteAccommodationRequest(id: number): Promise<boolean> {
     const result = await db.delete(accommodationRequests).where(eq(accommodationRequests.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Invited Speakers
+  async getInvitedSpeaker(id: number): Promise<InvitedSpeaker | undefined> {
+    const result = await db.select().from(invitedSpeakers).where(eq(invitedSpeakers.id, id));
+    return result[0];
+  }
+
+  async getActiveInvitedSpeakers(): Promise<InvitedSpeaker[]> {
+    const result = await db.select()
+      .from(invitedSpeakers)
+      .where(eq(invitedSpeakers.isActive, true))
+      .orderBy(asc(invitedSpeakers.displayOrder), asc(invitedSpeakers.name));
+    return result;
+  }
+
+  async getAllInvitedSpeakers(): Promise<InvitedSpeaker[]> {
+    const result = await db.select()
+      .from(invitedSpeakers)
+      .orderBy(desc(invitedSpeakers.createdAt));
+    return result;
+  }
+
+  async createInvitedSpeaker(speaker: InsertInvitedSpeaker): Promise<InvitedSpeaker> {
+    const result = await db.insert(invitedSpeakers).values(speaker).returning();
+    return result[0];
+  }
+
+  async updateInvitedSpeaker(id: number, data: Partial<InsertInvitedSpeaker>): Promise<InvitedSpeaker | undefined> {
+    const result = await db.update(invitedSpeakers)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(invitedSpeakers.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteInvitedSpeaker(id: number): Promise<boolean> {
+    const result = await db.delete(invitedSpeakers).where(eq(invitedSpeakers.id, id)).returning();
     return result.length > 0;
   }
 }

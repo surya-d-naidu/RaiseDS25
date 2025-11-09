@@ -232,3 +232,34 @@ export const insertAccommodationRequestSchema = createInsertSchema(accommodation
 
 export type InsertAccommodationRequest = z.infer<typeof insertAccommodationRequestSchema>;
 export type AccommodationRequest = typeof accommodationRequests.$inferSelect;
+
+// Invited speakers
+export const invitedSpeakers = pgTable("invited_speakers", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  title: text("title").notNull(), // Dr., Prof., etc.
+  position: text("position").notNull(), // Professor, Director, etc.
+  institution: text("institution").notNull(),
+  country: text("country").notNull(),
+  bio: text("bio"), // Speaker biography
+  expertise: text("expertise"), // Areas of expertise
+  image: text("image"), // Path to speaker's image
+  linkedinUrl: text("linkedin_url"),
+  websiteUrl: text("website_url"),
+  talkTitle: text("talk_title"), // Title of their talk/presentation
+  talkAbstract: text("talk_abstract"), // Abstract of their talk
+  isKeynote: boolean("is_keynote").default(false), // Keynote vs regular invited speaker
+  displayOrder: integer("display_order").default(0), // Order for display
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertInvitedSpeakerSchema = createInsertSchema(invitedSpeakers).omit({ 
+  id: true, 
+  createdAt: true,
+  updatedAt: true
+});
+
+export type InsertInvitedSpeaker = z.infer<typeof insertInvitedSpeakerSchema>;
+export type InvitedSpeaker = typeof invitedSpeakers.$inferSelect;

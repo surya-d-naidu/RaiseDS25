@@ -29,6 +29,7 @@ import AccommodationPage from "@/pages/accommodation-page";
 import AdminDashboard from "@/pages/admin/dashboard";
 import AdminAbstracts from "@/pages/admin/abstracts";
 import AdminFullPapers from "@/pages/admin/full-papers";
+import AdminInvitedSpeakers from "@/pages/admin/invited-speakers";
 import AdminUsers from "@/pages/admin/users";
 import AdminInvitations from "@/pages/admin/invitations";
 import AdminNotifications from "@/pages/admin/notifications";
@@ -65,6 +66,7 @@ function Router() {
       <AdminRoute path="/admin/notifications" component={AdminNotifications} />
       <AdminRoute path="/admin/awards" component={AdminAwards} />
       <AdminRoute path="/admin/committee" component={AdminCommittee} />
+      <AdminRoute path="/admin/invited-speakers" component={AdminInvitedSpeakers} />
       <AdminRoute path="/admin/accommodations" component={AdminAccommodations} />
       
       {/* Fallback to 404 */}

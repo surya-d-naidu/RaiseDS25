@@ -935,6 +935,105 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ----- Invited Speakers Routes -----
+
+  // Public: Get active invited speakers for home page
+  app.get("/api/invited-speakers", async (req, res) => {
+    try {
+      const speakers = await storage.getActiveInvitedSpeakers();
+      res.json(speakers);
+    } catch (error) {
+      console.error('Error fetching invited speakers:', error);
+      res.status(500).json({ error: 'Failed to fetch invited speakers' });
+    }
+  });
+
+  // Admin: Get all invited speakers
+  app.get("/api/admin/invited-speakers", isAdmin, async (req, res) => {
+    try {
+      const speakers = await storage.getAllInvitedSpeakers();
+      res.json(speakers);
+    } catch (error) {
+      console.error('Error fetching invited speakers:', error);
+      res.status(500).json({ error: 'Failed to fetch invited speakers' });
+    }
+  });
+
+  // Admin: Create invited speaker
+  app.post("/api/admin/invited-speakers", isAdmin, async (req, res) => {
+    try {
+      const { insertInvitedSpeakerSchema } = await import("@shared/schema");
+      const validatedData = insertInvitedSpeakerSchema.parse(req.body);
+      const speaker = await storage.createInvitedSpeaker(validatedData);
+      res.status(201).json(speaker);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: error.errors 
+        });
+      }
+      console.error('Error creating invited speaker:', error);
+      res.status(500).json({ error: 'Failed to create invited speaker' });
+    }
+  });
+
+  // Admin: Upload speaker image
+  app.post("/api/admin/invited-speakers/:id/image", isAdmin, upload.single('image'), async (req, res) => {
+    try {
+      const speakerId = parseInt(req.params.id);
+      if (!req.file) {
+        return res.status(400).json({ message: "No image file provided" });
+      }
+      
+      const imagePath = `/uploads/${req.file.filename}`;
+      const updatedSpeaker = await storage.updateInvitedSpeaker(speakerId, { image: imagePath });
+      
+      if (!updatedSpeaker) {
+        return res.status(404).json({ message: "Invited speaker not found" });
+      }
+      
+      res.json({ imagePath, speaker: updatedSpeaker });
+    } catch (error) {
+      console.error("Error uploading speaker image:", error);
+      res.status(500).json({ message: "Error uploading image" });
+    }
+  });
+
+  // Admin: Update invited speaker
+  app.put("/api/admin/invited-speakers/:id", isAdmin, async (req, res) => {
+    try {
+      const speakerId = parseInt(req.params.id);
+      const speaker = await storage.updateInvitedSpeaker(speakerId, req.body);
+      
+      if (!speaker) {
+        return res.status(404).json({ message: "Invited speaker not found" });
+      }
+      
+      res.json(speaker);
+    } catch (error) {
+      console.error('Error updating invited speaker:', error);
+      res.status(500).json({ error: 'Failed to update invited speaker' });
+    }
+  });
+
+  // Admin: Delete invited speaker
+  app.delete("/api/admin/invited-speakers/:id", isAdmin, async (req, res) => {
+    try {
+      const speakerId = parseInt(req.params.id);
+      const success = await storage.deleteInvitedSpeaker(speakerId);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Invited speaker not found" });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting invited speaker:', error);
+      res.status(500).json({ error: 'Failed to delete invited speaker' });
+    }
+  });
+
   // Register abstract routes
   registerAbstractRoutes(app);
 

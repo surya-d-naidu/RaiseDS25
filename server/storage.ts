@@ -3,7 +3,8 @@ import { users, type User, type InsertUser, profiles, type Profile, type InsertP
   abstracts, type Abstract, type InsertAbstract, invitations, type Invitation, type InsertInvitation,
   notifications, type Notification, type InsertNotification, committeeMembers, type CommitteeMember, 
   type InsertCommitteeMember, researchAwards, type ResearchAward, type InsertResearchAward,
-  accommodationRequests, type AccommodationRequest, type InsertAccommodationRequest } from "@shared/schema";
+  accommodationRequests, type AccommodationRequest, type InsertAccommodationRequest,
+  invitedSpeakers, type InvitedSpeaker, type InsertInvitedSpeaker } from "@shared/schema";
 import session from "express-session";
 
 export interface IStorage {
@@ -75,6 +76,14 @@ export interface IStorage {
   updateAccommodationRequest(id: number, data: Partial<InsertAccommodationRequest>): Promise<AccommodationRequest | undefined>;
   updateAccommodationRequestByUserId(userId: number, data: Partial<InsertAccommodationRequest>): Promise<AccommodationRequest | undefined>;
   deleteAccommodationRequest(id: number): Promise<boolean>;
+  
+  // Invited Speakers
+  getInvitedSpeaker(id: number): Promise<InvitedSpeaker | undefined>;
+  getActiveInvitedSpeakers(): Promise<InvitedSpeaker[]>;
+  getAllInvitedSpeakers(): Promise<InvitedSpeaker[]>;
+  createInvitedSpeaker(speaker: InsertInvitedSpeaker): Promise<InvitedSpeaker>;
+  updateInvitedSpeaker(id: number, data: Partial<InsertInvitedSpeaker>): Promise<InvitedSpeaker | undefined>;
+  deleteInvitedSpeaker(id: number): Promise<boolean>;
   
   // Helper methods
   getCategoryCode(category: string): string;

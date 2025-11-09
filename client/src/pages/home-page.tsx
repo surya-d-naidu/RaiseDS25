@@ -9,6 +9,7 @@ import HostInstitutions from "@/components/sections/host-institutions";
 import KeyFeatures from "@/components/sections/key-features";
 import PublicationSection from "@/components/sections/publication-section";
 import CallToAction from "@/components/sections/call-to-action";
+import InvitedSpeakersCarousel from "@/components/invited-speakers-carousel";
 import { Helmet } from "react-helmet";
 
 export default function HomePage() {
@@ -29,6 +30,7 @@ export default function HomePage() {
         <HeroSection />
         <EventHighlights />
         <AboutConference />
+        <InvitedSpeakersCarousel />
         <HostInstitutions />
         <KeyFeatures />
         <PublicationSection />

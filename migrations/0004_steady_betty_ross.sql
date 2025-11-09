@@ -1,0 +1,20 @@
+CREATE TABLE "invited_speakers" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"name" text NOT NULL,
+	"title" text NOT NULL,
+	"position" text NOT NULL,
+	"institution" text NOT NULL,
+	"country" text NOT NULL,
+	"bio" text,
+	"expertise" text,
+	"image" text,
+	"linkedin_url" text,
+	"website_url" text,
+	"talk_title" text,
+	"talk_abstract" text,
+	"is_keynote" boolean DEFAULT false,
+	"display_order" integer DEFAULT 0,
+	"is_active" boolean DEFAULT true,
+	"created_at" timestamp DEFAULT now(),
+	"updated_at" timestamp DEFAULT now()
+);

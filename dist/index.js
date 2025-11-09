@@ -1,15 +1,12 @@
 var __defProp = Object.defineProperty;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __esm = (fn, res) => function __init() {
+  return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
+};
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, { get: all[name], enumerable: true });
 };
-
-// server/index.ts
-import express3 from "express";
-
-// server/routes.ts
-import express from "express";
-import { createServer } from "http";
 
 // shared/schema.ts
 var schema_exports = {};
@@ -22,11 +19,13 @@ __export(schema_exports, {
   insertAccommodationRequestSchema: () => insertAccommodationRequestSchema,
   insertCommitteeMemberSchema: () => insertCommitteeMemberSchema,
   insertInvitationSchema: () => insertInvitationSchema,
+  insertInvitedSpeakerSchema: () => insertInvitedSpeakerSchema,
   insertNotificationSchema: () => insertNotificationSchema,
   insertProfileSchema: () => insertProfileSchema,
   insertResearchAwardSchema: () => insertResearchAwardSchema,
   insertUserSchema: () => insertUserSchema,
   invitations: () => invitations,
+  invitedSpeakers: () => invitedSpeakers,
   notifications: () => notifications,
   profiles: () => profiles,
   researchAwards: () => researchAwards,
@@ -35,196 +34,245 @@ __export(schema_exports, {
 import { pgTable, text, serial, integer, boolean, timestamp, json } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
-var users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
-  email: text("email").notNull().unique(),
-  firstName: text("first_name").notNull(),
-  lastName: text("last_name").notNull(),
-  institution: text("institution").notNull(),
-  role: text("role").notNull().default("user"),
-  // user, admin
-  emailVerified: boolean("email_verified").default(false),
-  emailVerificationToken: text("email_verification_token"),
-  emailVerificationExpires: timestamp("email_verification_expires"),
-  passwordResetToken: text("password_reset_token"),
-  passwordResetExpires: timestamp("password_reset_expires"),
-  profilePictureUrl: text("profile_picture_url"),
-  createdAt: timestamp("created_at").defaultNow()
-});
-var insertUserSchema = createInsertSchema(users).omit({
-  id: true,
-  createdAt: true,
-  role: true
-});
-var AuthorSchema = z.object({
-  name: z.string().min(1, "Author name is required"),
-  affiliation: z.string().min(1, "Author affiliation is required"),
-  category: z.enum(["Delegate (Keynote speaker)", "Delegate (Invited speaker)", "Presenter", "Participant"]),
-  email: z.string().email("Invalid email")
-});
-var abstracts = pgTable("abstracts", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  title: text("title").notNull(),
-  category: text("category").notNull(),
-  content: text("content").notNull(),
-  authors: json("authors").$type(),
-  // Updated to use JSON for structured authors
-  keywords: text("keywords").notNull(),
-  referenceId: text("reference_id"),
-  status: text("status").notNull().default("pending"),
-  // pending, accepted, rejected
-  fileUrl: text("file_url"),
-  fullPaperUrl: text("full_paper_url"),
-  // URL for full-length paper upload
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow()
-});
-var insertAbstractSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  category: z.string().min(1, "Category is required"),
-  content: z.string().min(1, "Content is required"),
-  authors: z.array(AuthorSchema).min(1, "At least one author is required").refine((authors) => {
-    const presenters = authors.filter((author) => author.category === "Presenter");
-    return presenters.length === 1;
-  }, {
-    message: "Exactly one author must be designated as the Presenter"
-  }),
-  keywords: z.string().min(1, "Keywords are required"),
-  referenceId: z.string().optional(),
-  fileUrl: z.string().optional(),
-  fullPaperUrl: z.string().optional()
-});
-var profiles = pgTable("profiles", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().unique(),
-  bio: text("bio"),
-  position: text("position"),
-  department: text("department"),
-  country: text("country"),
-  profilePictureUrl: text("profile_picture_url"),
-  isPresenter: boolean("is_presenter").default(false),
-  isCommitteeMember: boolean("is_committee_member").default(false),
-  socialLinks: json("social_links").$type()
-});
-var insertProfileSchema = createInsertSchema(profiles).omit({
-  id: true,
-  userId: true
-});
-var invitations = pgTable("invitations", {
-  id: serial("id").primaryKey(),
-  email: text("email").notNull(),
-  name: text("name").notNull(),
-  token: text("token").notNull().unique(),
-  role: text("role").notNull().default("user"),
-  type: text("type").notNull().default("account"),
-  // account, attendance
-  status: text("status").notNull().default("pending"),
-  // pending, accepted, rejected
-  message: text("message"),
-  senderId: integer("sender_id").notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
-  expiresAt: timestamp("expires_at"),
-  institution: text("institution"),
-  position: text("position")
-});
-var insertInvitationSchema = createInsertSchema(invitations).omit({
-  id: true,
-  token: true,
-  status: true,
-  senderId: true,
-  createdAt: true
-});
-var notifications = pgTable("notifications", {
-  id: serial("id").primaryKey(),
-  title: text("title").notNull(),
-  content: text("content").notNull(),
-  type: text("type").notNull().default("general"),
-  // general, important, deadline
-  isActive: boolean("is_active").notNull().default(true),
-  createdAt: timestamp("created_at").defaultNow(),
-  expiresAt: timestamp("expires_at")
-});
-var insertNotificationSchema = createInsertSchema(notifications).omit({
-  id: true,
-  createdAt: true
-}).extend({
-  expiresAt: z.union([
-    z.string().transform((val) => val ? new Date(val) : null),
-    z.date(),
-    z.null()
-  ]).optional()
-});
-var committeeMembers = pgTable("committee_members", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  role: text("role").notNull(),
-  institution: text("institution"),
-  country: text("country"),
-  category: text("category").notNull(),
-  // chief_patron, patron, organizing_committee, advisory_committee, etc.
-  email: text("email"),
-  phone: text("phone"),
-  order: integer("order").default(0),
-  profileLink: text("profile_link"),
-  // Link to member's profile page
-  image: text("image")
-  // Path to member's image
-});
-var insertCommitteeMemberSchema = createInsertSchema(committeeMembers).omit({
-  id: true
-});
-var researchAwards = pgTable("research_awards", {
-  id: serial("id").primaryKey(),
-  title: text("title").notNull(),
-  description: text("description").notNull(),
-  eligibility: text("eligibility").notNull(),
-  amount: text("amount"),
-  deadline: timestamp("deadline"),
-  isActive: boolean("is_active").default(true)
-});
-var insertResearchAwardSchema = createInsertSchema(researchAwards).omit({
-  id: true
-});
-var accommodationRequests = pgTable("accommodation_requests", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  arrivalDate: timestamp("arrival_date").notNull(),
-  departureDate: timestamp("departure_date").notNull(),
-  arrivalPlace: text("arrival_place").notNull(),
-  // airport, bus stand, railway station, etc.
-  accommodationType: text("accommodation_type"),
-  // single, double, shared, etc.
-  age: integer("age").notNull(),
-  gender: text("gender").notNull(),
-  // male, female, other, prefer-not-to-say
-  specialRequests: text("special_requests"),
-  status: text("status").notNull().default("pending"),
-  // pending, confirmed, cancelled
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow()
-});
-var insertAccommodationRequestSchema = createInsertSchema(accommodationRequests).omit({
-  id: true,
-  userId: true,
-  status: true,
-  createdAt: true,
-  updatedAt: true
-}).extend({
-  arrivalDate: z.union([z.string(), z.date()]).transform((val) => typeof val === "string" ? new Date(val) : val),
-  departureDate: z.union([z.string(), z.date()]).transform((val) => typeof val === "string" ? new Date(val) : val),
-  age: z.number().min(1, "Age is required").max(120, "Please enter a valid age"),
-  gender: z.enum(["male", "female", "other", "prefer-not-to-say"], {
-    required_error: "Gender selection is required"
-  })
+var users, insertUserSchema, AuthorSchema, abstracts, insertAbstractSchema, profiles, insertProfileSchema, invitations, insertInvitationSchema, notifications, insertNotificationSchema, committeeMembers, insertCommitteeMemberSchema, researchAwards, insertResearchAwardSchema, accommodationRequests, insertAccommodationRequestSchema, invitedSpeakers, insertInvitedSpeakerSchema;
+var init_schema = __esm({
+  "shared/schema.ts"() {
+    "use strict";
+    users = pgTable("users", {
+      id: serial("id").primaryKey(),
+      username: text("username").notNull().unique(),
+      password: text("password").notNull(),
+      email: text("email").notNull().unique(),
+      firstName: text("first_name").notNull(),
+      lastName: text("last_name").notNull(),
+      institution: text("institution").notNull(),
+      role: text("role").notNull().default("user"),
+      // user, admin
+      emailVerified: boolean("email_verified").default(false),
+      emailVerificationToken: text("email_verification_token"),
+      emailVerificationExpires: timestamp("email_verification_expires"),
+      passwordResetToken: text("password_reset_token"),
+      passwordResetExpires: timestamp("password_reset_expires"),
+      profilePictureUrl: text("profile_picture_url"),
+      createdAt: timestamp("created_at").defaultNow()
+    });
+    insertUserSchema = createInsertSchema(users).omit({
+      id: true,
+      createdAt: true,
+      role: true
+    });
+    AuthorSchema = z.object({
+      name: z.string().min(1, "Author name is required"),
+      affiliation: z.string().min(1, "Author affiliation is required"),
+      category: z.enum(["Delegate (Keynote speaker)", "Delegate (Invited speaker)", "Presenter", "Participant"]),
+      email: z.string().email("Invalid email")
+    });
+    abstracts = pgTable("abstracts", {
+      id: serial("id").primaryKey(),
+      userId: integer("user_id").notNull(),
+      title: text("title").notNull(),
+      category: text("category").notNull(),
+      content: text("content").notNull(),
+      authors: json("authors").$type(),
+      // Updated to use JSON for structured authors
+      keywords: text("keywords").notNull(),
+      referenceId: text("reference_id"),
+      status: text("status").notNull().default("pending"),
+      // pending, accepted, rejected
+      fileUrl: text("file_url"),
+      fullPaperUrl: text("full_paper_url"),
+      // URL for full-length paper upload
+      createdAt: timestamp("created_at").defaultNow(),
+      updatedAt: timestamp("updated_at").defaultNow()
+    });
+    insertAbstractSchema = z.object({
+      title: z.string().min(1, "Title is required"),
+      category: z.string().min(1, "Category is required"),
+      content: z.string().min(1, "Content is required"),
+      authors: z.array(AuthorSchema).min(1, "At least one author is required").refine((authors) => {
+        const presenters = authors.filter((author) => author.category === "Presenter");
+        return presenters.length === 1;
+      }, {
+        message: "Exactly one author must be designated as the Presenter"
+      }),
+      keywords: z.string().min(1, "Keywords are required"),
+      referenceId: z.string().optional(),
+      fileUrl: z.string().optional(),
+      fullPaperUrl: z.string().optional()
+    });
+    profiles = pgTable("profiles", {
+      id: serial("id").primaryKey(),
+      userId: integer("user_id").notNull().unique(),
+      bio: text("bio"),
+      position: text("position"),
+      department: text("department"),
+      country: text("country"),
+      profilePictureUrl: text("profile_picture_url"),
+      isPresenter: boolean("is_presenter").default(false),
+      isCommitteeMember: boolean("is_committee_member").default(false),
+      socialLinks: json("social_links").$type()
+    });
+    insertProfileSchema = createInsertSchema(profiles).omit({
+      id: true,
+      userId: true
+    });
+    invitations = pgTable("invitations", {
+      id: serial("id").primaryKey(),
+      email: text("email").notNull(),
+      name: text("name").notNull(),
+      token: text("token").notNull().unique(),
+      role: text("role").notNull().default("user"),
+      type: text("type").notNull().default("account"),
+      // account, attendance
+      status: text("status").notNull().default("pending"),
+      // pending, accepted, rejected
+      message: text("message"),
+      senderId: integer("sender_id").notNull(),
+      createdAt: timestamp("created_at").defaultNow(),
+      expiresAt: timestamp("expires_at"),
+      institution: text("institution"),
+      position: text("position")
+    });
+    insertInvitationSchema = createInsertSchema(invitations).omit({
+      id: true,
+      token: true,
+      status: true,
+      senderId: true,
+      createdAt: true
+    });
+    notifications = pgTable("notifications", {
+      id: serial("id").primaryKey(),
+      title: text("title").notNull(),
+      content: text("content").notNull(),
+      type: text("type").notNull().default("general"),
+      // general, important, deadline
+      isActive: boolean("is_active").notNull().default(true),
+      createdAt: timestamp("created_at").defaultNow(),
+      expiresAt: timestamp("expires_at")
+    });
+    insertNotificationSchema = createInsertSchema(notifications).omit({
+      id: true,
+      createdAt: true
+    }).extend({
+      expiresAt: z.union([
+        z.string().transform((val) => val ? new Date(val) : null),
+        z.date(),
+        z.null()
+      ]).optional()
+    });
+    committeeMembers = pgTable("committee_members", {
+      id: serial("id").primaryKey(),
+      name: text("name").notNull(),
+      role: text("role").notNull(),
+      institution: text("institution"),
+      country: text("country"),
+      category: text("category").notNull(),
+      // chief_patron, patron, organizing_committee, advisory_committee, etc.
+      email: text("email"),
+      phone: text("phone"),
+      order: integer("order").default(0),
+      profileLink: text("profile_link"),
+      // Link to member's profile page
+      image: text("image")
+      // Path to member's image
+    });
+    insertCommitteeMemberSchema = createInsertSchema(committeeMembers).omit({
+      id: true
+    });
+    researchAwards = pgTable("research_awards", {
+      id: serial("id").primaryKey(),
+      title: text("title").notNull(),
+      description: text("description").notNull(),
+      eligibility: text("eligibility").notNull(),
+      amount: text("amount"),
+      deadline: timestamp("deadline"),
+      isActive: boolean("is_active").default(true)
+    });
+    insertResearchAwardSchema = createInsertSchema(researchAwards).omit({
+      id: true
+    });
+    accommodationRequests = pgTable("accommodation_requests", {
+      id: serial("id").primaryKey(),
+      userId: integer("user_id").notNull(),
+      arrivalDate: timestamp("arrival_date").notNull(),
+      departureDate: timestamp("departure_date").notNull(),
+      arrivalPlace: text("arrival_place").notNull(),
+      // airport, bus stand, railway station, etc.
+      accommodationType: text("accommodation_type"),
+      // single, double, shared, etc.
+      age: integer("age").notNull(),
+      gender: text("gender").notNull(),
+      // male, female, other, prefer-not-to-say
+      specialRequests: text("special_requests"),
+      status: text("status").notNull().default("pending"),
+      // pending, confirmed, cancelled
+      createdAt: timestamp("created_at").defaultNow(),
+      updatedAt: timestamp("updated_at").defaultNow()
+    });
+    insertAccommodationRequestSchema = createInsertSchema(accommodationRequests).omit({
+      id: true,
+      userId: true,
+      status: true,
+      createdAt: true,
+      updatedAt: true
+    }).extend({
+      arrivalDate: z.union([z.string(), z.date()]).transform((val) => typeof val === "string" ? new Date(val) : val),
+      departureDate: z.union([z.string(), z.date()]).transform((val) => typeof val === "string" ? new Date(val) : val),
+      age: z.number().min(1, "Age is required").max(120, "Please enter a valid age"),
+      gender: z.enum(["male", "female", "other", "prefer-not-to-say"], {
+        required_error: "Gender selection is required"
+      })
+    });
+    invitedSpeakers = pgTable("invited_speakers", {
+      id: serial("id").primaryKey(),
+      name: text("name").notNull(),
+      title: text("title").notNull(),
+      // Dr., Prof., etc.
+      position: text("position").notNull(),
+      // Professor, Director, etc.
+      institution: text("institution").notNull(),
+      country: text("country").notNull(),
+      bio: text("bio"),
+      // Speaker biography
+      expertise: text("expertise"),
+      // Areas of expertise
+      image: text("image"),
+      // Path to speaker's image
+      linkedinUrl: text("linkedin_url"),
+      websiteUrl: text("website_url"),
+      talkTitle: text("talk_title"),
+      // Title of their talk/presentation
+      talkAbstract: text("talk_abstract"),
+      // Abstract of their talk
+      isKeynote: boolean("is_keynote").default(false),
+      // Keynote vs regular invited speaker
+      displayOrder: integer("display_order").default(0),
+      // Order for display
+      isActive: boolean("is_active").default(true),
+      createdAt: timestamp("created_at").defaultNow(),
+      updatedAt: timestamp("updated_at").defaultNow()
+    });
+    insertInvitedSpeakerSchema = createInsertSchema(invitedSpeakers).omit({
+      id: true,
+      createdAt: true,
+      updatedAt: true
+    });
+  }
 });
 
+// server/index.ts
+import express3 from "express";
+
+// server/routes.ts
+import express from "express";
+import { createServer } from "http";
+
 // server/db-storage.ts
+init_schema();
 import session from "express-session";
 
 // server/db.ts
+init_schema();
 import { Pool } from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
 import dotenv from "dotenv";
@@ -627,6 +675,31 @@ var DbStorage = class {
   }
   async deleteAccommodationRequest(id) {
     const result = await db.delete(accommodationRequests).where(eq(accommodationRequests.id, id)).returning();
+    return result.length > 0;
+  }
+  // Invited Speakers
+  async getInvitedSpeaker(id) {
+    const result = await db.select().from(invitedSpeakers).where(eq(invitedSpeakers.id, id));
+    return result[0];
+  }
+  async getActiveInvitedSpeakers() {
+    const result = await db.select().from(invitedSpeakers).where(eq(invitedSpeakers.isActive, true)).orderBy(asc(invitedSpeakers.displayOrder), asc(invitedSpeakers.name));
+    return result;
+  }
+  async getAllInvitedSpeakers() {
+    const result = await db.select().from(invitedSpeakers).orderBy(desc(invitedSpeakers.createdAt));
+    return result;
+  }
+  async createInvitedSpeaker(speaker) {
+    const result = await db.insert(invitedSpeakers).values(speaker).returning();
+    return result[0];
+  }
+  async updateInvitedSpeaker(id, data) {
+    const result = await db.update(invitedSpeakers).set({ ...data, updatedAt: /* @__PURE__ */ new Date() }).where(eq(invitedSpeakers.id, id)).returning();
+    return result[0];
+  }
+  async deleteInvitedSpeaker(id) {
+    const result = await db.delete(invitedSpeakers).where(eq(invitedSpeakers.id, id)).returning();
     return result.length > 0;
   }
 };
@@ -1322,6 +1395,7 @@ function setupAuth(app2) {
 }
 
 // server/routes.ts
+init_schema();
 import { randomBytes as randomBytes2 } from "crypto";
 import { ZodError as ZodError2 } from "zod";
 import multer2 from "multer";
@@ -1343,6 +1417,7 @@ function isAdmin(req, res, next) {
 }
 
 // server/routes/abstracts.ts
+init_schema();
 import { ZodError } from "zod";
 import path2 from "path";
 import fs from "fs";
@@ -2277,6 +2352,84 @@ async function registerRoutes(app2) {
     } catch (error) {
       console.error("Error updating accommodation request:", error);
       res.status(500).json({ error: "Failed to update accommodation request" });
+    }
+  });
+  app2.get("/api/invited-speakers", async (req, res) => {
+    try {
+      const speakers = await storage.getActiveInvitedSpeakers();
+      res.json(speakers);
+    } catch (error) {
+      console.error("Error fetching invited speakers:", error);
+      res.status(500).json({ error: "Failed to fetch invited speakers" });
+    }
+  });
+  app2.get("/api/admin/invited-speakers", isAdmin, async (req, res) => {
+    try {
+      const speakers = await storage.getAllInvitedSpeakers();
+      res.json(speakers);
+    } catch (error) {
+      console.error("Error fetching invited speakers:", error);
+      res.status(500).json({ error: "Failed to fetch invited speakers" });
+    }
+  });
+  app2.post("/api/admin/invited-speakers", isAdmin, async (req, res) => {
+    try {
+      const { insertInvitedSpeakerSchema: insertInvitedSpeakerSchema2 } = await Promise.resolve().then(() => (init_schema(), schema_exports));
+      const validatedData = insertInvitedSpeakerSchema2.parse(req.body);
+      const speaker = await storage.createInvitedSpeaker(validatedData);
+      res.status(201).json(speaker);
+    } catch (error) {
+      if (error instanceof ZodError2) {
+        return res.status(400).json({
+          error: "Validation failed",
+          details: error.errors
+        });
+      }
+      console.error("Error creating invited speaker:", error);
+      res.status(500).json({ error: "Failed to create invited speaker" });
+    }
+  });
+  app2.post("/api/admin/invited-speakers/:id/image", isAdmin, upload2.single("image"), async (req, res) => {
+    try {
+      const speakerId = parseInt(req.params.id);
+      if (!req.file) {
+        return res.status(400).json({ message: "No image file provided" });
+      }
+      const imagePath = `/uploads/${req.file.filename}`;
+      const updatedSpeaker = await storage.updateInvitedSpeaker(speakerId, { image: imagePath });
+      if (!updatedSpeaker) {
+        return res.status(404).json({ message: "Invited speaker not found" });
+      }
+      res.json({ imagePath, speaker: updatedSpeaker });
+    } catch (error) {
+      console.error("Error uploading speaker image:", error);
+      res.status(500).json({ message: "Error uploading image" });
+    }
+  });
+  app2.put("/api/admin/invited-speakers/:id", isAdmin, async (req, res) => {
+    try {
+      const speakerId = parseInt(req.params.id);
+      const speaker = await storage.updateInvitedSpeaker(speakerId, req.body);
+      if (!speaker) {
+        return res.status(404).json({ message: "Invited speaker not found" });
+      }
+      res.json(speaker);
+    } catch (error) {
+      console.error("Error updating invited speaker:", error);
+      res.status(500).json({ error: "Failed to update invited speaker" });
+    }
+  });
+  app2.delete("/api/admin/invited-speakers/:id", isAdmin, async (req, res) => {
+    try {
+      const speakerId = parseInt(req.params.id);
+      const success = await storage.deleteInvitedSpeaker(speakerId);
+      if (!success) {
+        return res.status(404).json({ message: "Invited speaker not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting invited speaker:", error);
+      res.status(500).json({ error: "Failed to delete invited speaker" });
     }
   });
   registerAbstractRoutes(app2);
