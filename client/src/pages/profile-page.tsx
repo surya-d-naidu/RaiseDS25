@@ -12,9 +12,10 @@ import { Badge } from "@/components/ui/badge";
 import { Profile } from "@shared/schema";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { FileText, User, Mail, Calendar, Clock, Building, Award, Loader2 } from "lucide-react";
+import { FileText, User, Mail, Calendar, Clock, Building, Award, Loader2, CreditCard } from "lucide-react";
 import ProfileForm from "@/components/forms/profile-form";
 import ProfileImageUpload from "@/components/forms/profile-image-upload";
+import ConferenceIdCard from "@/components/conference-id-card";
 
 export default function ProfilePage() {
   const { user } = useAuth();
@@ -160,9 +161,13 @@ export default function ProfilePage() {
               
               <div className="md:col-span-2">
                 <Tabs defaultValue="profile">
-                  <TabsList className="grid w-full grid-cols-2">
+                  <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="profile">Profile</TabsTrigger>
                     <TabsTrigger value="abstracts">My Abstracts</TabsTrigger>
+                    <TabsTrigger value="id-card">
+                      <CreditCard className="w-4 h-4 mr-2" />
+                      ID Card
+                    </TabsTrigger>
                   </TabsList>
                   
                   <TabsContent value="profile" className="mt-6">
@@ -284,6 +289,20 @@ export default function ProfilePage() {
                             ))}
                           </div>
                         )}
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                  
+                  <TabsContent value="id-card" className="mt-6">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Conference ID Card</CardTitle>
+                        <CardDescription>
+                          Your official RAISE DS 2025 conference identification card
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="flex justify-center">
+                        <ConferenceIdCard className="w-full max-w-md" />
                       </CardContent>
                     </Card>
                   </TabsContent>

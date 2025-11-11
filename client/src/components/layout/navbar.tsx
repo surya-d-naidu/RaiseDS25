@@ -18,7 +18,8 @@ import {
   ChevronDown,
   FileText,
   Settings,
-  ChevronRight
+  ChevronRight,
+  CreditCard
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getImageWithFallback } from "@/lib/asset-utils";
@@ -97,6 +98,15 @@ export default function Navbar() {
                   Committee
                 </a>
               </Link>
+              <Link href="/speakers">
+                <a className={`inline-flex items-center px-2 py-2 border-b-2 text-sm font-medium transition-colors duration-150 ${
+                  isActive("/speakers") 
+                    ? "border-white text-white font-bold" 
+                    : "border-transparent text-white/90 hover:border-white/70 hover:text-white"
+                }`}>
+                  Speakers
+                </a>
+              </Link>
               <Link href="/register">
                 <a className={`inline-flex items-center px-2 py-2 border-b-2 text-sm font-medium transition-colors duration-150 ${
                   isActive("/register") 
@@ -139,6 +149,12 @@ export default function Navbar() {
                     <DropdownMenuItem className="cursor-pointer">
                       <User className="mr-2 h-4 w-4" />
                       <span>Profile</span>
+                    </DropdownMenuItem>
+                  </Link>
+                  <Link href="/id-card">
+                    <DropdownMenuItem className="cursor-pointer">
+                      <CreditCard className="mr-2 h-4 w-4" />
+                      <span>ID Card</span>
                     </DropdownMenuItem>
                   </Link>
                   <Link href="/abstracts/submit">
@@ -253,6 +269,15 @@ export default function Navbar() {
               Committee
             </a>
           </Link>
+          <Link href="/speakers">
+            <a className={`block pl-4 pr-4 py-2.5 border-l-4 text-base font-medium transition-colors duration-150 ${
+              isActive("/speakers") 
+                ? "bg-primary-700/30 border-white text-white font-bold" 
+                : "border-transparent text-white/90 hover:bg-primary-800/20 hover:border-white/60 hover:text-white"
+            }`}>
+              Speakers
+            </a>
+          </Link>
           <Link href="/register">
             <a className={`block pl-4 pr-4 py-2.5 border-l-4 text-base font-medium transition-colors duration-150 ${
               isActive("/register") 
@@ -283,6 +308,11 @@ export default function Navbar() {
               <Link href="/profile">
                 <a className="block px-4 py-2.5 text-base font-medium text-white/90 hover:text-white hover:bg-primary-800/30 transition-colors duration-150">
                   Profile
+                </a>
+              </Link>
+              <Link href="/id-card">
+                <a className="block px-4 py-2.5 text-base font-medium text-white/90 hover:text-white hover:bg-primary-800/30 transition-colors duration-150">
+                  ID Card
                 </a>
               </Link>
               <Link href="/abstracts/submit">

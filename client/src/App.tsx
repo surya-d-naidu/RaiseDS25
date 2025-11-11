@@ -24,6 +24,8 @@ import OTPVerificationPage from "@/pages/otp-verification-page";
 import ForgotPasswordPage from "@/pages/forgot-password-page";
 import ResetPasswordPage from "@/pages/reset-password-page";
 import AccommodationPage from "@/pages/accommodation-page";
+import SpeakersPage from "@/pages/speakers-page";
+import IdCardPage from "@/pages/id-card-page";
 
 // Admin Pages
 import AdminDashboard from "@/pages/admin/dashboard";
@@ -48,6 +50,7 @@ function Router() {
       <Route path="/call-for-papers" component={CallForPapersPage} />
       <Route path="/research-awards" component={ResearchAwardsPage} />
       <Route path="/committee" component={CommitteePage} />
+      <Route path="/speakers" component={SpeakersPage} />
       <Route path="/register" component={RegisterPage} />
       <Route path="/accommodation" component={AccommodationPage} />
       <Route path="/attendance" component={AttendanceResponse} />
@@ -57,6 +60,7 @@ function Router() {
       <ProtectedRoute path="/abstracts/submit" component={AbstractSubmissionPage} />
       <ProtectedRoute path="/full-paper/submit" component={FullPaperSubmissionPage} />
       <ProtectedRoute path="/profile" component={ProfilePage} />
+      <ProtectedRoute path="/id-card" component={IdCardPage} />
         {/* Admin Routes */}
       <AdminRoute path="/admin" component={AdminDashboard} />
       <AdminRoute path="/admin/abstracts" component={AdminAbstracts} />
