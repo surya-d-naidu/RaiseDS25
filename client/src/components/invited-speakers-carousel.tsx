@@ -12,7 +12,7 @@ export default function InvitedSpeakersCarousel() {
 
   if (isLoading) {
     return (
-      <section className="py-16 bg-gradient-to-r from-blue-50 to-indigo-50">
+      <section className="py-16 bg-gradient-to-r from-pink-50 to-rose-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
@@ -35,7 +35,7 @@ export default function InvitedSpeakersCarousel() {
   }
 
   return (
-    <section className="py-16 bg-gradient-to-r from-blue-50 to-indigo-50">
+    <section className="py-16 bg-gradient-to-r from-pink-50 to-rose-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">
@@ -56,16 +56,16 @@ export default function InvitedSpeakersCarousel() {
               >
                 <CardContent className="p-0">
                   {/* Speaker Image */}
-                  <div className="relative h-48 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-t-lg overflow-hidden">
+                  <div className="relative h-48 bg-gradient-to-br from-pink-100 to-rose-100 rounded-t-lg overflow-hidden flex items-center justify-center">
                     {speaker.image ? (
                       <img
                         src={speaker.image}
                         alt={speaker.name}
-                        className="w-full h-full object-cover"
+                        className="max-w-full max-h-full object-contain"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <User className="h-20 w-20 text-blue-300" />
+                        <User className="h-20 w-20 text-primary/40" />
                       </div>
                     )}
                     

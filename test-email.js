@@ -47,7 +47,7 @@ async function testEmail() {
     
     // Test email to external address
     console.log('Sending test email to external address...');
-    const externalEmail = 'test@example.com'; // Replace with a test external email
+    const externalEmail = 'illustraton23@gmail.com'; // Replace with a test external email
     const infoExternal = await transporter.sendMail({
       from: `"RAISE DS 2025" <${process.env.GMAIL_USER}>`,
       to: externalEmail,
