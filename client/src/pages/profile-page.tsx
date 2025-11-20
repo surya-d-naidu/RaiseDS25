@@ -44,8 +44,8 @@ export default function ProfilePage() {
   return (
     <>
       <Helmet>
-        <title>My Profile | RAISE DS 2025</title>
-        <meta name="description" content="Manage your profile for the 45th Annual Convention of Indian Society for Probability and Statistics (ISPS) and the International Conference on Recent Advances and Innovative Statistics with Enhancing Data Science (IC-RAISE DS)." />
+        <title>My Profile | SuWatE+'26</title>
+        <meta name="description" content="Manage your profile for the Second International Conference on Next Generation Sustainable Materials for Water and Energy Solutions (SuWatE+'26)." />
       </Helmet>
       
       <NotificationBar />
@@ -139,8 +139,8 @@ export default function ProfilePage() {
                       <Separator className="my-2" />
                       <div className="pt-2">
                         <p className="text-gray-500 text-xs mb-2">Need help with your account?</p>
-                        <a href="mailto:raiseds25@vitap.ac.in" className="text-primary text-xs hover:underline">
-                          Contact support
+                        <a href="mailto:suwate@vitap.ac.in" className="text-primary text-xs hover:underline">
+                          suwate@vitap.ac.in
                         </a>
                       </div>
                     </div>

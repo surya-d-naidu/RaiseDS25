@@ -32,8 +32,8 @@ export default function RegisterPage() {
   return (
     <>
       <Helmet>
-        <title>Register | RAISE DS 2025</title>
-        <meta name="description" content="Register for the 45th Annual Convention of Indian Society for Probability and Statistics (ISPS) and the International Conference on Recent Advances and Innovative Statistics with Enhancing Data Science (IC-RAISE DS)." />
+        <title>Register | SuWatE+'26</title>
+        <meta name="description" content="Register for the Second International Conference on Next Generation Sustainable Materials for Water and Energy Solutions (SuWatE+'26)." />
       </Helmet>
       
       <NotificationBar />
@@ -43,10 +43,10 @@ export default function RegisterPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h1 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
-              Register for RAISE DS 2025
+              Register for SuWatE+'26
             </h1>
             <p className="mt-4 text-xl text-gray-500 max-w-3xl mx-auto">
-              Join us for the 45th Annual Convention of ISPS in conjunction with IC-RAISE DS
+              Join us for the Second International Conference on Next Generation Sustainable Materials for Water and Energy Solutions
             </p>
           </div>
           
@@ -72,33 +72,18 @@ export default function RegisterPage() {
                         <TableHeader>
                           <TableRow>
                             <TableHead>Category</TableHead>
-                            <TableHead>Early Bird (Until Nov 20)</TableHead>
+                            <TableHead>Early Bird (Until Jan 15)</TableHead>
                             <TableHead>Regular</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           <TableRow>
-                            <TableCell className="font-medium">Faculty/Scientists (ISPS Member)</TableCell>
-                            <TableCell>₹4,000</TableCell>
-                            <TableCell>₹5,000</TableCell>
+                            <TableCell className="font-medium">Faculty, Scientist, Postdoc</TableCell>
+                            <TableCell>₹2,500</TableCell>
+                            <TableCell>₹3,000</TableCell>
                           </TableRow>
                           <TableRow>
-                            <TableCell className="font-medium">Faculty/Scientists (Non-Member)</TableCell>
-                            <TableCell>₹5,000</TableCell>
-                            <TableCell>₹6,000</TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableCell className="font-medium">Industry Personnel (ISPS Member)</TableCell>
-                            <TableCell>₹5,000</TableCell>
-                            <TableCell>₹6,000</TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableCell className="font-medium">Industry Personnel (Non-Member)</TableCell>
-                            <TableCell>₹6,000</TableCell>
-                            <TableCell>₹7,000</TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableCell className="font-medium">Accompanying Person</TableCell>
+                            <TableCell className="font-medium">Industry</TableCell>
                             <TableCell>₹3,000</TableCell>
                             <TableCell>₹4,000</TableCell>
                           </TableRow>
@@ -117,19 +102,14 @@ export default function RegisterPage() {
                         </TableHeader>
                         <TableBody>
                           <TableRow>
-                            <TableCell className="font-medium">Research Scholars/Students (ISPS Member)</TableCell>
-                            <TableCell>₹2,400</TableCell>
-                            <TableCell>₹3,000</TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableCell className="font-medium">Research Scholars/Students (Non-Member)</TableCell>
-                            <TableCell>₹3,000</TableCell>
-                            <TableCell>₹3,500</TableCell>
+                            <TableCell className="font-medium">Students (UG, PG, Ph.D)</TableCell>
+                            <TableCell>₹2,000</TableCell>
+                            <TableCell>₹2,500</TableCell>
                           </TableRow>
                         </TableBody>
                       </Table>
                       <p className="mt-4 text-sm text-gray-500">
-                        <span className="font-medium text-amber-600">Note:</span> Students must provide valid student ID proof during registration.
+                        <span className="font-medium text-amber-600">Note:</span> Students must provide valid student ID proof during registration. The registration fee is non-refundable. An additional 18% GST is applicable.
                       </p>
                     </TabsContent>
                     
@@ -138,25 +118,15 @@ export default function RegisterPage() {
                         <TableHeader>
                           <TableRow>
                             <TableHead>Category</TableHead>
-                            <TableHead>Early Bird (Until Nov 20)</TableHead>
+                            <TableHead>Early Bird (Until Jan 15)</TableHead>
                             <TableHead>Regular</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           <TableRow>
-                            <TableCell className="font-medium">Foreign Delegates (ISPS Member)</TableCell>
-                            <TableCell>US$ 240</TableCell>
-                            <TableCell>US$ 280</TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableCell className="font-medium">Foreign Delegates (Non-Member)</TableCell>
-                            <TableCell>US$ 300</TableCell>
-                            <TableCell>US$ 350</TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableCell className="font-medium">Accompanying Person</TableCell>
-                            <TableCell>US$ 80</TableCell>
-                            <TableCell>US$ 100</TableCell>
+                            <TableCell className="font-medium">Foreign participants</TableCell>
+                            <TableCell>US$ 50</TableCell>
+                            <TableCell>US$ 70</TableCell>
                           </TableRow>
                         </TableBody>
                       </Table>
@@ -340,20 +310,9 @@ export default function RegisterPage() {
                 <CardContent>
                   <div className="space-y-4 text-sm text-gray-600">
                     <div>
-                      <h3 className="font-medium text-gray-900">Bank Transfer</h3>
-                      <p className="mt-1">
-                        Account Name: RAISE DS 2025<br />
-                        Account Number: XXXX XXXX XXXX 1234<br />
-                        IFSC Code: ABCD0001234<br />
-                        Bank: State Bank of India<br />
-                        Branch: VIT-AP Campus
-                      </p>
-                    </div>
-                    
-                    <div>
                       <h3 className="font-medium text-gray-900">Online Payment</h3>
                       <p className="mt-1">
-                        Secure online payment options will be available during the registration process, including credit card, debit card, and UPI.
+                        Secure online payment options will be available during the registration process, including credit card, debit card, UPI, and bank transfer options.
                       </p>
                     </div>
                     
@@ -423,7 +382,7 @@ export default function RegisterPage() {
               <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">Can I attend specific days of the conference?</h3>
                 <p className="text-gray-600">
-                  Yes, single-day registration options will be available. Please contact the organizing committee at raiseds25@vitap.ac.in for details on single-day registration fees and arrangements.
+                  Yes, single-day registration options will be available. Please contact the organizing committee at suwate@vitap.ac.in for details on single-day registration fees and arrangements.
                 </p>
               </div>
               

@@ -138,10 +138,10 @@ export default function AbstractSubmissionPage() {
   return (
     <>
       <Helmet>
-        <title>Submit Abstract | RAISE DS 2025</title>
+        <title>Submit Abstract | SuWatE+'26</title>
         <meta
           name="description"
-          content="Submit your abstract for the 45th Annual Convention of Indian Society for Probability and Statistics (ISPS) and the International Conference on Recent Advances and Innovative Statistics with Enhancing Data Science (IC-RAISE DS)."
+          content="Submit your abstract for the Second International Conference on Next Generation Sustainable Materials for Water and Energy Solutions (SuWatE+'26)."
         />
       </Helmet>
 
@@ -155,7 +155,7 @@ export default function AbstractSubmissionPage() {
               Abstract Submission
             </h1>
             <p className="mt-4 text-xl text-gray-500 max-w-3xl mx-auto">
-              Share your research with the statistical community
+              Share your research in sustainable materials for water and energy solutions
             </p>
           </div>
 

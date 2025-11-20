@@ -9,9 +9,9 @@ export default function AboutConference() {
     <div className="bg-gray-50 py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="lg:text-center mb-10">
-          <h2 className="text-base text-primary font-semibold tracking-wide uppercase">About the Conference</h2>
+          <h2 className="text-base text-primary font-semibold tracking-wide uppercase">About SuWatE+'26</h2>
           <p className="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
-            Recent Advances and Innovative Statistics
+            Sustainable Materials for Water and Energy Solutions
           </p>
         </div>
         
@@ -26,45 +26,91 @@ export default function AboutConference() {
               </div>
               <div className="mt-6 prose prose-indigo prose-lg text-gray-500 mx-auto">
                 <p>
-                  This theme explores how recent advancements in statistical methods enhance data science, enabling more robust data analysis, precise forecasting, and powerful machine learning models. It delves into new statistical techniques and tools that improve data interpretation, optimization, and decision-making, shaping the future of industries through better insights and innovation.
+                  Addressing the urgent challenges of water and energy requires the innovative use of chemistry. The proposed International Conference on Next Generation Sustainable Materials for Water and Energy Solutions - 2026 (SuWatE+'26) aims to bring together diverse branches of chemistry, materials science, chemical and mechanical engineering and computational studies to further advance this dynamic field of research.
                 </p>
                 <p>
-                  It explores the transformative role of advanced statistics in fields such as machine learning, artificial intelligence, and big data analytics, with an emphasis on enhancing the effectiveness and efficiency of data-driven decision-making across various industries.
+                  Our conference aims to foster discussions and innovative solutions by exploring the current fundamental understanding of chemistry to address energy and water challenges. Additionally, we will focus on enhancing light-matter interactions, designing and synthesizing novel materials, and employing in-situ techniques to study chemical processes for water and energy solutions.
                 </p>
               </div>
             </div>
             
             <div>
-              <div className="relative h-64 bg-primary-700 rounded-lg overflow-hidden shadow-lg">
+              <div className="relative h-64 bg-primary rounded-lg overflow-hidden shadow-lg">
                 <div className="absolute inset-0">
                   <svg
                     className="w-full h-full object-cover"
                     viewBox="0 0 800 400"
                     xmlns="http://www.w3.org/2000/svg"
                   >
-                    <rect width="800" height="400" fill="#1e40af" />
-                    <g fill="#60a5fa" fillOpacity="0.4">
-                      <circle cx="400" cy="200" r="80" />
-                      <path d="M100,300 Q250,100 400,300 T700,300" stroke="#93c5fd" strokeWidth="4" fill="none" />
-                      <path d="M100,200 Q250,0 400,200 T700,200" stroke="#dbeafe" strokeWidth="3" fill="none" />
-                      <rect x="100" y="100" width="50" height="200" opacity="0.7" />
-                      <rect x="170" y="150" width="50" height="150" opacity="0.7" />
-                      <rect x="240" y="120" width="50" height="180" opacity="0.7" />
-                      <rect x="310" y="80" width="50" height="220" opacity="0.7" />
-                      <rect x="380" y="140" width="50" height="160" opacity="0.7" />
-                      <rect x="450" y="90" width="50" height="210" opacity="0.7" />
-                      <rect x="520" y="110" width="50" height="190" opacity="0.7" />
-                      <rect x="590" y="160" width="50" height="140" opacity="0.7" />
-                      <rect x="660" y="130" width="50" height="170" opacity="0.7" />
+                    <rect width="800" height="400" fill="#1B5E20" />
+                    <g fill="#43A047" fillOpacity="0.6">
+                      {/* Benzene rings */}
+                      <g transform="translate(150,120)">
+                        <polygon points="0,-30 26,-15 26,15 0,30 -26,15 -26,-15" stroke="#81C784" strokeWidth="2" fill="none" />
+                        <circle cx="0" cy="-30" r="4" fill="#81C784" />
+                        <circle cx="26" cy="-15" r="4" fill="#81C784" />
+                        <circle cx="26" cy="15" r="4" fill="#81C784" />
+                        <circle cx="0" cy="30" r="4" fill="#81C784" />
+                        <circle cx="-26" cy="15" r="4" fill="#81C784" />
+                        <circle cx="-26" cy="-15" r="4" fill="#81C784" />
+                      </g>
+                      
+                      {/* Water molecules H2O */}
+                      <g transform="translate(400,80)">
+                        <circle cx="0" cy="0" r="12" fill="#1976D2" />
+                        <circle cx="-18" cy="-12" r="6" fill="#42A5F5" />
+                        <circle cx="18" cy="-12" r="6" fill="#42A5F5" />
+                        <line x1="0" y1="0" x2="-18" y2="-12" stroke="#42A5F5" strokeWidth="2" />
+                        <line x1="0" y1="0" x2="18" y2="-12" stroke="#42A5F5" strokeWidth="2" />
+                      </g>
+                      
+                      {/* Solar panel representation */}
+                      <g transform="translate(600,150)">
+                        <rect x="-25" y="-15" width="50" height="30" fill="#2E7D32" stroke="#43A047" strokeWidth="1" />
+                        <line x1="-25" y1="0" x2="25" y2="0" stroke="#43A047" strokeWidth="1" />
+                        <line x1="0" y1="-15" x2="0" y2="15" stroke="#43A047" strokeWidth="1" />
+                      </g>
+                      
+                      {/* Graphene lattice structure */}
+                      <g transform="translate(200,280)">
+                        <polygon points="0,-20 17,-10 17,10 0,20 -17,10 -17,-10" stroke="#81C784" strokeWidth="1.5" fill="none" />
+                        <polygon points="34,-10 51,0 51,20 34,30 17,20 17,0" stroke="#81C784" strokeWidth="1.5" fill="none" />
+                        <polygon points="-34,-10 -17,0 -17,20 -34,30 -51,20 -51,0" stroke="#81C784" strokeWidth="1.5" fill="none" />
+                        <circle cx="0" cy="-20" r="3" fill="#2E7D32" />
+                        <circle cx="17" cy="-10" r="3" fill="#2E7D32" />
+                        <circle cx="17" cy="10" r="3" fill="#2E7D32" />
+                        <circle cx="0" cy="20" r="3" fill="#2E7D32" />
+                        <circle cx="-17" cy="10" r="3" fill="#2E7D32" />
+                        <circle cx="-17" cy="-10" r="3" fill="#2E7D32" />
+                      </g>
+                      
+                      {/* Energy flow waves */}
+                      <path d="M50,200 Q200,150 350,200 T650,200" stroke="#81C784" strokeWidth="3" fill="none" opacity="0.7" />
+                      <path d="M50,250 Q200,200 350,250 T650,250" stroke="#43A047" strokeWidth="2" fill="none" opacity="0.5" />
+                      
+                      {/* Wind turbine blades */}
+                      <g transform="translate(500,300)">
+                        <circle cx="0" cy="0" r="15" stroke="#81C784" strokeWidth="2" fill="none" />
+                        <line x1="0" y1="0" x2="0" y2="-15" stroke="#81C784" strokeWidth="2" />
+                        <line x1="0" y1="0" x2="13" y2="7.5" stroke="#81C784" strokeWidth="2" />
+                        <line x1="0" y1="0" x2="-13" y2="7.5" stroke="#81C784" strokeWidth="2" />
+                      </g>
+                      
+                      {/* Battery representation */}
+                      <g transform="translate(700,100)">
+                        <rect x="-15" y="-20" width="30" height="40" fill="#2E7D32" stroke="#43A047" strokeWidth="1" />
+                        <rect x="-10" y="-15" width="20" height="30" fill="#43A047" />
+                        <rect x="-2" y="-25" width="4" height="5" fill="#43A047" />
+                      </g>
                     </g>
                   </svg>
-                  <div className="absolute inset-0 bg-gradient-to-r from-primary-600 to-primary-600 mix-blend-multiply"></div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-secondary/20 mix-blend-multiply"></div>
                 </div>
                 <div className="relative px-6 py-4 h-full flex flex-col justify-end">
-                  <h3 className="text-lg font-semibold text-white">Pre-Annual Convention Workshop</h3>
-                  <p className="text-primary-100 text-sm mt-1">"Data Science & Machine Learning" - December 21, 2025</p>
+                  <h3 className="text-lg font-semibold text-white">Hybrid Conference Mode</h3>
+                  <p className="text-primary-100 text-sm mt-1">In association with RMIT University</p>
                   <Link href="/about">
-                    <a className="mt-4 inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-primary-800 bg-opacity-60 hover:bg-opacity-80">
+                    <a className="mt-4 inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-secondary hover:bg-secondary/90">
                       Learn more
                       <ChevronRight className="ml-1 -mr-0.5 h-4 w-4" />
                     </a>
@@ -76,16 +122,16 @@ export default function AboutConference() {
                 <div className="border border-gray-200 rounded-lg p-6 bg-white shadow-sm">
                   <div className="flex items-start">
                     <div className="flex-shrink-0">
-                      <CalendarDays className="h-6 w-6 text-blue-500" />
+                      <CalendarDays className="h-6 w-6 text-primary" />
                     </div>
                     <div className="ml-4">
                       <h3 className="text-lg font-medium text-gray-900">Important Dates</h3>
                       <div className="mt-2 text-sm text-gray-500 space-y-1">
-                        <p>• Abstract Submission Deadline: October 15, 2025</p>
-                        <p>• Notification of Acceptance: November 10, 2025</p>
-                        <p>• Early Bird Registration: Until November 30, 2025</p>
-                        <p>• Workshop Day: December 21, 2025</p>
-                        <p>• Main Conference: December 22-24, 2025</p>
+                        <p>• Abstract Submission Opens: November 1, 2026</p>
+                        <p>• Abstract Submission Closes: January 31, 2026</p>
+                        <p>• Acceptance Notification: February 1, 2026</p>
+                        <p>• Early Bird Registration: Until January 15, 2026</p>
+                        <p>• Main Conference: February 19-21, 2026</p>
                       </div>
                     </div>
                   </div>

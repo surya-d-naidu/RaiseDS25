@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { randomBytes } from "crypto";
-import { insertAbstractSchema, insertInvitationSchema, insertNotificationSchema, insertCommitteeMemberSchema, insertResearchAwardSchema } from "@shared/schema";
+import { insertAbstractSchema, insertInvitationSchema, insertNotificationSchema, insertCommitteeMemberSchema, insertResearchAwardSchema, insertSpeakerSchema } from "@shared/schema";
 import { ZodError } from "zod";
 import multer from "multer";
 import path from "path";
@@ -57,7 +57,7 @@ async function sendEmail(to: string, subject: string, html: string) {
       });
       
       await transporter.sendMail({
-        from: process.env.SMTP_FROM || '"RAISE DS 2025" <noreply@raiseds25.com>',
+        from: process.env.SMTP_FROM || '"SuWatE+\'26" <noreply@suwate26.com>',
         to,
         subject,
         html,
@@ -143,14 +143,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         await sendEmail(
           req.user.email,
-          `Abstract Submission Confirmation - RAISE DS 2025`,
+          `Abstract Submission Confirmation - SuWatE+'26`,
           `<p>Dear ${req.user.firstName},</p>
-          <p>Thank you for submitting your abstract to RAISE DS 2025.</p>
+          <p>Thank you for submitting your abstract to SuWatE+'26.</p>
           <p>Your abstract has been received and is pending review.</p>
           <p><strong>Abstract ID:</strong> ${newAbstract.referenceId}</p>
           <p><strong>Title:</strong> ${newAbstract.title}</p>
           <p>You can check the status of your submission in the "My Abstracts" section of your account.</p>
-          <p>RAISE DS 2025 Team</p>`
+          <p>SuWatE+'26 Team</p>`
         );
       } catch (emailError) {
         console.error("Failed to send confirmation email:", emailError);
@@ -733,6 +733,93 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(safeUser);
     } catch (error) {
       res.status(500).json({ message: "Error updating user role" });
+    }
+  });
+  
+  // Speaker routes
+  app.get("/api/speakers", async (req, res) => {
+    try {
+      const speakers = await storage.getAllSpeakers();
+      res.json(speakers);
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching speakers" });
+    }
+  });
+
+  app.get("/api/speakers/category/:category", async (req, res) => {
+    try {
+      const category = req.params.category;
+      const speakers = await storage.getSpeakersByCategory(category);
+      res.json(speakers);
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching speakers" });
+    }
+  });
+
+  // Admin speaker routes
+  app.post("/api/admin/speakers", isAdmin, async (req, res) => {
+    try {
+      const validatedData = insertSpeakerSchema.parse(req.body);
+      const speaker = await storage.createSpeaker(validatedData);
+      res.status(201).json(speaker);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ errors: formatZodError(error) });
+      }
+      res.status(500).json({ message: "Error creating speaker" });
+    }
+  });
+
+  app.put("/api/admin/speakers/:id", isAdmin, async (req, res) => {
+    try {
+      const speakerId = parseInt(req.params.id);
+      const speaker = await storage.updateSpeaker(speakerId, req.body);
+      
+      if (!speaker) {
+        return res.status(404).json({ message: "Speaker not found" });
+      }
+      
+      res.json(speaker);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ errors: formatZodError(error) });
+      }
+      res.status(500).json({ message: "Error updating speaker" });
+    }
+  });
+
+  app.delete("/api/admin/speakers/:id", isAdmin, async (req, res) => {
+    try {
+      const speakerId = parseInt(req.params.id);
+      const success = await storage.deleteSpeaker(speakerId);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Speaker not found" });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Error deleting speaker" });
+    }
+  });
+
+  // Bulk import speakers (admin only)
+  app.post("/api/admin/speakers/bulk", isAdmin, async (req, res) => {
+    try {
+      const { speakers: speakersData } = req.body;
+      
+      if (!Array.isArray(speakersData)) {
+        return res.status(400).json({ message: "Invalid speakers data" });
+      }
+      
+      const validatedSpeakers = speakersData.map(data => insertSpeakerSchema.parse(data));
+      const speakers = await storage.bulkCreateSpeakers(validatedSpeakers);
+      res.status(201).json(speakers);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ errors: formatZodError(error) });
+      }
+      res.status(500).json({ message: "Error creating speakers" });
     }
   });
   

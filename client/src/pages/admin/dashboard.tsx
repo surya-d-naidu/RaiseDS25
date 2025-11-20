@@ -384,6 +384,13 @@ export default function AdminDashboard() {
                       Manage Users ({stats.totalUsers})
                     </Link>
                   </Button>
+                  
+                  <Button className="w-full justify-start" asChild>
+                    <Link href="/admin/speakers">
+                      <Users className="mr-2 h-5 w-5" />
+                      Manage Speakers
+                    </Link>
+                  </Button>
                 </div>
               </CardContent>
               <CardFooter className="border-t px-6 py-4 bg-gray-50">

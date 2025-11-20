@@ -43,10 +43,10 @@ export default function Navbar() {
                 <div className="flex items-center cursor-pointer group">
                   <img 
                     {...getImageWithFallback('logo.jpeg', 'logo.png')}
-                    alt="RAISE DS Logo" 
+                    alt="SuWatE+'26 Logo" 
                     className="h-12 w-auto mr-3 rounded-md shadow-sm transform transition-all duration-300 group-hover:scale-105 border border-white/20" 
                   />
-                  <span className="text-xl font-bold tracking-tight text-white group-hover:text-white/90">RAISE DS 2025</span>
+                  <span className="text-xl font-bold tracking-tight text-white group-hover:text-white/90">SuWatE+'26</span>
                 </div>
               </Link>
             </div>
@@ -179,10 +179,10 @@ export default function Navbar() {
               <div className="flex items-center cursor-pointer">
                 <img 
                   src="/logo.jpeg" 
-                  alt="RAISE DS Logo" 
+                  alt="SuWatE+'26 Logo" 
                   className="h-10 w-auto mr-2 rounded shadow-sm" 
                 />
-                <span className="text-lg font-bold tracking-tight text-white">RAISE DS 2025</span>
+                <span className="text-lg font-bold tracking-tight text-white">SuWatE+'26</span>
               </div>
             </Link>          </div>
         </div>
@@ -244,7 +244,7 @@ export default function Navbar() {
         </div>        <div className="pt-4 pb-4 border-t border-white/20">
           {user ? (
             <div className="space-y-0.5">
-              <div className="px-4 py-3 flex items-center space-x-3 bg-primary-800/20">                <img src="/logo.jpeg" alt="RAISE DS Logo" className="h-8 w-auto rounded shadow-sm animate-pulse" />
+              <div className="px-4 py-3 flex items-center space-x-3 bg-primary-800/20">                <img src="/logo.jpeg" alt="SuWatE+'26 Logo" className="h-8 w-auto rounded shadow-sm animate-pulse" />
                 <div>
                   <p className="text-sm font-medium text-white/70">Signed in as</p>
                   <p className="text-sm font-medium text-white truncate">{user.username}</p>

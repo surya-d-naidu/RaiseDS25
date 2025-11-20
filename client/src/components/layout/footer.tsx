@@ -10,18 +10,18 @@ export default function Footer() {
           <div className="md:col-span-1">            <div className="flex flex-col items-center md:items-start bg-gray-50 p-4 rounded-lg shadow-sm">              <Link href="/">
                 <img 
                   {...getImageWithFallback('logo.jpeg', 'logo.png')}
-                  alt="RAISE DS Logo" 
+                  alt="SuWatE+'26 Logo" 
                   className="h-16 w-auto mb-3 rounded-md shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer border border-gray-200" 
                 />
               </Link>
-              <span className="text-xl font-bold text-gray-900">RAISE DS 2025</span>
+              <span className="text-xl font-bold text-gray-900">SuWatE+'26</span>
             </div>
             <p className="mt-4 text-gray-500 text-sm text-center md:text-left">
-              International Conference on Recent Advances and Innovative Statistics with Enhancing Data Science
+              Second International Conference on Next Generation Sustainable Materials for Water and Energy Solutions
             </p>
             <p className="mt-2 text-gray-500 text-sm text-center md:text-left">
-              December 22-24, 2025<br />
-              VIT-AP University, Vijayawada
+              February 19-21, 2026<br />
+              Department of Chemistry, SAS
             </p>
           </div>
           
@@ -96,7 +96,7 @@ export default function Footer() {
             <ul role="list" className="mt-4 space-y-4">
               <li className="flex">
                 <Mail className="flex-shrink-0 h-6 w-6 text-gray-400" />
-                <span className="ml-3 text-base text-gray-500">raiseds25@vitap.ac.in</span>
+                <span className="ml-3 text-base text-gray-500">suwate@vitap.ac.in</span>
               </li>
               <li className="flex">
                 <Phone className="flex-shrink-0 h-6 w-6 text-gray-400" />
@@ -128,7 +128,7 @@ export default function Footer() {
         </div>
         
         <div className="mt-12 border-t border-gray-200 pt-8">
-          <p className="text-base text-gray-400 text-center">&copy; 2025 RAISE DS. All rights reserved.</p>
+          <p className="text-base text-gray-400 text-center">&copy; 2026 SuWatE+'26. All rights reserved.</p>
         </div>
       </div>
     </footer>

@@ -1,33 +1,33 @@
 import { 
-  ClipboardList, 
-  Clock, 
+  Beaker, 
+  Droplets, 
   Lightbulb, 
-  BarChart 
+  Globe 
 } from "lucide-react";
 
 const highlights = [
   {
-    icon: <ClipboardList className="w-16 h-16 text-primary" />,
-    title: "45th",
-    description: "Annual Convention",
+    icon: <Beaker className="w-16 h-16 text-primary" />,
+    title: "Materials Science",
+    description: "Next-Gen Research",
     bgColor: "bg-primary-50"
   },
   {
-    icon: <Clock className="w-16 h-16 text-secondary" />,
-    title: "3",
-    description: "Conference Days",
+    icon: <Droplets className="w-16 h-16 text-secondary" />,
+    title: "Water Solutions",
+    description: "Sustainable Technologies",
     bgColor: "bg-secondary-50"
   },
   {
     icon: <Lightbulb className="w-16 h-16 text-blue-500" />,
-    title: "1",
-    description: "Workshop Day",
+    title: "Energy Innovation",
+    description: "Clean Technologies",
     bgColor: "bg-blue-50"
   },
   {
-    icon: <BarChart className="w-16 h-16 text-green-500" />,
-    title: "20+",
-    description: "Research Themes",
+    icon: <Globe className="w-16 h-16 text-green-500" />,
+    title: "Global Collaboration",
+    description: "International Research",
     bgColor: "bg-green-50"
   }
 ];
@@ -39,10 +39,10 @@ export default function EventHighlights() {
         <div className="lg:text-center">
           <h2 className="text-base text-primary font-semibold tracking-wide uppercase">Event Highlights</h2>
           <p className="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
-            Exploring Data Science and Statistics
+            Sustainable Materials for Water & Energy
           </p>
           <p className="mt-4 max-w-2xl text-xl text-gray-500 lg:mx-auto">
-            Join leading experts to explore advancements in statistical methods and their applications in data science.
+            Join leading researchers in exploring next-generation sustainable materials for addressing global water and energy challenges.
           </p>
         </div>
 
@@ -54,8 +54,8 @@ export default function EventHighlights() {
                   {highlight.icon}
                 </div>
                 <div className="px-6 py-4">
-                  <div className="font-bold text-2xl text-center text-gray-800 stat-font">{highlight.title}</div>
-                  <p className="text-gray-600 text-center">{highlight.description}</p>
+                  <div className="font-bold text-lg text-center text-gray-800">{highlight.title}</div>
+                  <p className="text-gray-600 text-center text-sm">{highlight.description}</p>
                 </div>
               </div>
             ))}

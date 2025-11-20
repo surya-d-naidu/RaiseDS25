@@ -27,8 +27,8 @@ export default function CallForPapersPage() {
   return (
     <>
       <Helmet>
-        <title>Call for Papers | RAISE DS 2025</title>
-        <meta name="description" content="Submit your abstract for the 45th Annual Convention of Indian Society for Probability and Statistics (ISPS) and the International Conference on Recent Advances and Innovative Statistics with Enhancing Data Science (IC-RAISE DS)." />
+        <title>Call for Papers | SuWatE+'26</title>
+        <meta name="description" content="Submit your abstract for the Second International Conference on Next Generation Sustainable Materials for Water and Energy Solutions (SuWatE+'26)." />
       </Helmet>
       
       <NotificationBar />
@@ -41,7 +41,7 @@ export default function CallForPapersPage() {
               Call for Papers
             </h1>
             <p className="mt-4 text-xl text-gray-500 max-w-3xl mx-auto">
-              Share your research and innovations with the global statistical community
+              Share your research and innovations in sustainable materials for water and energy solutions
             </p>
           </div>
           
@@ -57,7 +57,7 @@ export default function CallForPapersPage() {
                 <CardContent>
                   <div className="prose prose-indigo max-w-none">
                     <p>
-                      We invite researchers, academics, and professionals to submit abstracts for oral and poster presentations at the 45th Annual Convention of Indian Society for Probability and Statistics (ISPS) in conjunction with the International Conference on Recent Advances and Innovative Statistics with Enhancing Data Science (IC-RAISE DS).
+                      We invite researchers, academics, and professionals to submit abstracts for oral and poster presentations at the Second International Conference on Next Generation Sustainable Materials for Water and Energy Solutions (SuWatE+'26).
                     </p>
                     
                     <h3 className="text-lg font-medium text-gray-900 flex items-center mt-6">
@@ -121,54 +121,57 @@ export default function CallForPapersPage() {
                     
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 mt-4">
                       <div>
-                        <h3 className="text-lg font-medium text-gray-900">Statistical Methods</h3>
+                        <h3 className="text-lg font-medium text-gray-900">Materials for Water and Energy</h3>
                         <ul className="list-disc pl-5 space-y-1 mt-2">
-                          <li>Bayesian Statistics</li>
-                          <li>Computational Statistics</li>
-                          <li>Multivariate Analysis</li>
-                          <li>Nonparametric Statistics</li>
-                          <li>Time Series Analysis</li>
-                          <li>Survival Analysis</li>
-                          <li>Spatial Statistics</li>
+                          <li>Multimetallic and single-atom catalysts</li>
+                          <li>Defect engineering in chemical materials</li>
+                          <li>Clusters, nanoparticles & plasmonic materials</li>
+                          <li>Supramolecular materials, crystal engineering</li>
+                          <li>Metal and covalent organic frameworks</li>
+                          <li>2D and 3D-based nanocomposites</li>
+                          <li>Advanced carbon materials</li>
                         </ul>
                       </div>
                       
                       <div>
-                        <h3 className="text-lg font-medium text-gray-900">Data Science & AI</h3>
+                        <h3 className="text-lg font-medium text-gray-900">Water for Sustainable Development</h3>
                         <ul className="list-disc pl-5 space-y-1 mt-2">
-                          <li>Machine Learning Algorithms</li>
-                          <li>Deep Learning</li>
-                          <li>Natural Language Processing</li>
-                          <li>Computer Vision</li>
-                          <li>Reinforcement Learning</li>
-                          <li>Big Data Analytics</li>
-                          <li>Statistical Learning Theory</li>
+                          <li>Methods for removal of contaminants</li>
+                          <li>Photodegradation of organics & dyes</li>
+                          <li>Desalination</li>
+                          <li>Separation & purifications of metals</li>
+                          <li>Extraction of value-added metals & chemicals</li>
+                          <li>Advanced oxidation process</li>
+                          <li>Phyto- and phycoremediation</li>
+                          <li>Antibacterials & antifungal activities</li>
                         </ul>
                       </div>
                       
                       <div>
-                        <h3 className="text-lg font-medium text-gray-900">Applied Statistics</h3>
+                        <h3 className="text-lg font-medium text-gray-900">Chemistry for Sustainable Energy</h3>
                         <ul className="list-disc pl-5 space-y-1 mt-2">
-                          <li>Biostatistics</li>
-                          <li>Environmental Statistics</li>
-                          <li>Financial Statistics</li>
-                          <li>Industrial Statistics</li>
-                          <li>Official Statistics</li>
-                          <li>Social Sciences Statistics</li>
-                          <li>Sports Analytics</li>
+                          <li>Supercapacitors & Battery</li>
+                          <li>Solar energy conversion</li>
+                          <li>Fuel cells</li>
+                          <li>OER, HER, & ORR reactions</li>
+                          <li>Water splitting</li>
+                          <li>CO2 reduction</li>
+                          <li>Nuclear energy applications</li>
+                          <li>Green hydrogen production</li>
+                          <li>Green ammonia and urea synthesis</li>
+                          <li>Bio-renewable energy sector</li>
                         </ul>
                       </div>
                       
                       <div>
-                        <h3 className="text-lg font-medium text-gray-900">Emerging Areas</h3>
+                        <h3 className="text-lg font-medium text-gray-900">Theoretical Methods & Sensors</h3>
                         <ul className="list-disc pl-5 space-y-1 mt-2">
-                          <li>Statistical Methods for AI Explainability</li>
-                          <li>Causal Inference</li>
-                          <li>Ethics in Data Science</li>
-                          <li>Privacy-Preserving Statistics</li>
-                          <li>Statistics for Sustainable Development</li>
-                          <li>COVID-19 Data Analytics</li>
-                          <li>Statistical Methods for Genomics</li>
+                          <li>Computational tools</li>
+                          <li>Quantum computation</li>
+                          <li>Machine learning and artificial intelligence tools</li>
+                          <li>Extended to sensor science and technology</li>
+                          <li>Water for climate, resilience & environment</li>
+                          <li>Theoretical methods for water and energy</li>
                         </ul>
                       </div>
                     </div>
@@ -190,36 +193,36 @@ export default function CallForPapersPage() {
                     <li className="flex">
                       <Clock className="h-5 w-5 text-primary mr-3 flex-shrink-0" />
                       <div>
-                        <p className="font-semibold">Abstract Submission Deadline</p>
-                        <p className="text-gray-600">October 15, 2025</p>
+                        <p className="font-semibold">Abstract Submission Opens</p>
+                        <p className="text-gray-600">November 1, 2026</p>
                       </div>
                     </li>
                     <li className="flex">
                       <Clock className="h-5 w-5 text-primary mr-3 flex-shrink-0" />
                       <div>
-                        <p className="font-semibold">Notification of Acceptance</p>
-                        <p className="text-gray-600">November 10, 2025</p>
+                        <p className="font-semibold">Abstract Submission Closes</p>
+                        <p className="text-gray-600">January 31, 2026</p>
+                      </div>
+                    </li>
+                    <li className="flex">
+                      <Clock className="h-5 w-5 text-primary mr-3 flex-shrink-0" />
+                      <div>
+                        <p className="font-semibold">Acceptance Notification</p>
+                        <p className="text-gray-600">February 1, 2026</p>
                       </div>
                     </li>
                     <li className="flex">
                       <Clock className="h-5 w-5 text-primary mr-3 flex-shrink-0" />
                       <div>
                         <p className="font-semibold">Early Bird Registration</p>
-                        <p className="text-gray-600">Until November 30, 2025</p>
-                      </div>
-                    </li>
-                    <li className="flex">
-                      <Clock className="h-5 w-5 text-primary mr-3 flex-shrink-0" />
-                      <div>
-                        <p className="font-semibold">Workshop Day</p>
-                        <p className="text-gray-600">December 21, 2025</p>
+                        <p className="text-gray-600">Until January 15, 2026</p>
                       </div>
                     </li>
                     <li className="flex">
                       <Clock className="h-5 w-5 text-primary mr-3 flex-shrink-0" />
                       <div>
                         <p className="font-semibold">Main Conference</p>
-                        <p className="text-gray-600">December 22-24, 2025</p>
+                        <p className="text-gray-600">February 19-21, 2026</p>
                       </div>
                     </li>
                   </ul>
@@ -264,13 +267,24 @@ export default function CallForPapersPage() {
                   <p className="text-gray-600 mb-4">
                     For any queries regarding abstract submission, please contact:
                   </p>
-                  <ul className="space-y-3 text-gray-600">
-                    <li>
-                      <p className="font-semibold">Dr. Vasili B V Nagarjuna</p>
-                      <p>Convener</p>
-                      <p>nagarjuna.vasili@vitap.ac.in</p>
-                      <p>+91-7673944853</p>
-                    </li>
+                  <div className="space-y-3 text-gray-600 mb-4">
+                    <div>
+                      <p className="font-semibold">Dr S Muthu Prabhu</p>
+                      <p>+91-99444 98483</p>
+                    </div>
+                    <div>
+                      <p className="font-semibold">Dr Moru Satyanarayana</p>
+                      <p>+91-99597 04030</p>
+                    </div>
+                    <div>
+                      <p className="font-semibold">Dr Illa Ramakanth</p>
+                      <p>+91-95734 32526</p>
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-500 italic">
+                    *The registration fee is non-refundable. An additional 18% GST is applicable
+                  </p>
+                  <ul className="space-y-3 text-gray-600" style={{display: 'none'}}>
                     <li>
                       <p className="font-semibold">Dr. Vemula Ramakrishna Reddy</p>
                       <p>Co-convener</p>

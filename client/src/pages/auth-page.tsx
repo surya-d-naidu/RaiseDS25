@@ -74,7 +74,7 @@ export default function AuthPage() {
   return (
     <>
       <Helmet>
-        <title>Sign In | RAISE DS 2025</title>
+        <title>Sign In | SuWatE+'26</title>
       </Helmet>
       
       <Navbar />

@@ -34,14 +34,13 @@ export default function CommitteePage() {
     patron: allMembers?.filter(m => m.category === "patron") || [],
     organizing_committee: allMembers?.filter(m => m.category === "organizing_committee") || [],
     advisory_committee: allMembers?.filter(m => m.category === "advisory_committee") || [],
-    isps_executive: allMembers?.filter(m => m.category === "isps_executive") || [],
   };
 
   return (
     <>
       <Helmet>
-        <title>Committee | RAISE DS 2025</title>
-        <meta name="description" content="Meet the organizing committee of the 45th Annual Convention of Indian Society for Probability and Statistics (ISPS) and the International Conference on Recent Advances and Innovative Statistics with Enhancing Data Science (IC-RAISE DS)." />
+        <title>Committee | SuWatE+'26</title>
+        <meta name="description" content="Meet the organizing committee of the Second International Conference on Next Generation Sustainable Materials for Water and Energy Solutions (SuWatE+'26)." />
       </Helmet>
       
       <NotificationBar />
@@ -54,7 +53,7 @@ export default function CommitteePage() {
               Conference Committee
             </h1>
             <p className="mt-4 text-xl text-gray-500 max-w-3xl mx-auto">
-              Meet the team behind RAISE DS 2025
+              Meet the team behind SuWatE+'26
             </p>
           </div>
           
@@ -64,11 +63,10 @@ export default function CommitteePage() {
             </div>
           ) : (
             <Tabs defaultValue="chief_patrons" className="w-full">
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="chief_patrons">Chief Patrons</TabsTrigger>
                 <TabsTrigger value="organizing">Organizing</TabsTrigger>
                 <TabsTrigger value="advisory">Advisory</TabsTrigger>
-                <TabsTrigger value="isps">ISPS Executive</TabsTrigger>
               </TabsList>
               
               <TabsContent value="chief_patrons" className="mt-6">
@@ -111,15 +109,31 @@ export default function CommitteePage() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="bg-gray-50 p-5 rounded-lg shadow-sm">
                           <h4 className="font-semibold text-lg mb-2">Conference</h4>
-                          <p className="text-gray-700">raiseds25@vitap.ac.in</p>
-                          <p className="text-gray-700">www.raiseds25.com</p>
+                          <p className="text-gray-700">suwate@vitap.ac.in</p>
+                          <p className="text-gray-700">www.suwate26.com</p>
                         </div>
                         <div className="bg-gray-50 p-5 rounded-lg shadow-sm">
-                          <h4 className="font-semibold text-lg mb-2">Convener</h4>
-                          <p className="text-gray-700">Dr. Vasili B V Nagarjuna</p>
-                          <p className="text-gray-700">nagarjuna.vasili@vitap.ac.in</p>
-                          <p className="text-gray-700">+91-7673944853</p>
+                          <h4 className="font-semibold text-lg mb-2">Contact Persons</h4>
+                          <div className="space-y-2">
+                            <div>
+                              <p className="text-gray-700 font-medium">Dr S Muthu Prabhu</p>
+                              <p className="text-gray-600">+91-99444 98483</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-700 font-medium">Dr Moru Satyanarayana</p>
+                              <p className="text-gray-600">+91-99597 04030</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-700 font-medium">Dr Illa Ramakanth</p>
+                              <p className="text-gray-600">+91-95734 32526</p>
+                            </div>
+                          </div>
                         </div>
+                      </div>
+                      <div className="mt-4">
+                        <p className="text-sm text-gray-500 italic">
+                          *The registration fee is non-refundable. An additional 18% GST is applicable
+                        </p>
                       </div>
                     </div>
                   </CardContent>
@@ -219,38 +233,6 @@ export default function CommitteePage() {
                   </CardContent>
                 </Card>
               </TabsContent>
-              
-              <TabsContent value="isps" className="mt-6">
-                <Card>
-                  <CardContent className="p-6">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-6">ISPS Executive Committee</h2>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      {membersByCategory.isps_executive.length > 0 ? (
-                        membersByCategory.isps_executive.map((member) => (
-                          <div key={member.id} className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
-                            {member.profileLink ? (
-                              <a href={member.profileLink} target="_blank" rel="noopener noreferrer" className="text-lg font-medium text-gray-900 hover:text-primary hover:underline">
-                                {member.name}
-                              </a>
-                            ) : (
-                              <h3 className="text-lg font-medium text-gray-900">{member.name}</h3>
-                            )}
-                            <p className="text-sm text-gray-500">{member.role}</p>
-                            {member.institution && (
-                              <p className="mt-2 text-sm text-gray-600">{member.institution}</p>
-                            )}
-                          </div>
-                        ))
-                      ) : (
-                        <div className="col-span-3 text-center py-12 text-gray-500">
-                          <p>No ISPS executive committee members to display</p>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
             </Tabs>
           )}
           
@@ -262,7 +244,7 @@ export default function CommitteePage() {
               For any inquiries related to the conference, please feel free to contact any of the organizing committee members listed above or reach out to us at:
             </p>
             <div className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-white bg-primary hover:bg-primary-700">
-              <a href="mailto:raiseds25@vitap.ac.in">raiseds25@vitap.ac.in</a>
+              <a href="mailto:suwate@vitap.ac.in">suwate@vitap.ac.in</a>
             </div>
           </div>
         </div>

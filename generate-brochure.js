@@ -39,7 +39,7 @@ stream
 BT
 /F1 24 Tf
 100 700 Td
-(RAISE DS 2025 Conference Brochure) Tj
+(SuWatE+'26 Conference Brochure) Tj
 ET
 stream
 endobj

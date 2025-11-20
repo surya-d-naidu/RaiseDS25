@@ -23,8 +23,8 @@ export default function ResearchAwardsPage() {
   return (
     <>
       <Helmet>
-        <title>Research Awards | RAISE DS 2025</title>
-        <meta name="description" content="Learn about the research awards offered at the 45th Annual Convention of Indian Society for Probability and Statistics (ISPS) and the International Conference on Recent Advances and Innovative Statistics with Enhancing Data Science (IC-RAISE DS)." />
+        <title>Research Awards | SuWatE+'26</title>
+        <meta name="description" content="Learn about the research awards offered at the Second International Conference on Next Generation Sustainable Materials for Water and Energy Solutions (SuWatE+'26)." />
       </Helmet>
       
       <NotificationBar />
@@ -44,7 +44,7 @@ export default function ResearchAwardsPage() {
           <div className="mb-16">
             <div className="prose prose-indigo prose-lg text-gray-500 mx-auto">
               <p className="text-center">
-                RAISE DS 2025 is proud to offer several prestigious awards to recognize outstanding contributions in the field of statistics and data science. These awards aim to encourage and honor researchers at various career stages who have made significant contributions to statistical theory, methodology, or applications.
+                SuWatE+'26 is proud to offer several prestigious awards to recognize outstanding contributions in the field of sustainable materials for water and energy solutions. These awards aim to encourage and honor researchers at various career stages who have made significant contributions to chemistry, materials science, and environmental solutions.
               </p>
             </div>
           </div>
@@ -170,7 +170,7 @@ export default function ResearchAwardsPage() {
                 <li>Finalists may be required to present their work during a special session at the conference</li>
               </ol>
               <p className="mt-4 text-gray-600">
-                For any questions regarding the research awards, please contact the Awards Committee at <span className="text-primary">awards@raiseds25.com</span>
+                For any questions regarding the research awards, please contact the Awards Committee at <span className="text-primary">awards@suwate26.com</span>
               </p>
             </CardContent>
           </Card>

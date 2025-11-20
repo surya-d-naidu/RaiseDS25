@@ -20,12 +20,12 @@ export default function HostInstitutions() {
                     <Building className="h-10 w-10 text-primary" />
                   </div>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 text-center">VIT-AP University</h3>
+                                <h3 className="text-xl font-semibold text-gray-900 text-center">RMIT University</h3>
                 <p className="mt-4 text-gray-600">
-                  VIT-AP University, located in the city of Amaravati, Andhra Pradesh, is renowned for its commitment to innovation and academic distinction. As part of the prestigious VIT group, with a legacy spanning over 40 years, VIT-AP offers a unique blend of rigorous academics, state-of-the-art facilities, and opportunities for holistic development.
+                  RMIT University is a global university of technology, design and enterprise. With a focus on practical education and innovative research, RMIT provides expertise in materials science and sustainable technology solutions. The university's international collaboration brings global perspectives to addressing water and energy challenges.
                 </p>
                 <p className="mt-2 text-gray-600">
-                  With a strong emphasis on ethical values, sustainability, and inclusivity, the university nurtures well-rounded individuals to make a positive impact on society.
+                  Through this partnership, RMIT contributes to advancing sustainable materials research and fostering international academic collaboration in addressing critical environmental challenges.
                 </p>
                 <div className="mt-6 text-center">
                   <a href="https://vitap.ac.in" target="_blank" rel="noopener noreferrer" className="inline-flex items-center text-primary hover:text-primary-700">
@@ -46,12 +46,12 @@ export default function HostInstitutions() {
                     <Users className="h-10 w-10 text-secondary" />
                   </div>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 text-center">Indian Society for Probability and Statistics (ISPS)</h3>
+                <h3 className="text-xl font-semibold text-gray-900 text-center">Department of Chemistry, SAS</h3>
                 <p className="mt-4 text-gray-600">
-                  The Indian Society for Probability and Statistics (ISPS) is a premier organization dedicated to the advancement of statistical sciences in India. Through its annual conventions, workshops, and publications, ISPS provides a platform for academic exchange, professional development, and networking among statisticians, mathematicians, and data scientists.
+                  The Department of Chemistry at the School of Advanced Sciences (SAS) is dedicated to advancing chemical sciences and fostering innovation in sustainable materials research. Through cutting-edge research and academic excellence, the department provides a platform for scientific exchange and professional development.
                 </p>
                 <p className="mt-2 text-gray-600">
-                  Founded with the mission to promote research and education in probability and statistics, ISPS plays a crucial role in shaping the future of statistical sciences in India and beyond.
+                  With a focus on addressing urgent challenges in water and energy through innovative chemistry applications, the department plays a crucial role in shaping the future of sustainable materials science.
                 </p>
                 <div className="mt-6 text-center">
                   <a href="#" className="inline-flex items-center text-secondary hover:text-secondary-700">

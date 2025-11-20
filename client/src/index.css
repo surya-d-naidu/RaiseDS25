@@ -3,53 +3,53 @@
 @tailwind utilities;
 
 :root {
-  --background: 336 100% 93%;
+  --background: 120 30% 95%;
   --foreground: 20 14.3% 4.1%;
-  --muted: 336 30% 90%;
+  --muted: 120 20% 88%;
   --muted-foreground: 25 5.3% 44.7%;
-  --popover: 336 60% 96%;
+  --popover: 120 40% 96%;
   --popover-foreground: 20 14.3% 4.1%;
-  --card: 336 60% 96%;
+  --card: 120 40% 96%;
   --card-foreground: 20 14.3% 4.1%;
-  --border: 336 40% 88%;
-  --input: 336 40% 88%;
-  --primary: 350 100% 30%;
+  --border: 120 30% 85%;
+  --input: 120 30% 85%;
+  --primary: 140 85% 28%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 350 80% 45%;
+  --secondary: 125 60% 35%;
   --secondary-foreground: 0 0% 100%;
-  --accent: 336 25% 92%;
+  --accent: 120 20% 90%;
   --accent-foreground: 24 9.8% 10%;
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 60 9.1% 97.8%;
-  --ring: 350 100% 30%;
+  --ring: 140 85% 28%;
   --radius: 0.5rem;
-  --chart-1: 350 100% 30%;
-  --chart-2: 350 80% 45%;
-  --chart-3: 350 60% 60%;
-  --chart-4: 350 40% 75%;
-  --chart-5: 350 20% 90%;
+  --chart-1: 140 85% 28%;
+  --chart-2: 125 60% 35%;
+  --chart-3: 110 50% 45%;
+  --chart-4: 95 40% 55%;
+  --chart-5: 80 30% 65%;
 }
 
 .dark {
-  --background: 240 10% 3.9%;
+  --background: 120 15% 6%;
   --foreground: 0 0% 98%;
-  --muted: 240 3.7% 15.9%;
-  --muted-foreground: 240 5% 64.9%;
-  --popover: 240 10% 3.9%;
+  --muted: 120 10% 18%;
+  --muted-foreground: 120 5% 64.9%;
+  --popover: 120 15% 6%;
   --popover-foreground: 0 0% 98%;
-  --card: 240 10% 3.9%;
+  --card: 120 15% 6%;
   --card-foreground: 0 0% 98%;
-  --border: 240 3.7% 15.9%;
-  --input: 240 3.7% 15.9%;
-  --primary: 350 80% 40%;
+  --border: 120 10% 18%;
+  --input: 120 10% 18%;
+  --primary: 140 80% 45%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 350 60% 55%;
+  --secondary: 125 60% 50%;
   --secondary-foreground: 0 0% 100%;
-  --accent: 240 3.7% 15.9%;
+  --accent: 120 10% 18%;
   --accent-foreground: 0 0% 98%;
   --destructive: 0 62.8% 30.6%;
   --destructive-foreground: 0 0% 98%;
-  --ring: 350 80% 40%;
+  --ring: 140 80% 45%;
   --radius: 0.5rem;
 }
 
@@ -100,7 +100,7 @@ body {
   position: relative;
 }
 
-.cursor-dot {
+  .cursor-dot {
   position: fixed;
   width: 12px;
   height: 12px;
@@ -110,10 +110,8 @@ body {
   transform: translate(-50%, -50%);
   z-index: 9999;
   transition: width 0.2s, height 0.2s;
-  box-shadow: 0 0 10px rgba(152, 0, 25, 0.7);
-}
-
-.cursor-outline {
+  box-shadow: 0 0 10px rgba(34, 139, 34, 0.7);
+}.cursor-outline {
   position: fixed;
   width: 36px;
   height: 36px;
@@ -126,7 +124,7 @@ body {
   background-color: hsla(var(--primary), 0.05);
 }
 
-.cursor-trail {
+  .cursor-trail {
   position: fixed;
   width: 6px;
   height: 6px;
@@ -135,10 +133,8 @@ body {
   pointer-events: none;
   z-index: 9997;
   transition: transform 0.2s, width 0.3s, height 0.3s;
-  box-shadow: 0 0 5px rgba(204, 51, 68, 0.4);
-}
-
-/* Add animated graph lines to cursor outline on hover */
+  box-shadow: 0 0 5px rgba(34, 139, 34, 0.4);
+}/* Add animated graph lines to cursor outline on hover */
 .cursor-outline::before,
 .cursor-outline::after {
   content: '';
@@ -163,4 +159,59 @@ body {
   0% { transform: translateY(-50%) scaleX(0); }
   50% { transform: translateY(-50%) scaleX(0.8); }
   100% { transform: translateY(-50%) scaleX(0); }
+}
+
+/* 3D Earth Animation Styles */
+.animate-spin-slow {
+  animation: spin 20s linear infinite;
+}
+
+.bg-gradient-radial {
+  background: radial-gradient(circle, var(--tw-gradient-stops));
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) rotateX(5deg);
+  }
+  50% {
+    transform: translateY(-10px) rotateX(10deg);
+  }
+}
+
+/* Blob animations for speakers section */
+@keyframes blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+
+.animate-blob {
+  animation: blob 7s infinite;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+/* Line clamp utility */
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }

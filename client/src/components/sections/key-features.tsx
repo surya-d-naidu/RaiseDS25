@@ -11,17 +11,17 @@ const features = [
   {
     icon: <Globe className="h-6 w-6" />,
     title: "Global Speakers",
-    description: "Engage with renowned statisticians and data scientists from around the world, sharing insights on the latest advancements in the field."
+    description: "Engage with renowned researchers and scientists from around the world, sharing insights on sustainable materials for water and energy solutions."
   },
   {
     icon: <Briefcase className="h-6 w-6" />,
     title: "Specialized Workshops",
-    description: "Participate in hands-on sessions focused on practical applications of statistical methods in data science and machine learning."
+    description: "Participate in hands-on sessions focused on practical applications of chemistry and materials science in addressing water and energy challenges."
   },
   {
     icon: <Zap className="h-6 w-6" />,
     title: "Research Presentations",
-    description: "Showcase your work through oral and poster presentations, receiving valuable feedback from peers and experts in the field."
+    description: "Showcase your work in materials science, chemical engineering, and computational studies, receiving valuable feedback from peers and experts."
   },
   {
     icon: <Users className="h-6 w-6" />,
@@ -36,7 +36,7 @@ const features = [
   {
     icon: <Award className="h-6 w-6" />,
     title: "Awards & Recognition",
-    description: "Outstanding research contributions will be recognized through various awards, encouraging excellence in the field of statistics and data science."
+    description: "Outstanding research contributions will be recognized through various awards, encouraging excellence in sustainable materials research."
   }
 ];
 

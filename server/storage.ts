@@ -1,7 +1,8 @@
 import { users, type User, type InsertUser, profiles, type Profile, type InsertProfile, 
   abstracts, type Abstract, type InsertAbstract, invitations, type Invitation, type InsertInvitation,
   notifications, type Notification, type InsertNotification, committeeMembers, type CommitteeMember, 
-  type InsertCommitteeMember, researchAwards, type ResearchAward, type InsertResearchAward } from "@shared/schema";
+  type InsertCommitteeMember, researchAwards, type ResearchAward, type InsertResearchAward,
+  speakers, type Speaker, type InsertSpeaker } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, sql } from "drizzle-orm";
 import session from "express-session";
@@ -64,6 +65,15 @@ export interface IStorage {
   updateResearchAward(id: number, data: Partial<InsertResearchAward>): Promise<ResearchAward | undefined>;
   deleteResearchAward(id: number): Promise<boolean>;
   
+  // Speakers
+  getSpeaker(id: number): Promise<Speaker | undefined>;
+  getSpeakersByCategory(category: string): Promise<Speaker[]>;
+  getAllSpeakers(): Promise<Speaker[]>;
+  createSpeaker(speaker: InsertSpeaker): Promise<Speaker>;
+  updateSpeaker(id: number, data: Partial<InsertSpeaker>): Promise<Speaker | undefined>;
+  deleteSpeaker(id: number): Promise<boolean>;
+  bulkCreateSpeakers(speakers: InsertSpeaker[]): Promise<Speaker[]>;
+  
   // Session store
   sessionStore: session.SessionStore;
 }
@@ -76,6 +86,7 @@ export class MemStorage implements IStorage {
   private notificationStore: Map<number, Notification>;
   private committeeMemberStore: Map<number, CommitteeMember>;
   private researchAwardStore: Map<number, ResearchAward>;
+  private speakerStore: Map<number, Speaker>;
   private currentId: {
     user: number;
     profile: number;
@@ -84,6 +95,7 @@ export class MemStorage implements IStorage {
     notification: number;
     committeeMember: number;
     researchAward: number;
+    speaker: number;
   };
   sessionStore: session.SessionStore;
 
@@ -106,6 +118,7 @@ export class MemStorage implements IStorage {
     this.notificationStore = new Map();
     this.committeeMemberStore = new Map();
     this.researchAwardStore = new Map();
+    this.speakerStore = new Map();
     
     // Reset IDs
     this.currentId = {
@@ -115,7 +128,8 @@ export class MemStorage implements IStorage {
       invitation: 1,
       notification: 1,
       committeeMember: 1,
-      researchAward: 1
+      researchAward: 1,
+      speaker: 1
     };
     
     // Create admin user
@@ -123,7 +137,7 @@ export class MemStorage implements IStorage {
     const adminUser = {
       id: 1,
       username: 'surya-d-naidu',
-      email: 'admin@raiseds25.com',
+      email: 'admin@suwate26.com',
       // Using properly generated scrypt hash for "7075052734"
       password: '26f479b13979ed3a9b50e6bbd80f45037614379c8c6cd027f175424fc69569ff214c4c02d8e43e0763220a61a398bdd116ad3534ed65bad12d9a2bbf9c4132d2.7d213b9682355958cffb77ffe6688b00',
       firstName: 'Surya',
@@ -151,6 +165,128 @@ export class MemStorage implements IStorage {
     console.log("Admin user created successfully!");
     console.log("Username: surya-d-naidu");
     console.log("Password: 7075052734");
+    
+    // Create default speakers
+    this.createDefaultSpeakers();
+  }
+
+  // Method to create default speakers
+  createDefaultSpeakers() {
+    console.log("Creating default speakers...");
+    
+    const defaultSpeakers = [
+      {
+        name: "Aravindan",
+        title: "Keynote Speaker",
+        imageUrl: "/speakers/aravindan.jpeg",
+        category: "keynote",
+        order: 1,
+        institution: "Leading University",
+        country: "India",
+        bio: "Expert in sustainable materials and water treatment technologies.",
+        isActive: true
+      },
+      {
+        name: "Azhar Ali",
+        title: "Invited Speaker",
+        imageUrl: "/speakers/azhar-ali.jpg",
+        category: "invited",
+        order: 2,
+        institution: "Research Institute",
+        country: "Pakistan",
+        bio: "Specialist in energy solutions and renewable technologies.",
+        isActive: true
+      },
+      {
+        name: "Biplob",
+        title: "Panel Speaker",
+        imageUrl: "/speakers/biplob.jpg",
+        category: "panel",
+        order: 3,
+        institution: "International Tech Center",
+        country: "Bangladesh",
+        bio: "Innovation leader in next-generation sustainable materials.",
+        isActive: true
+      },
+      {
+        name: "Ganesan",
+        title: "Keynote Speaker",
+        imageUrl: "/speakers/ganesan.jpg",
+        category: "keynote",
+        order: 4,
+        institution: "Advanced Materials Lab",
+        country: "India",
+        bio: "Pioneer in water purification and environmental solutions.",
+        isActive: true
+      },
+      {
+        name: "Gobi",
+        title: "Invited Speaker",
+        imageUrl: "/speakers/gobi.jpeg",
+        category: "invited",
+        order: 5,
+        institution: "Green Technology Institute",
+        country: "India",
+        bio: "Expert in sensor technology and environmental monitoring.",
+        isActive: true
+      },
+      {
+        name: "Meenakshi",
+        title: "Research Speaker",
+        imageUrl: "/speakers/meenakshi.jpeg",
+        category: "research",
+        order: 6,
+        institution: "Water Research Center",
+        country: "India",
+        bio: "Leading researcher in water-energy nexus solutions.",
+        isActive: true
+      },
+      {
+        name: "Roger Narayan",
+        title: "International Speaker",
+        imageUrl: "/speakers/roger-narayan.jpg",
+        category: "keynote",
+        order: 7,
+        institution: "Global Materials Research",
+        country: "USA",
+        bio: "International expert in advanced materials and biotechnology.",
+        isActive: true
+      },
+      {
+        name: "Yugender Goud Kotagiri",
+        title: "Technology Speaker",
+        imageUrl: "/speakers/yugender-goud-kotagiri.jpg",
+        category: "technology",
+        order: 8,
+        institution: "Innovation Hub",
+        country: "India",
+        bio: "Technology innovator in sustainable energy and smart materials.",
+        isActive: true
+      }
+    ];
+
+    defaultSpeakers.forEach((speakerData, index) => {
+      const id = this.currentId.speaker++;
+      const now = new Date();
+      const speaker: Speaker = {
+        id,
+        name: speakerData.name,
+        title: speakerData.title,
+        institution: speakerData.institution,
+        country: speakerData.country,
+        bio: speakerData.bio,
+        imageUrl: speakerData.imageUrl,
+        category: speakerData.category,
+        order: speakerData.order,
+        socialLinks: null,
+        isActive: speakerData.isActive,
+        createdAt: now
+      };
+      this.speakerStore.set(id, speaker);
+      console.log(`Created speaker: ${speaker.name}`);
+    });
+    
+    console.log("Default speakers created successfully!");
   }
 
   // Users
@@ -453,6 +589,76 @@ export class MemStorage implements IStorage {
 
   async deleteResearchAward(id: number): Promise<boolean> {
     return this.researchAwardStore.delete(id);
+  }
+
+  // Speakers
+  async getSpeaker(id: number): Promise<Speaker | undefined> {
+    return this.speakerStore.get(id);
+  }
+
+  async getSpeakersByCategory(category: string): Promise<Speaker[]> {
+    return Array.from(this.speakerStore.values())
+      .filter(speaker => speaker.category === category && speaker.isActive)
+      .sort((a, b) => (a.order || 0) - (b.order || 0));
+  }
+
+  async getAllSpeakers(): Promise<Speaker[]> {
+    return Array.from(this.speakerStore.values())
+      .filter(speaker => speaker.isActive)
+      .sort((a, b) => (a.order || 0) - (b.order || 0));
+  }
+
+  async createSpeaker(speakerData: InsertSpeaker): Promise<Speaker> {
+    const id = this.currentId.speaker++;
+    const now = new Date();
+    const speaker: Speaker = {
+      ...speakerData,
+      id,
+      bio: speakerData.bio || null,
+      title: speakerData.title || null,
+      institution: speakerData.institution || null,
+      country: speakerData.country || null,
+      imageUrl: speakerData.imageUrl || null,
+      category: speakerData.category || "keynote",
+      order: speakerData.order || 0,
+      socialLinks: speakerData.socialLinks || null,
+      isActive: speakerData.isActive ?? true,
+      createdAt: now
+    };
+    this.speakerStore.set(id, speaker);
+    return speaker;
+  }
+
+  async updateSpeaker(id: number, data: Partial<InsertSpeaker>): Promise<Speaker | undefined> {
+    const speaker = this.speakerStore.get(id);
+    if (!speaker) return undefined;
+    
+    const updatedSpeaker: Speaker = { 
+      ...speaker, 
+      ...data,
+      bio: data.bio !== undefined ? data.bio : speaker.bio,
+      title: data.title !== undefined ? data.title : speaker.title,
+      institution: data.institution !== undefined ? data.institution : speaker.institution,
+      country: data.country !== undefined ? data.country : speaker.country,
+      imageUrl: data.imageUrl !== undefined ? data.imageUrl : speaker.imageUrl,
+      socialLinks: data.socialLinks !== undefined ? data.socialLinks : speaker.socialLinks,
+      isActive: data.isActive !== undefined ? data.isActive : speaker.isActive
+    };
+    this.speakerStore.set(id, updatedSpeaker);
+    return updatedSpeaker;
+  }
+
+  async deleteSpeaker(id: number): Promise<boolean> {
+    return this.speakerStore.delete(id);
+  }
+
+  async bulkCreateSpeakers(speakersData: InsertSpeaker[]): Promise<Speaker[]> {
+    const speakers: Speaker[] = [];
+    for (const data of speakersData) {
+      const speaker = await this.createSpeaker(data);
+      speakers.push(speaker);
+    }
+    return speakers;
   }
 }
 

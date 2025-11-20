@@ -23,6 +23,7 @@ var MemStorage = class {
   notificationStore;
   committeeMemberStore;
   researchAwardStore;
+  speakerStore;
   currentId;
   sessionStore;
   constructor() {
@@ -42,6 +43,7 @@ var MemStorage = class {
     this.notificationStore = /* @__PURE__ */ new Map();
     this.committeeMemberStore = /* @__PURE__ */ new Map();
     this.researchAwardStore = /* @__PURE__ */ new Map();
+    this.speakerStore = /* @__PURE__ */ new Map();
     this.currentId = {
       user: 1,
       profile: 1,
@@ -49,13 +51,14 @@ var MemStorage = class {
       invitation: 1,
       notification: 1,
       committeeMember: 1,
-      researchAward: 1
+      researchAward: 1,
+      speaker: 1
     };
     console.log("Creating admin user...");
     const adminUser = {
       id: 1,
       username: "surya-d-naidu",
-      email: "admin@raiseds25.com",
+      email: "admin@suwate26.com",
       // Using properly generated scrypt hash for "7075052734"
       password: "26f479b13979ed3a9b50e6bbd80f45037614379c8c6cd027f175424fc69569ff214c4c02d8e43e0763220a61a398bdd116ad3534ed65bad12d9a2bbf9c4132d2.7d213b9682355958cffb77ffe6688b00",
       firstName: "Surya",
@@ -80,6 +83,122 @@ var MemStorage = class {
     console.log("Admin user created successfully!");
     console.log("Username: surya-d-naidu");
     console.log("Password: 7075052734");
+    this.createDefaultSpeakers();
+  }
+  // Method to create default speakers
+  createDefaultSpeakers() {
+    console.log("Creating default speakers...");
+    const defaultSpeakers = [
+      {
+        name: "Aravindan",
+        title: "Keynote Speaker",
+        imageUrl: "/speakers/aravindan.jpeg",
+        category: "keynote",
+        order: 1,
+        institution: "Leading University",
+        country: "India",
+        bio: "Expert in sustainable materials and water treatment technologies.",
+        isActive: true
+      },
+      {
+        name: "Azhar Ali",
+        title: "Invited Speaker",
+        imageUrl: "/speakers/azhar-ali.jpg",
+        category: "invited",
+        order: 2,
+        institution: "Research Institute",
+        country: "Pakistan",
+        bio: "Specialist in energy solutions and renewable technologies.",
+        isActive: true
+      },
+      {
+        name: "Biplob",
+        title: "Panel Speaker",
+        imageUrl: "/speakers/biplob.jpg",
+        category: "panel",
+        order: 3,
+        institution: "International Tech Center",
+        country: "Bangladesh",
+        bio: "Innovation leader in next-generation sustainable materials.",
+        isActive: true
+      },
+      {
+        name: "Ganesan",
+        title: "Keynote Speaker",
+        imageUrl: "/speakers/ganesan.jpg",
+        category: "keynote",
+        order: 4,
+        institution: "Advanced Materials Lab",
+        country: "India",
+        bio: "Pioneer in water purification and environmental solutions.",
+        isActive: true
+      },
+      {
+        name: "Gobi",
+        title: "Invited Speaker",
+        imageUrl: "/speakers/gobi.jpeg",
+        category: "invited",
+        order: 5,
+        institution: "Green Technology Institute",
+        country: "India",
+        bio: "Expert in sensor technology and environmental monitoring.",
+        isActive: true
+      },
+      {
+        name: "Meenakshi",
+        title: "Research Speaker",
+        imageUrl: "/speakers/meenakshi.jpeg",
+        category: "research",
+        order: 6,
+        institution: "Water Research Center",
+        country: "India",
+        bio: "Leading researcher in water-energy nexus solutions.",
+        isActive: true
+      },
+      {
+        name: "Roger Narayan",
+        title: "International Speaker",
+        imageUrl: "/speakers/roger-narayan.jpg",
+        category: "keynote",
+        order: 7,
+        institution: "Global Materials Research",
+        country: "USA",
+        bio: "International expert in advanced materials and biotechnology.",
+        isActive: true
+      },
+      {
+        name: "Yugender Goud Kotagiri",
+        title: "Technology Speaker",
+        imageUrl: "/speakers/yugender-goud-kotagiri.jpg",
+        category: "technology",
+        order: 8,
+        institution: "Innovation Hub",
+        country: "India",
+        bio: "Technology innovator in sustainable energy and smart materials.",
+        isActive: true
+      }
+    ];
+    defaultSpeakers.forEach((speakerData, index) => {
+      const id = this.currentId.speaker++;
+      const now = /* @__PURE__ */ new Date();
+      const speaker = {
+        id,
+        name: speakerData.name,
+        title: speakerData.title,
+        institution: speakerData.institution,
+        country: speakerData.country,
+        bio: speakerData.bio,
+        imageUrl: speakerData.imageUrl,
+        category: speakerData.category,
+        order: speakerData.order,
+        socialLinks: null,
+        isActive: speakerData.isActive,
+        createdAt: now
+      };
+      this.speakerStore.set(id, speaker);
+      console.log(`Created speaker: ${speaker.name}`);
+    });
+    console.log("Default speakers created successfully!");
   }
   // Users
   async getUser(id) {
@@ -327,6 +446,64 @@ var MemStorage = class {
   async deleteResearchAward(id) {
     return this.researchAwardStore.delete(id);
   }
+  // Speakers
+  async getSpeaker(id) {
+    return this.speakerStore.get(id);
+  }
+  async getSpeakersByCategory(category) {
+    return Array.from(this.speakerStore.values()).filter((speaker) => speaker.category === category && speaker.isActive).sort((a, b) => (a.order || 0) - (b.order || 0));
+  }
+  async getAllSpeakers() {
+    return Array.from(this.speakerStore.values()).filter((speaker) => speaker.isActive).sort((a, b) => (a.order || 0) - (b.order || 0));
+  }
+  async createSpeaker(speakerData) {
+    const id = this.currentId.speaker++;
+    const now = /* @__PURE__ */ new Date();
+    const speaker = {
+      ...speakerData,
+      id,
+      bio: speakerData.bio || null,
+      title: speakerData.title || null,
+      institution: speakerData.institution || null,
+      country: speakerData.country || null,
+      imageUrl: speakerData.imageUrl || null,
+      category: speakerData.category || "keynote",
+      order: speakerData.order || 0,
+      socialLinks: speakerData.socialLinks || null,
+      isActive: speakerData.isActive ?? true,
+      createdAt: now
+    };
+    this.speakerStore.set(id, speaker);
+    return speaker;
+  }
+  async updateSpeaker(id, data) {
+    const speaker = this.speakerStore.get(id);
+    if (!speaker) return void 0;
+    const updatedSpeaker = {
+      ...speaker,
+      ...data,
+      bio: data.bio !== void 0 ? data.bio : speaker.bio,
+      title: data.title !== void 0 ? data.title : speaker.title,
+      institution: data.institution !== void 0 ? data.institution : speaker.institution,
+      country: data.country !== void 0 ? data.country : speaker.country,
+      imageUrl: data.imageUrl !== void 0 ? data.imageUrl : speaker.imageUrl,
+      socialLinks: data.socialLinks !== void 0 ? data.socialLinks : speaker.socialLinks,
+      isActive: data.isActive !== void 0 ? data.isActive : speaker.isActive
+    };
+    this.speakerStore.set(id, updatedSpeaker);
+    return updatedSpeaker;
+  }
+  async deleteSpeaker(id) {
+    return this.speakerStore.delete(id);
+  }
+  async bulkCreateSpeakers(speakersData) {
+    const speakers2 = [];
+    for (const data of speakersData) {
+      const speaker = await this.createSpeaker(data);
+      speakers2.push(speaker);
+    }
+    return speakers2;
+  }
 };
 var storage = new MemStorage();
 
@@ -367,7 +544,7 @@ async function comparePasswords(supplied, stored) {
 }
 function setupAuth(app2) {
   const sessionSettings = {
-    secret: process.env.SESSION_SECRET || "raise-ds-session-secret-2025",
+    secret: process.env.SESSION_SECRET || "suwate26-session-secret-2026",
     resave: false,
     saveUninitialized: false,
     store: storage.sessionStore,
@@ -511,11 +688,13 @@ __export(schema_exports, {
   insertNotificationSchema: () => insertNotificationSchema,
   insertProfileSchema: () => insertProfileSchema,
   insertResearchAwardSchema: () => insertResearchAwardSchema,
+  insertSpeakerSchema: () => insertSpeakerSchema,
   insertUserSchema: () => insertUserSchema,
   invitations: () => invitations,
   notifications: () => notifications,
   profiles: () => profiles,
   researchAwards: () => researchAwards,
+  speakers: () => speakers,
   users: () => users
 });
 import { pgTable, text, serial, integer, boolean, timestamp, json } from "drizzle-orm/pg-core";
@@ -643,6 +822,26 @@ var researchAwards = pgTable("research_awards", {
 var insertResearchAwardSchema = createInsertSchema(researchAwards).omit({
   id: true
 });
+var speakers = pgTable("speakers", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  title: text("title"),
+  // e.g., "Keynote Speaker", "Invited Speaker"
+  institution: text("institution"),
+  country: text("country"),
+  bio: text("bio"),
+  imageUrl: text("image_url"),
+  category: text("category").notNull().default("keynote"),
+  // keynote, invited, panel
+  order: integer("order").default(0),
+  socialLinks: json("social_links").$type(),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow()
+});
+var insertSpeakerSchema = createInsertSchema(speakers).omit({
+  id: true,
+  createdAt: true
+});
 
 // server/routes.ts
 import { ZodError } from "zod";
@@ -687,7 +886,7 @@ async function sendEmail(to, subject, html) {
         }
       });
       await transporter.sendMail({
-        from: process.env.SMTP_FROM || '"RAISE DS 2025" <noreply@raiseds25.com>',
+        from: process.env.SMTP_FROM || `"SuWatE+'26" <noreply@suwate26.com>`,
         to,
         subject,
         html
@@ -757,14 +956,14 @@ async function registerRoutes(app2) {
       try {
         await sendEmail(
           req.user.email,
-          `Abstract Submission Confirmation - RAISE DS 2025`,
+          `Abstract Submission Confirmation - SuWatE+'26`,
           `<p>Dear ${req.user.firstName},</p>
-          <p>Thank you for submitting your abstract to RAISE DS 2025.</p>
+          <p>Thank you for submitting your abstract to SuWatE+'26.</p>
           <p>Your abstract has been received and is pending review.</p>
           <p><strong>Abstract ID:</strong> ${newAbstract.referenceId}</p>
           <p><strong>Title:</strong> ${newAbstract.title}</p>
           <p>You can check the status of your submission in the "My Abstracts" section of your account.</p>
-          <p>RAISE DS 2025 Team</p>`
+          <p>SuWatE+'26 Team</p>`
         );
       } catch (emailError) {
         console.error("Failed to send confirmation email:", emailError);
@@ -1237,6 +1436,78 @@ async function registerRoutes(app2) {
       res.status(500).json({ message: "Error updating user role" });
     }
   });
+  app2.get("/api/speakers", async (req, res) => {
+    try {
+      const speakers2 = await storage.getAllSpeakers();
+      res.json(speakers2);
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching speakers" });
+    }
+  });
+  app2.get("/api/speakers/category/:category", async (req, res) => {
+    try {
+      const category = req.params.category;
+      const speakers2 = await storage.getSpeakersByCategory(category);
+      res.json(speakers2);
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching speakers" });
+    }
+  });
+  app2.post("/api/admin/speakers", isAdmin, async (req, res) => {
+    try {
+      const validatedData = insertSpeakerSchema.parse(req.body);
+      const speaker = await storage.createSpeaker(validatedData);
+      res.status(201).json(speaker);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ errors: formatZodError(error) });
+      }
+      res.status(500).json({ message: "Error creating speaker" });
+    }
+  });
+  app2.put("/api/admin/speakers/:id", isAdmin, async (req, res) => {
+    try {
+      const speakerId = parseInt(req.params.id);
+      const speaker = await storage.updateSpeaker(speakerId, req.body);
+      if (!speaker) {
+        return res.status(404).json({ message: "Speaker not found" });
+      }
+      res.json(speaker);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ errors: formatZodError(error) });
+      }
+      res.status(500).json({ message: "Error updating speaker" });
+    }
+  });
+  app2.delete("/api/admin/speakers/:id", isAdmin, async (req, res) => {
+    try {
+      const speakerId = parseInt(req.params.id);
+      const success = await storage.deleteSpeaker(speakerId);
+      if (!success) {
+        return res.status(404).json({ message: "Speaker not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Error deleting speaker" });
+    }
+  });
+  app2.post("/api/admin/speakers/bulk", isAdmin, async (req, res) => {
+    try {
+      const { speakers: speakersData } = req.body;
+      if (!Array.isArray(speakersData)) {
+        return res.status(400).json({ message: "Invalid speakers data" });
+      }
+      const validatedSpeakers = speakersData.map((data) => insertSpeakerSchema.parse(data));
+      const speakers2 = await storage.bulkCreateSpeakers(validatedSpeakers);
+      res.status(201).json(speakers2);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ errors: formatZodError(error) });
+      }
+      res.status(500).json({ message: "Error creating speakers" });
+    }
+  });
   app2.get("/api/brochure", (req, res) => {
     const brochurePath = path.join(process.cwd(), "uploads", "brochure.pdf");
     if (fs.existsSync(brochurePath)) {
@@ -1265,13 +1536,17 @@ async function registerRoutes(app2) {
 import express2 from "express";
 import fs2 from "fs";
 import path3 from "path";
+import { fileURLToPath as fileURLToPath2 } from "url";
 import { createServer as createViteServer, createLogger } from "vite";
 
 // vite.config.ts
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path2 from "path";
+import { fileURLToPath } from "url";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
+var __filename = fileURLToPath(import.meta.url);
+var __dirname = path2.dirname(__filename);
 var vite_config_default = defineConfig({
   plugins: [
     react(),
@@ -1284,20 +1559,22 @@ var vite_config_default = defineConfig({
   ],
   resolve: {
     alias: {
-      "@": path2.resolve(import.meta.dirname, "client", "src"),
-      "@shared": path2.resolve(import.meta.dirname, "shared"),
-      "@assets": path2.resolve(import.meta.dirname, "attached_assets")
+      "@": path2.resolve(__dirname, "client", "src"),
+      "@shared": path2.resolve(__dirname, "shared"),
+      "@assets": path2.resolve(__dirname, "attached_assets")
     }
   },
-  root: path2.resolve(import.meta.dirname, "client"),
+  root: path2.resolve(__dirname, "client"),
   build: {
-    outDir: path2.resolve(import.meta.dirname, "dist/public"),
+    outDir: path2.resolve(__dirname, "dist/public"),
     emptyOutDir: true
   }
 });
 
 // server/vite.ts
 import { nanoid } from "nanoid";
+var __filename2 = fileURLToPath2(import.meta.url);
+var __dirname2 = path3.dirname(__filename2);
 var viteLogger = createLogger();
 function log(message, source = "express") {
   const formattedTime = (/* @__PURE__ */ new Date()).toLocaleTimeString("en-US", {
@@ -1332,7 +1609,7 @@ async function setupVite(app2, server) {
     const url = req.originalUrl;
     try {
       const clientTemplate = path3.resolve(
-        import.meta.dirname,
+        __dirname2,
         "..",
         "client",
         "index.html"
@@ -1351,13 +1628,13 @@ async function setupVite(app2, server) {
   });
 }
 function serveStatic(app2) {
-  const distPath = path3.resolve(import.meta.dirname, "..", "dist", "public");
+  const distPath = path3.resolve(__dirname2, "..", "dist", "public");
   if (!fs2.existsSync(distPath)) {
     throw new Error(
       `Could not find the build directory: ${distPath}, make sure to build the client first`
     );
   }
-  const publicPath2 = path3.resolve(import.meta.dirname, "..", "public");
+  const publicPath2 = path3.resolve(__dirname2, "..", "public");
   app2.use("/public", express2.static(publicPath2));
   app2.use(express2.static(distPath));
   app2.use("*", (_req, res) => {
@@ -1367,7 +1644,7 @@ function serveStatic(app2) {
 
 // server/index.ts
 import dotenv2 from "dotenv";
-import { fileURLToPath as fileURLToPath2 } from "url";
+import { fileURLToPath as fileURLToPath4 } from "url";
 import path5 from "path";
 import { dirname as dirname2 } from "path";
 
@@ -1376,12 +1653,12 @@ import { Pool, neonConfig } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-serverless";
 import ws from "ws";
 import dotenv from "dotenv";
-import { fileURLToPath } from "url";
+import { fileURLToPath as fileURLToPath3 } from "url";
 import path4 from "path";
 import { dirname } from "path";
-var __filename = fileURLToPath(import.meta.url);
-var __dirname = dirname(__filename);
-dotenv.config({ path: path4.resolve(__dirname, "../.env") });
+var __filename3 = fileURLToPath3(import.meta.url);
+var __dirname3 = dirname(__filename3);
+dotenv.config({ path: path4.resolve(__dirname3, "../.env") });
 neonConfig.webSocketConstructor = ws;
 if (!process.env.DATABASE_URL) {
   throw new Error(
@@ -1508,13 +1785,13 @@ async function setupDatabase() {
 setupDatabase();
 
 // server/index.ts
-var __filename2 = fileURLToPath2(import.meta.url);
-var __dirname2 = dirname2(__filename2);
-dotenv2.config({ path: path5.resolve(__dirname2, "../.env") });
+var __filename4 = fileURLToPath4(import.meta.url);
+var __dirname4 = dirname2(__filename4);
+dotenv2.config({ path: path5.resolve(__dirname4, "../.env") });
 var app = express3();
 app.use(express3.json());
 app.use(express3.urlencoded({ extended: false }));
-var publicPath = process.env.NODE_ENV === "production" ? path5.join(__dirname2, "public") : path5.join(__dirname2, "../public");
+var publicPath = process.env.NODE_ENV === "production" ? path5.join(__dirname4, "public") : path5.join(__dirname4, "../public");
 app.use("/public", express3.static(publicPath));
 app.use((req, res, next) => {
   const start = Date.now();

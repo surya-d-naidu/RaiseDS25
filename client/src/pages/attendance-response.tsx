@@ -129,7 +129,7 @@ export default function AttendanceResponse() {
         <CardHeader>
           <CardTitle className="text-center">Conference Invitation</CardTitle>
           <CardDescription className="text-center">
-            You are invited to attend the RAISEDS 2025 Conference
+            You are invited to attend SuWatE+'26
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -137,7 +137,7 @@ export default function AttendanceResponse() {
             <div className="bg-blue-50 p-4 rounded-lg">
               <h3 className="font-semibold text-lg mb-2">Dear {invitation.name},</h3>
               <p className="text-gray-700 mb-4">
-                We are pleased to invite you to the RAISEDS 2025 Conference. Your presence would be greatly appreciated.
+                We are pleased to invite you to the Second International Conference on Next Generation Sustainable Materials for Water and Energy Solutions (SuWatE+'26). Your presence would be greatly appreciated.
               </p>
               {invitation.message && (
                 <div className="border-l-4 border-blue-300 pl-3 italic text-gray-600 my-4">

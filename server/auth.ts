@@ -54,7 +54,7 @@ async function comparePasswords(supplied: string, stored: string) {
 
 export function setupAuth(app: Express) {
   const sessionSettings: session.SessionOptions = {
-    secret: process.env.SESSION_SECRET || "raise-ds-session-secret-2025",
+    secret: process.env.SESSION_SECRET || "suwate26-session-secret-2026",
     resave: false,
     saveUninitialized: false,
     store: storage.sessionStore,

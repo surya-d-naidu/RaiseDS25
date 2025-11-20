@@ -15,8 +15,8 @@ export default function AboutPage() {
   return (
     <>
       <Helmet>
-        <title>About | RAISE DS 2025</title>
-        <meta name="description" content="Learn about the 45th Annual Convention of Indian Society for Probability and Statistics (ISPS) and the International Conference on Recent Advances and Innovative Statistics with Enhancing Data Science (IC-RAISE DS)." />
+        <title>About | SuWatE+'26</title>
+        <meta name="description" content="Learn about the Second International Conference on Next Generation Sustainable Materials for Water and Energy Solutions (SuWatE+'26)." />
       </Helmet>
       
       <NotificationBar />
@@ -26,10 +26,10 @@ export default function AboutPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h1 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
-              About RAISE DS 2025
+              About SuWatE+'26
             </h1>
             <p className="mt-4 text-xl text-gray-500 max-w-3xl mx-auto">
-              45th Annual Convention of Indian Society for Probability and Statistics (ISPS) in Conjunction with International Conference on Recent Advances and Innovative Statistics with Enhancing Data Science
+              Second International Conference on Next Generation Sustainable Materials for Water and Energy Solutions
             </p>
           </div>
           
@@ -45,13 +45,13 @@ export default function AboutPage() {
             
             <div className="prose prose-indigo prose-lg text-gray-500 mx-auto">
               <p>
-                The International Conference on Recent Advances and Innovative Statistics with Enhancing Data Science (IC-RAISE DS) serves as a platform for researchers, academics, and industry professionals to share their expertise, research findings, and innovations in the fields of statistics and data science.
+                The Second International Conference on Next Generation Sustainable Materials for Water and Energy Solutions (SuWatE+'26) serves as a platform for researchers, academics, and industry professionals to share their expertise, research findings, and innovations in chemistry, materials science, and engineering.
               </p>
               <p>
-                In conjunction with the 45th Annual Convention of the Indian Society for Probability and Statistics (ISPS), this conference brings together the brightest minds from around the world to explore the latest advancements in statistical methods and their applications in enhancing data science.
+                Addressing the urgent challenges of water and energy requires the innovative use of chemistry. This conference aims to bring together diverse branches of chemistry, materials science, chemical and mechanical engineering and computational studies to further advance this dynamic field of research.
               </p>
               <p>
-                Through keynote speeches, panel discussions, paper presentations, and interactive sessions, participants will gain insights into cutting-edge research, foster collaborations, and contribute to the advancement of statistical sciences.
+                Through keynote speeches, panel discussions, paper presentations, and interactive sessions, participants will explore the current fundamental understanding of chemistry to address energy and water challenges, enhance light-matter interactions, design novel materials, and employ in-situ techniques for sustainable solutions.
               </p>
             </div>
           </div>
@@ -80,10 +80,10 @@ export default function AboutPage() {
                     Conference Theme
                   </h2>
                   <p className="text-gray-600">
-                    This theme explores how recent advancements in statistical methods enhance data science, enabling more robust data analysis, precise forecasting, and powerful machine learning models. It delves into new statistical techniques and tools that improve data interpretation, optimization, and decision-making, shaping the future of industries through better insights and innovation.
+                    The theme "Water, Energy, Sensors & Technology" addresses the urgent challenges of water and energy through innovative chemistry applications. The conference explores how diverse branches of chemistry, materials science, and engineering can advance sustainable solutions for our most pressing environmental challenges.
                   </p>
                   <p className="text-gray-600 mt-4">
-                    It explores the transformative role of advanced statistics in fields such as machine learning, artificial intelligence, and big data analytics, with an emphasis on enhancing the effectiveness and efficiency of data-driven decision-making across various industries.
+                    Focus areas include enhancing light-matter interactions, designing and synthesizing novel materials, and employing in-situ techniques to study chemical processes for water and energy solutions, shaping the future of sustainable technology development.
                   </p>
                 </CardContent>
               </Card>
@@ -112,20 +112,24 @@ export default function AboutPage() {
                   </h2>
                   <ul className="space-y-3 text-gray-600">
                     <li className="flex items-start">
-                      <span className="font-semibold mr-2">Dates:</span>
-                      <span>December 22-24, 2025 (Main Conference)<br />December 21, 2025 (Pre-Convention Workshop)</span>
+                      <span className="font-semibold mr-2">Date:</span>
+                      <span>February 19-21, 2026</span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="font-semibold mr-2">Mode:</span>
+                      <span>Hybrid Conference</span>
                     </li>
                     <li className="flex items-start">
                       <span className="font-semibold mr-2">Location:</span>
-                      <span>VIT-AP University, Amaravati, Andhra Pradesh, India</span>
+                      <span>Department of Chemistry, SAS</span>
                     </li>
                     <li className="flex items-start">
-                      <span className="font-semibold mr-2">Workshop:</span>
-                      <span>"Data Science & Machine Learning" (for ISPS Members)</span>
+                      <span className="font-semibold mr-2">In association with:</span>
+                      <span>RMIT University</span>
                     </li>
                     <li className="flex items-start">
-                      <span className="font-semibold mr-2">Organized by:</span>
-                      <span>Department of Mathematics, School of Advanced Sciences, VIT-AP University & Indian Society for Probability and Statistics (ISPS)</span>
+                      <span className="font-semibold mr-2">Website:</span>
+                      <span>www.suwate26.com</span>
                     </li>
                   </ul>
                 </CardContent>
@@ -246,7 +250,7 @@ export default function AboutPage() {
               <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">How can I contact the organizers?</h3>
                 <p className="text-gray-600">
-                  For general inquiries, you can contact the conference secretariat at raiseds25@vitap.ac.in. For specific queries, please refer to the contact information of the conveners and organizing team members on the Committee page.
+                  For general inquiries, you can contact the conference secretariat at suwate@vitap.ac.in. For specific queries, please refer to the contact information of the conveners and organizing team members on the Committee page.
                 </p>
               </div>
             </div>
