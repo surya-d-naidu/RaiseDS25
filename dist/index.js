@@ -15,9 +15,11 @@ __export(schema_exports, {
   abstracts: () => abstracts,
   accommodationRequests: () => accommodationRequests,
   committeeMembers: () => committeeMembers,
+  fullPapers: () => fullPapers,
   insertAbstractSchema: () => insertAbstractSchema,
   insertAccommodationRequestSchema: () => insertAccommodationRequestSchema,
   insertCommitteeMemberSchema: () => insertCommitteeMemberSchema,
+  insertFullPaperSchema: () => insertFullPaperSchema,
   insertInvitationSchema: () => insertInvitationSchema,
   insertInvitedSpeakerSchema: () => insertInvitedSpeakerSchema,
   insertNotificationSchema: () => insertNotificationSchema,
@@ -34,7 +36,7 @@ __export(schema_exports, {
 import { pgTable, text, serial, integer, boolean, timestamp, json } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
-var users, insertUserSchema, AuthorSchema, abstracts, insertAbstractSchema, profiles, insertProfileSchema, invitations, insertInvitationSchema, notifications, insertNotificationSchema, committeeMembers, insertCommitteeMemberSchema, researchAwards, insertResearchAwardSchema, accommodationRequests, insertAccommodationRequestSchema, invitedSpeakers, insertInvitedSpeakerSchema;
+var users, insertUserSchema, AuthorSchema, abstracts, insertAbstractSchema, profiles, insertProfileSchema, invitations, insertInvitationSchema, notifications, insertNotificationSchema, committeeMembers, insertCommitteeMemberSchema, researchAwards, insertResearchAwardSchema, accommodationRequests, insertAccommodationRequestSchema, invitedSpeakers, insertInvitedSpeakerSchema, fullPapers, insertFullPaperSchema;
 var init_schema = __esm({
   "shared/schema.ts"() {
     "use strict";
@@ -98,7 +100,7 @@ var init_schema = __esm({
       keywords: z.string().min(1, "Keywords are required"),
       referenceId: z.string().optional(),
       fileUrl: z.string().optional(),
-      fullPaperUrl: z.string().optional()
+      fullPaperUrl: z.string().url().optional().or(z.literal(""))
     });
     profiles = pgTable("profiles", {
       id: serial("id").primaryKey(),
@@ -256,6 +258,48 @@ var init_schema = __esm({
       id: true,
       createdAt: true,
       updatedAt: true
+    });
+    fullPapers = pgTable("full_papers", {
+      id: serial("id").primaryKey(),
+      userId: integer("user_id").notNull(),
+      abstractId: integer("abstract_id"),
+      // Link to original abstract if exists
+      title: text("title").notNull(),
+      abstract: text("abstract").notNull(),
+      keywords: text("keywords").notNull(),
+      authors: json("authors").$type(),
+      // Using same Author type as abstracts
+      correspondingAuthor: text("corresponding_author").notNull(),
+      paperFile: text("paper_file").notNull(),
+      // File path or URL
+      originalFilename: text("original_filename").notNull(),
+      fileSize: integer("file_size"),
+      // File size in bytes
+      mimeType: text("mime_type"),
+      // application/pdf, etc.
+      trackId: integer("track_id"),
+      status: text("status").notNull().default("pending"),
+      // pending, under_review, accepted, rejected
+      submissionDate: timestamp("submission_date").defaultNow(),
+      lastModified: timestamp("last_modified").defaultNow()
+    });
+    insertFullPaperSchema = z.object({
+      abstractId: z.number().optional(),
+      title: z.string().min(1, "Title is required").max(500, "Title too long"),
+      abstract: z.string().min(50, "Abstract must be at least 50 characters").max(5e3, "Abstract too long"),
+      keywords: z.string().min(1, "Keywords are required").max(500, "Keywords too long"),
+      authors: z.array(AuthorSchema).min(1, "At least one author is required").refine((authors) => {
+        const presenters = authors.filter((author) => author.category === "Presenter");
+        return presenters.length === 1;
+      }, {
+        message: "Exactly one author must be designated as the Presenter"
+      }),
+      correspondingAuthor: z.string().email("Invalid corresponding author email format"),
+      paperFile: z.string().min(1, "Paper file is required"),
+      originalFilename: z.string().min(1, "Original filename is required"),
+      fileSize: z.number().positive().optional(),
+      mimeType: z.string().optional(),
+      trackId: z.number().positive().optional()
     });
   }
 });
