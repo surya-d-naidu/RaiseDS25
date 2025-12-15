@@ -192,7 +192,7 @@ export default function CallForPapersPage() {
                       <Clock className="h-5 w-5 text-primary mr-3 flex-shrink-0" />
                       <div>
                         <p className="font-semibold">Abstract Submission Deadline</p>
-                        <p className="text-gray-600">November 01, 2025</p>
+                        <p className="text-gray-600">December 5, 2025</p>
                       </div>
                     </li>
                     <li className="flex">
@@ -206,7 +206,7 @@ export default function CallForPapersPage() {
                       <Clock className="h-5 w-5 text-primary mr-3 flex-shrink-0" />
                       <div>
                         <p className="font-semibold">Submission of Full Length Paper</p>
-                        <p className="text-gray-600">December 12, 2025</p>
+                        <p className="text-gray-600">December 5, 2025</p>
                       </div>
                     </li>
                     <li className="flex">

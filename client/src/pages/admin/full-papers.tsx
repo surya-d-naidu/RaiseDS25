@@ -35,8 +35,9 @@ import {
   Filter,
   ExternalLink
 } from "lucide-react";
-import { Abstract } from "@shared/schema";
+import { Abstract, Author } from "@shared/schema";
 import MarkdownRenderer from "@/components/ui/markdown-renderer";
+import { safeRenderAuthors, safeRenderAuthorsDetailed } from "@/lib/author-utils";
 
 interface FullPaper extends Abstract {
   fullPaperUrl: string;
@@ -60,9 +61,11 @@ export default function AdminFullPapers() {
 
   // Apply filters
   const filteredPapers = fullPapers.filter(paper => {
+    const authorsText = safeRenderAuthorsDetailed(paper.authors);
+    
     const matchesSearch = searchTerm === "" || 
       paper.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      paper.authors.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      authorsText.toLowerCase().includes(searchTerm.toLowerCase()) ||
       paper.referenceId?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesCategory = categoryFilter === "all" || paper.category === categoryFilter;
@@ -92,7 +95,7 @@ export default function AdminFullPapers() {
       ...filteredPapers.map(paper => [
         paper.referenceId || '',
         paper.title,
-        paper.authors,
+        safeRenderAuthorsDetailed(paper.authors),
         paper.category,
         paper.status,
         new Date(paper.createdAt).toLocaleDateString(),
@@ -283,8 +286,8 @@ export default function AdminFullPapers() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="max-w-xs truncate" title={paper.authors}>
-                          {paper.authors}
+                        <div className="max-w-xs truncate" title={safeRenderAuthorsDetailed(paper.authors)}>
+                          {safeRenderAuthors(paper.authors)}
                         </div>
                       </TableCell>
                       <TableCell>
@@ -342,7 +345,21 @@ export default function AdminFullPapers() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <h4 className="font-medium text-gray-900">Authors</h4>
-                  <p className="text-gray-600">{selectedPaper.authors}</p>
+                  <div className="text-gray-600">
+                    {Array.isArray(selectedPaper.authors) ? (
+                      <div className="space-y-1">
+                        {selectedPaper.authors.map((author, idx) => (
+                          <div key={idx} className="text-sm">
+                            <span className="font-medium">{author.name}</span>
+                            <span className="text-gray-500"> - {author.affiliation}</span>
+                            <span className="text-xs text-blue-600 ml-2">({author.category})</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p>{typeof selectedPaper.authors === 'string' ? selectedPaper.authors : 'No author information'}</p>
+                    )}
+                  </div>
                 </div>
                 <div>
                   <h4 className="font-medium text-gray-900">Category</h4>

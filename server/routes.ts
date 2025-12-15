@@ -15,6 +15,7 @@ import { sendEmail, sendAttendanceInvitationEmail, sendAccountInvitationEmail } 
 import { db } from "./db";
 import { users } from "@shared/schema";
 import { eq, sql } from "drizzle-orm";
+import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, BorderStyle } from "docx";
 
 // Setup file uploads
 const upload = multer({
@@ -180,6 +181,281 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(updatedAbstract);
     } catch (error) {
       res.status(500).json({ message: "Error updating abstract status" });
+    }
+  });
+  
+  // Generate Word document with all accepted abstracts
+  app.get("/api/admin/abstracts/export/word", isAdmin, async (req, res) => {
+    try {
+      console.log("Starting Word document generation...");
+      
+      // Get all abstracts
+      const allAbstracts = await storage.getAllAbstracts();
+      
+      // Filter only accepted abstracts
+      const acceptedAbstracts = allAbstracts.filter(abstract => abstract.status === "accepted");
+      
+      if (acceptedAbstracts.length === 0) {
+        return res.status(404).json({ message: "No accepted abstracts found" });
+      }
+      
+      console.log(`Found ${acceptedAbstracts.length} accepted abstracts`);
+      
+      // Create document sections
+      const docSections: any[] = [];
+      
+      // Title page
+      docSections.push(
+        new Paragraph({
+          text: "RAISE DS 2025",
+          heading: HeadingLevel.TITLE,
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 200 },
+        }),
+        new Paragraph({
+          text: "45th Annual Convention of Indian Society for Probability and Statistics",
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 100 },
+        }),
+        new Paragraph({
+          text: "Accepted Abstracts",
+          heading: HeadingLevel.HEADING_1,
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 400 },
+        }),
+        new Paragraph({
+          text: `Total Abstracts: ${acceptedAbstracts.length}`,
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 400 },
+        }),
+        new Paragraph({
+          text: "",
+          pageBreakBefore: true,
+        })
+      );
+      
+      // Add each abstract
+      for (let i = 0; i < acceptedAbstracts.length; i++) {
+        const abstract = acceptedAbstracts[i];
+        const authors = abstract.authors as any[];
+        
+        console.log(`Processing abstract ${i + 1}/${acceptedAbstracts.length}: ${abstract.referenceId}`);
+        
+        // Abstract ID
+        docSections.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: "Abstract ID: ",
+                bold: true,
+                size: 24,
+              }),
+              new TextRun({
+                text: abstract.referenceId || `${storage.getCategoryCode(abstract.category)}-${abstract.id.toString().padStart(4, '0')}`,
+                size: 24,
+              }),
+            ],
+            spacing: { after: 150 },
+          })
+        );
+        
+        // Title
+        docSections.push(
+          new Paragraph({
+            text: abstract.title,
+            heading: HeadingLevel.HEADING_2,
+            spacing: { after: 150 },
+          })
+        );
+        
+        // Authors section
+        if (authors && authors.length > 0) {
+          docSections.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "Authors:",
+                  bold: true,
+                  size: 22,
+                }),
+              ],
+              spacing: { after: 100 },
+            })
+          );
+          
+          authors.forEach((author: any, index: number) => {
+            // Author name
+            docSections.push(
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: `${index + 1}. `,
+                    bold: true,
+                  }),
+                  new TextRun({
+                    text: author.name || "Unknown",
+                    bold: true,
+                  }),
+                ],
+                spacing: { after: 50 },
+              })
+            );
+            
+            // Email
+            if (author.email) {
+              docSections.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: "   Email: ",
+                      italics: true,
+                    }),
+                    new TextRun({
+                      text: author.email,
+                    }),
+                  ],
+                  spacing: { after: 50 },
+                })
+              );
+            }
+            
+            // Affiliation
+            if (author.affiliation) {
+              docSections.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: "   Affiliation: ",
+                      italics: true,
+                    }),
+                    new TextRun({
+                      text: author.affiliation,
+                    }),
+                  ],
+                  spacing: { after: 50 },
+                })
+              );
+            }
+            
+            // Category
+            if (author.category) {
+              docSections.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: "   Category: ",
+                      italics: true,
+                    }),
+                    new TextRun({
+                      text: author.category,
+                    }),
+                  ],
+                  spacing: { after: 100 },
+                })
+              );
+            }
+          });
+        }
+        
+        // Abstract content
+        docSections.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: "Abstract:",
+                bold: true,
+                size: 22,
+              }),
+            ],
+            spacing: { after: 100, before: 150 },
+          })
+        );
+        
+        docSections.push(
+          new Paragraph({
+            text: abstract.content,
+            spacing: { after: 200 },
+            alignment: AlignmentType.JUSTIFIED,
+          })
+        );
+        
+        // Category
+        docSections.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: "Category: ",
+                bold: true,
+              }),
+              new TextRun({
+                text: abstract.category,
+              }),
+            ],
+            spacing: { after: 200 },
+          })
+        );
+        
+        // Keywords if available
+        if (abstract.keywords) {
+          docSections.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "Keywords: ",
+                  bold: true,
+                }),
+                new TextRun({
+                  text: abstract.keywords,
+                }),
+              ],
+              spacing: { after: 300 },
+            })
+          );
+        }
+        
+        // Add page break after each abstract except the last one
+        if (i < acceptedAbstracts.length - 1) {
+          docSections.push(
+            new Paragraph({
+              text: "",
+              pageBreakBefore: true,
+            })
+          );
+        }
+      }
+      
+      // Create the document
+      const doc = new Document({
+        sections: [
+          {
+            properties: {},
+            children: docSections,
+          },
+        ],
+      });
+      
+      console.log("Generating Word document buffer...");
+      
+      // Generate buffer
+      const buffer = await Packer.toBuffer(doc);
+      
+      console.log("Word document generated successfully");
+      
+      // Set headers for file download
+      const filename = `RAISE_DS_2025_Accepted_Abstracts_${new Date().toISOString().split('T')[0]}.docx`;
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader('Content-Length', buffer.length.toString());
+      
+      // Send the buffer
+      res.send(buffer);
+      
+    } catch (error) {
+      console.error("Error generating Word document:", error);
+      res.status(500).json({ 
+        message: "Error generating Word document",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
     }
   });
   
@@ -1037,7 +1313,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register abstract routes
   registerAbstractRoutes(app);
 
+
   const httpServer = createServer(app);
-  
   return httpServer;
 }

@@ -16,6 +16,7 @@ import { FileText, User, Mail, Calendar, Clock, Building, Award, Loader2, Credit
 import ProfileForm from "@/components/forms/profile-form";
 import ProfileImageUpload from "@/components/forms/profile-image-upload";
 import ConferenceIdCard from "@/components/conference-id-card";
+import { safeRenderAuthors } from "@/lib/author-utils";
 
 export default function ProfilePage() {
   const { user } = useAuth();
@@ -253,7 +254,9 @@ export default function ProfilePage() {
                                           </div>
                                         ))
                                       ) : (
-                                        <div className="text-gray-500">{abstract.authors || 'No author information'}</div>
+                                        <div className="text-gray-500">
+                                          {safeRenderAuthors(abstract.authors)}
+                                        </div>
                                       )}
                                     </div>
                                   </div>

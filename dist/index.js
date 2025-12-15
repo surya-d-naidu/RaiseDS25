@@ -100,7 +100,7 @@ var init_schema = __esm({
       keywords: z.string().min(1, "Keywords are required"),
       referenceId: z.string().optional(),
       fileUrl: z.string().optional(),
-      fullPaperUrl: z.string().url().optional().or(z.literal(""))
+      fullPaperUrl: z.string().optional().or(z.literal(""))
     });
     profiles = pgTable("profiles", {
       id: serial("id").primaryKey(),
@@ -1624,9 +1624,21 @@ function registerAbstractRoutes(app2) {
       if (!isNaN(numericId)) {
         abstract = await storage.getAbstract(numericId);
       }
-      if (!abstract && idParam.match(/^[A-Z]+\d+$/)) {
+      if (!abstract && /^[A-Za-z]+-?\d+$/.test(idParam)) {
+        let normalizedRef = idParam.toUpperCase();
+        if (!normalizedRef.includes("-")) {
+          const m = normalizedRef.match(/^([A-Z]+)(\d+)$/);
+          if (m) {
+            normalizedRef = `${m[1]}-${m[2].padStart(4, "0")}`;
+          }
+        } else {
+          const m = normalizedRef.match(/^([A-Z]+)-(\d+)$/);
+          if (m) {
+            normalizedRef = `${m[1]}-${m[2].padStart(4, "0")}`;
+          }
+        }
         const allAbstracts = await storage.getAbstractsByUser(req.user.id);
-        abstract = allAbstracts.find((a) => a.referenceId === idParam);
+        abstract = allAbstracts.find((a) => a.referenceId.toUpperCase() === normalizedRef);
       }
       if (!abstract) {
         return res.status(404).json({ message: "Abstract not found. Please check your Abstract ID." });
@@ -1690,6 +1702,7 @@ function registerAbstractRoutes(app2) {
 
 // server/routes.ts
 import { sql } from "drizzle-orm";
+import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } from "docx";
 var upload2 = multer2({
   storage: multer2.diskStorage({
     destination: function(req, file, cb) {
@@ -1812,6 +1825,232 @@ async function registerRoutes(app2) {
       res.json(updatedAbstract);
     } catch (error) {
       res.status(500).json({ message: "Error updating abstract status" });
+    }
+  });
+  app2.get("/api/admin/abstracts/export/word", isAdmin, async (req, res) => {
+    try {
+      console.log("Starting Word document generation...");
+      const allAbstracts = await storage.getAllAbstracts();
+      const acceptedAbstracts = allAbstracts.filter((abstract) => abstract.status === "accepted");
+      if (acceptedAbstracts.length === 0) {
+        return res.status(404).json({ message: "No accepted abstracts found" });
+      }
+      console.log(`Found ${acceptedAbstracts.length} accepted abstracts`);
+      const docSections = [];
+      docSections.push(
+        new Paragraph({
+          text: "RAISE DS 2025",
+          heading: HeadingLevel.TITLE,
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 200 }
+        }),
+        new Paragraph({
+          text: "45th Annual Convention of Indian Society for Probability and Statistics",
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 100 }
+        }),
+        new Paragraph({
+          text: "Accepted Abstracts",
+          heading: HeadingLevel.HEADING_1,
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 400 }
+        }),
+        new Paragraph({
+          text: `Total Abstracts: ${acceptedAbstracts.length}`,
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 400 }
+        }),
+        new Paragraph({
+          text: "",
+          pageBreakBefore: true
+        })
+      );
+      for (let i = 0; i < acceptedAbstracts.length; i++) {
+        const abstract = acceptedAbstracts[i];
+        const authors = abstract.authors;
+        console.log(`Processing abstract ${i + 1}/${acceptedAbstracts.length}: ${abstract.referenceId}`);
+        docSections.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: "Abstract ID: ",
+                bold: true,
+                size: 24
+              }),
+              new TextRun({
+                text: abstract.referenceId || `${storage.getCategoryCode(abstract.category)}-${abstract.id.toString().padStart(4, "0")}`,
+                size: 24
+              })
+            ],
+            spacing: { after: 150 }
+          })
+        );
+        docSections.push(
+          new Paragraph({
+            text: abstract.title,
+            heading: HeadingLevel.HEADING_2,
+            spacing: { after: 150 }
+          })
+        );
+        if (authors && authors.length > 0) {
+          docSections.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "Authors:",
+                  bold: true,
+                  size: 22
+                })
+              ],
+              spacing: { after: 100 }
+            })
+          );
+          authors.forEach((author, index) => {
+            docSections.push(
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: `${index + 1}. `,
+                    bold: true
+                  }),
+                  new TextRun({
+                    text: author.name || "Unknown",
+                    bold: true
+                  })
+                ],
+                spacing: { after: 50 }
+              })
+            );
+            if (author.email) {
+              docSections.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: "   Email: ",
+                      italics: true
+                    }),
+                    new TextRun({
+                      text: author.email
+                    })
+                  ],
+                  spacing: { after: 50 }
+                })
+              );
+            }
+            if (author.affiliation) {
+              docSections.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: "   Affiliation: ",
+                      italics: true
+                    }),
+                    new TextRun({
+                      text: author.affiliation
+                    })
+                  ],
+                  spacing: { after: 50 }
+                })
+              );
+            }
+            if (author.category) {
+              docSections.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: "   Category: ",
+                      italics: true
+                    }),
+                    new TextRun({
+                      text: author.category
+                    })
+                  ],
+                  spacing: { after: 100 }
+                })
+              );
+            }
+          });
+        }
+        docSections.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: "Abstract:",
+                bold: true,
+                size: 22
+              })
+            ],
+            spacing: { after: 100, before: 150 }
+          })
+        );
+        docSections.push(
+          new Paragraph({
+            text: abstract.content,
+            spacing: { after: 200 },
+            alignment: AlignmentType.JUSTIFIED
+          })
+        );
+        docSections.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: "Category: ",
+                bold: true
+              }),
+              new TextRun({
+                text: abstract.category
+              })
+            ],
+            spacing: { after: 200 }
+          })
+        );
+        if (abstract.keywords) {
+          docSections.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "Keywords: ",
+                  bold: true
+                }),
+                new TextRun({
+                  text: abstract.keywords
+                })
+              ],
+              spacing: { after: 300 }
+            })
+          );
+        }
+        if (i < acceptedAbstracts.length - 1) {
+          docSections.push(
+            new Paragraph({
+              text: "",
+              pageBreakBefore: true
+            })
+          );
+        }
+      }
+      const doc = new Document({
+        sections: [
+          {
+            properties: {},
+            children: docSections
+          }
+        ]
+      });
+      console.log("Generating Word document buffer...");
+      const buffer = await Packer.toBuffer(doc);
+      console.log("Word document generated successfully");
+      const filename = `RAISE_DS_2025_Accepted_Abstracts_${(/* @__PURE__ */ new Date()).toISOString().split("T")[0]}.docx`;
+      res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+      res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+      res.setHeader("Content-Length", buffer.length.toString());
+      res.send(buffer);
+    } catch (error) {
+      console.error("Error generating Word document:", error);
+      res.status(500).json({
+        message: "Error generating Word document",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
     }
   });
   app2.get("/api/notifications", async (req, res) => {

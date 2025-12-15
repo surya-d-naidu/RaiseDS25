@@ -20,7 +20,7 @@ export default function FullPaperUpload({ abstractId, isReplacement }: FullPaper
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
       const formData = new FormData();
-      formData.append('fullPaper', file);
+      formData.append('file', file);
       
       const response = await apiRequest("POST", `/api/abstracts/${abstractId}/full-paper`, formData);
       return await response.json();

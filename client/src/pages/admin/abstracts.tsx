@@ -31,7 +31,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, FileText, Search, CheckCircle, XCircle, Clock, Download, Eye, Filter } from "lucide-react";
+import { Loader2, FileText, Search, CheckCircle, XCircle, Clock, Download, Eye, Filter, FileDown } from "lucide-react";
 import { Abstract } from "@shared/schema";
 import MarkdownRenderer from "@/components/ui/markdown-renderer";
 import { getCategoryCode } from "@/lib/abstract-utils";
@@ -55,6 +55,7 @@ export default function AdminAbstracts() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedAbstract, setSelectedAbstract] = useState<Abstract | null>(null);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [isGeneratingWord, setIsGeneratingWord] = useState(false);
 
   const { data: abstracts, isLoading } = useQuery<Abstract[]>({
     queryKey: ["/api/admin/abstracts"],
@@ -146,6 +147,53 @@ export default function AdminAbstracts() {
     });
   };
 
+  const exportAcceptedAbstractsToWord = async () => {
+    try {
+      setIsGeneratingWord(true);
+      
+      toast({
+        title: "Generating document...",
+        description: "Please wait while we generate the Word document. This may take a few moments.",
+      });
+
+      const response = await fetch('/api/admin/abstracts/export/word', {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to generate Word document');
+      }
+
+      // Get the blob from the response
+      const blob = await response.blob();
+      
+      // Create a download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `RAISE_DS_2025_Accepted_Abstracts_${new Date().toISOString().split('T')[0]}.docx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast({
+        title: "Export successful",
+        description: "Word document has been generated and downloaded successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Export failed",
+        description: error instanceof Error ? error.message : "Failed to generate Word document",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingWord(false);
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "pending":
@@ -191,7 +239,25 @@ export default function AdminAbstracts() {
               className="w-full sm:w-auto"
             >
               <Download className="h-4 w-4 mr-2" />
-              Export Abstracts
+              Export CSV
+            </Button>
+            <Button
+              variant="default"
+              onClick={exportAcceptedAbstractsToWord}
+              disabled={isGeneratingWord}
+              className="w-full sm:w-auto"
+            >
+              {isGeneratingWord ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <FileDown className="h-4 w-4 mr-2" />
+                  Export Accepted (Word)
+                </>
+              )}
             </Button>
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />

@@ -179,7 +179,7 @@ export default function NotificationForm({
               <FormLabel>Content</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Abstract submission deadline: November 01, 2025"
+                  placeholder="Abstract submission deadline: December 5, 2025"
                   className="resize-none"
                   {...field}
                 />

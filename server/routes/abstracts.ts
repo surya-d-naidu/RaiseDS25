@@ -207,10 +207,26 @@ export function registerAbstractRoutes(app: Express) {
         abstract = await storage.getAbstract(numericId);
       }
       
-      // If not found and it looks like a reference ID, search by reference ID
-      if (!abstract && idParam.match(/^[A-Z]+\d+$/)) {
+      // If not found and it looks like a reference ID (letters + optional hyphen + digits),
+      // normalize the input to the stored format (e.g. DS-0001) and search user's abstracts.
+      if (!abstract && /^[A-Za-z]+-?\d+$/.test(idParam)) {
+        // Normalize: uppercase, ensure a hyphen between letters and numbers, pad number to 4 digits
+        let normalizedRef = idParam.toUpperCase();
+        
+        if (!normalizedRef.includes('-')) {
+          const m = normalizedRef.match(/^([A-Z]+)(\d+)$/);
+          if (m) {
+            normalizedRef = `${m[1]}-${m[2].padStart(4, '0')}`;
+          }
+        } else {
+          const m = normalizedRef.match(/^([A-Z]+)-(\d+)$/);
+          if (m) {
+            normalizedRef = `${m[1]}-${m[2].padStart(4, '0')}`;
+          }
+        }
+        
         const allAbstracts = await storage.getAbstractsByUser(req.user!.id);
-        abstract = allAbstracts.find(a => a.referenceId === idParam);
+        abstract = allAbstracts.find(a => a.referenceId.toUpperCase() === normalizedRef);
       }
       
       if (!abstract) {

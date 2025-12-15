@@ -665,7 +665,7 @@ export default function AbstractSubmissionPage() {
                           <Clock className="h-5 w-5 text-amber-500 mr-2 flex-shrink-0" />
                           <div>
                             <p className="font-medium">Submission Deadline</p>
-                            <p className="text-gray-600">November 01, 2025</p>
+                            <p className="text-gray-600">December 5, 2025</p>
                           </div>
                         </div>
 

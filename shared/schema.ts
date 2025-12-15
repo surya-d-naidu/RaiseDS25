@@ -73,7 +73,7 @@ export const insertAbstractSchema = z.object({
   keywords: z.string().min(1, "Keywords are required"),
   referenceId: z.string().optional(),
   fileUrl: z.string().optional(),
-  fullPaperUrl: z.string().url().optional().or(z.literal(""))
+  fullPaperUrl: z.string().optional().or(z.literal(""))
 });
 
 export type InsertAbstract = z.infer<typeof insertAbstractSchema>;
