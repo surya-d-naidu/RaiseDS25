@@ -41,12 +41,17 @@ export default function FullPaperSubmissionPage() {
   const [uploadProgress, setUploadProgress] = useState(false);
   const [selectedFileName, setSelectedFileName] = useState<string>("");
 
+  // Feature flag to disable uploads
+  const uploadsDisabled = true;
+
   const form = useForm<FullPaperFormValues>({
     resolver: zodResolver(fullPaperSchema),
   });
 
   const uploadMutation = useMutation({
     mutationFn: async (data: { abstractId: string; file: File }) => {
+      if (uploadsDisabled) throw new Error('Full paper uploads are disabled');
+
       const formData = new FormData();
       formData.append("file", data.file);
 
@@ -82,6 +87,11 @@ export default function FullPaperSubmissionPage() {
   });
 
   const onSubmit = (values: FullPaperFormValues) => {
+    if (uploadsDisabled) {
+      toast({ title: 'Uploads disabled', description: 'Full paper uploads are currently disabled.', variant: 'destructive' });
+      return;
+    }
+
     const file = values.file[0];
     setUploadProgress(true);
     uploadMutation.mutate(

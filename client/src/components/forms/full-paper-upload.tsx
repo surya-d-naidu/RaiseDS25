@@ -17,8 +17,12 @@ export default function FullPaperUpload({ abstractId, isReplacement }: FullPaper
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
+  // Feature flag: disable uploads
+  const uploadsDisabled = true;
+
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
+      if (uploadsDisabled) throw new Error('File uploads are disabled');
       const formData = new FormData();
       formData.append('file', file);
       
@@ -46,6 +50,12 @@ export default function FullPaperUpload({ abstractId, isReplacement }: FullPaper
   });
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (uploadsDisabled) {
+      toast({ title: 'Uploads disabled', description: 'File uploads are currently disabled.', variant: 'destructive' });
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
     const file = event.target.files?.[0];
     if (file) {
       // Validate file type
@@ -73,6 +83,10 @@ export default function FullPaperUpload({ abstractId, isReplacement }: FullPaper
   };
 
   const handleUpload = () => {
+    if (uploadsDisabled) {
+      toast({ title: 'Uploads disabled', description: 'File uploads are currently disabled.', variant: 'destructive' });
+      return;
+    }
     if (selectedFile) {
       uploadMutation.mutate(selectedFile);
     }
@@ -91,15 +105,19 @@ export default function FullPaperUpload({ abstractId, isReplacement }: FullPaper
         <Label htmlFor={`fullPaper-${abstractId}`} className="text-sm">
           {isReplacement ? "Replace Full Paper (PDF only)" : "Upload Full Paper (PDF only)"}
         </Label>
-        <Input
-          id={`fullPaper-${abstractId}`}
-          ref={fileInputRef}
-          type="file"
-          accept=".pdf"
-          onChange={handleFileSelect}
-          className="mt-1"
-          disabled={uploadMutation.isPending}
-        />
+        {uploadsDisabled ? (
+          <div className="mt-2 text-sm text-red-600">File uploads are currently disabled by the administrator.</div>
+        ) : (
+          <Input
+            id={`fullPaper-${abstractId}`}
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf"
+            onChange={handleFileSelect}
+            className="mt-1"
+            disabled={uploadMutation.isPending}
+          />
+        )}
       </div>
 
       {selectedFile && (

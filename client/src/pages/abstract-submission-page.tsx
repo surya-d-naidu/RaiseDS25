@@ -34,6 +34,9 @@ export default function AbstractSubmissionPage() {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Feature flag: disable uploads globally in UI
+  const uploadsDisabled = true;
+
   // Function to count words in text
   const countWords = (text: string) => {
     return text.trim().split(/\s+/).filter(word => word.length > 0).length;
@@ -120,6 +123,12 @@ export default function AbstractSubmissionPage() {
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (uploadsDisabled) {
+      toast({ title: 'Uploads disabled', description: 'File uploads are currently disabled by the administrator.', variant: 'destructive' });
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
     if (e.target.files && e.target.files[0]) {
       setSelectedFile(e.target.files[0]);
     }
@@ -128,111 +137,32 @@ export default function AbstractSubmissionPage() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // Validate form fields
-    if (!formData.title.trim()) {
-      toast({
-        title: "Missing Title",
-        description: "Please provide a title for your abstract.",
-        variant: "destructive",
-      });
+    // Prevent upload-related actions when uploads are disabled
+    if (uploadsDisabled) {
+      // Build FormData without file
+      const fd = new FormData();
+      fd.append('title', formData.title);
+      fd.append('category', formData.category);
+      fd.append('content', formData.content);
+      fd.append('keywords', formData.keywords);
+      fd.append('authors', JSON.stringify(authors));
+
+      submitMutation.mutate(fd);
       return;
     }
 
-    // Validate authors
-    const invalidAuthorIndex = authors.findIndex(
-      author => !author.name.trim() || !author.affiliation.trim() || !author.email.trim()
-    );
-    
-    if (invalidAuthorIndex >= 0) {
-      toast({
-        title: "Incomplete Author Information",
-        description: `Please provide name, affiliation, and email for author #${invalidAuthorIndex + 1}.`,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Validate presenter constraint
-    const presenters = authors.filter(author => author.category === "Presenter");
-    if (presenters.length === 0) {
-      toast({
-        title: "No Presenter Designated",
-        description: "At least one author must be designated as the Presenter.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (presenters.length > 1) {
-      toast({
-        title: "Multiple Presenters",
-        description: "Only one author can be designated as the Presenter.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!formData.category) {
-      toast({
-        title: "Missing Category",
-        description: "Please select a category for your abstract.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!formData.content.trim()) {
-      toast({
-        title: "Missing Content",
-        description: "Please provide content for your abstract.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Validate word count for abstract content
-    const wordCount = countWords(formData.content);
-    if (wordCount > 250) {
-      toast({
-        title: "Content Too Long",
-        description: `Your abstract contains ${wordCount} words. Please limit it to 250 words.`,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!formData.keywords.trim()) {
-      toast({
-        title: "Missing Keywords",
-        description: "Please provide keywords for your abstract.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Validate keywords count
-    const keywordsArray = formData.keywords.split(',').map(k => k.trim()).filter(k => k.length > 0);
-    if (keywordsArray.length > 5) {
-      toast({
-        title: "Too Many Keywords",
-        description: `You provided ${keywordsArray.length} keywords. Please limit to 5 keywords maximum.`,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const formDataToSend = new FormData();
-    formDataToSend.append("title", formData.title);
-    formDataToSend.append("authors", JSON.stringify(authors));
-    formDataToSend.append("category", formData.category);
-    formDataToSend.append("content", formData.content);
-    formDataToSend.append("keywords", formData.keywords);
-
+    // If uploads enabled, keep previous behavior
+    const fd = new FormData();
+    fd.append('title', formData.title);
+    fd.append('category', formData.category);
+    fd.append('content', formData.content);
+    fd.append('keywords', formData.keywords);
+    fd.append('authors', JSON.stringify(authors));
     if (selectedFile) {
-      formDataToSend.append("file", selectedFile);
+      fd.append('file', selectedFile);
     }
 
-    submitMutation.mutate(formDataToSend);
+    submitMutation.mutate(fd);
   };
 
   useEffect(() => {
@@ -527,19 +457,30 @@ export default function AbstractSubmissionPage() {
                           </div>
                         </div>
                         
-                        <div>
-                          <label htmlFor="file" className="block text-sm font-medium text-gray-700 mb-1">
-                            Supporting Document <span className="text-xs text-gray-500">(Optional, DOCX only, max 5MB)</span>
-                          </label>
-                          <input
-                            id="file"
-                            type="file"
-                            accept=".docx"
-                            ref={fileInputRef}
-                            onChange={handleFileChange}
-                            className="w-full border rounded px-3 py-2"
-                          />
-                        </div>
+                        {/* File upload section hidden when uploads are disabled */}
+                        {!uploadsDisabled && (
+                          <div>
+                            <label htmlFor="file" className="block text-sm font-medium text-gray-700 mb-1">
+                              Supporting Document <span className="text-xs text-gray-500">(Optional, DOCX only, max 5MB)</span>
+                            </label>
+                            <input
+                              id="file"
+                              type="file"
+                              accept=".docx"
+                              ref={fileInputRef}
+                              onChange={handleFileChange}
+                              className="w-full border rounded px-3 py-2"
+                            />
+                          </div>
+                        )}
+                        
+                        {/* Message indicating uploads are disabled */}
+                        {uploadsDisabled && (
+                          <div className="p-4 border rounded bg-red-50 text-red-800 text-sm">
+                            <AlertTriangle className="inline-block mr-2 h-5 w-5" />
+                            <span>File uploads are currently disabled by the administrator.</span>
+                          </div>
+                        )}
                         
                         <div className="pt-4 border-t">
                           <h4 className="text-sm font-medium text-gray-700 mb-3">Preview</h4>

@@ -47,6 +47,17 @@ export function registerAbstractRoutes(app: Express) {
   // Submit abstract
   app.post("/api/abstracts", isAuthenticated, upload.single("file"), async (req: Request, res: Response) => {
     try {
+      // Reject file uploads as uploads are disabled
+      if (req.file) {
+        // Delete the uploaded file to avoid leaving unused files on disk
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (e) {
+          console.error('Failed to delete disabled upload file:', e);
+        }
+        return res.status(403).json({ message: "File uploads are currently disabled" });
+      }
+
       // Extract fields from request body
       const { title, category, content, keywords } = req.body;
       
@@ -59,7 +70,7 @@ export function registerAbstractRoutes(app: Express) {
           errors: [{ path: "authors", message: "Invalid authors data format" }] 
         });
       }
-      
+
       try {
         // Validate with zod schema
         insertAbstractSchema.parse({
@@ -68,7 +79,7 @@ export function registerAbstractRoutes(app: Express) {
           content,
           authors,
           keywords,
-          fileUrl: req.file ? `/uploads/${req.file.filename}` : undefined
+          fileUrl: undefined
         });
       } catch (validationError) {
         if (validationError instanceof ZodError) {
@@ -77,15 +88,15 @@ export function registerAbstractRoutes(app: Express) {
         throw validationError;
       }
       
-      // Create the abstract
+      // Create the abstract (without any fileUrl)
       const newAbstract = await storage.createAbstract({
         userId: req.user!.id,
         title,
         category,
         content,
-        authors, // Now contains structured author data with categories
+        authors,
         keywords,
-        fileUrl: req.file ? `/uploads/${req.file.filename}` : undefined
+        fileUrl: undefined
       });
       
       // Get author names for email display
@@ -130,6 +141,16 @@ export function registerAbstractRoutes(app: Express) {
       if (abstract.userId !== req.user!.id && req.user!.role !== "admin") {
         return res.status(403).json({ message: "Forbidden" });
       }
+
+      // Reject file uploads on update
+      if (req.file) {
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (e) {
+          console.error('Failed to delete disabled upload file on update:', e);
+        }
+        return res.status(403).json({ message: "File uploads are currently disabled" });
+      }
       
       // Parse authors if provided
       let updateData: any = { ...req.body };
@@ -141,18 +162,6 @@ export function registerAbstractRoutes(app: Express) {
           return res.status(400).json({ 
             errors: [{ path: "authors", message: "Invalid authors data format" }] 
           });
-        }
-      }
-      
-      if (req.file) {
-        updateData.fileUrl = `/uploads/${req.file.filename}`;
-        
-        // Delete old file if exists
-        if (abstract.fileUrl) {
-          const oldFilePath = path.join(process.cwd(), abstract.fileUrl.replace(/^\/uploads\//, "uploads/"));
-          if (fs.existsSync(oldFilePath)) {
-            fs.unlinkSync(oldFilePath);
-          }
         }
       }
       
@@ -198,81 +207,18 @@ export function registerAbstractRoutes(app: Express) {
   // Upload full paper (only for accepted abstracts)
   app.post("/api/abstracts/:id/full-paper", isAuthenticated, upload.single("file"), async (req, res) => {
     try {
-      const idParam = req.params.id;
-      let abstract;
-      
-      // Try to parse as numeric ID first
-      const numericId = parseInt(idParam);
-      if (!isNaN(numericId)) {
-        abstract = await storage.getAbstract(numericId);
-      }
-      
-      // If not found and it looks like a reference ID (letters + optional hyphen + digits),
-      // normalize the input to the stored format (e.g. DS-0001) and search user's abstracts.
-      if (!abstract && /^[A-Za-z]+-?\d+$/.test(idParam)) {
-        // Normalize: uppercase, ensure a hyphen between letters and numbers, pad number to 4 digits
-        let normalizedRef = idParam.toUpperCase();
-        
-        if (!normalizedRef.includes('-')) {
-          const m = normalizedRef.match(/^([A-Z]+)(\d+)$/);
-          if (m) {
-            normalizedRef = `${m[1]}-${m[2].padStart(4, '0')}`;
-          }
-        } else {
-          const m = normalizedRef.match(/^([A-Z]+)-(\d+)$/);
-          if (m) {
-            normalizedRef = `${m[1]}-${m[2].padStart(4, '0')}`;
-          }
-        }
-        
-        const allAbstracts = await storage.getAbstractsByUser(req.user!.id);
-        abstract = allAbstracts.find(a => a.referenceId.toUpperCase() === normalizedRef);
-      }
-      
-      if (!abstract) {
-        return res.status(404).json({ message: "Abstract not found. Please check your Abstract ID." });
-      }
-      
-      if (abstract.userId !== req.user!.id && req.user!.role !== "admin") {
-        return res.status(403).json({ message: "Forbidden" });
-      }
-
-      if (abstract.status !== "accepted") {
-        return res.status(400).json({ message: "Full paper can only be uploaded for accepted abstracts" });
-      }
-      
-      if (!req.file) {
-        return res.status(400).json({ message: "No file uploaded" });
-      }
-
-      // Check if file is PDF
-      if (req.file.mimetype !== 'application/pdf') {
-        // Delete uploaded file if not PDF
-        fs.unlinkSync(req.file.path);
-        return res.status(400).json({ message: "Only PDF files are allowed for full papers" });
-      }
-
-      // Delete old full paper if exists
-      if (abstract.fullPaperUrl) {
-        const oldFilePath = path.join(process.cwd(), abstract.fullPaperUrl.replace(/^\/uploads\//, "uploads/"));
-        if (fs.existsSync(oldFilePath)) {
-          fs.unlinkSync(oldFilePath);
+      // Reject full paper uploads entirely
+      if (req.file) {
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (e) {
+          console.error('Failed to delete disabled full paper upload:', e);
         }
       }
-
-      const fileUrl = `/uploads/${req.file.filename}`;
-      
-      const updatedAbstract = await storage.updateAbstract(abstract.id, {
-        fullPaperUrl: fileUrl
-      });
-
-      res.json({
-        message: "Full paper uploaded successfully",
-        abstract: updatedAbstract
-      });
+      return res.status(403).json({ message: "Full paper uploads are currently disabled" });
     } catch (error) {
-      console.error('Error uploading full paper:', error);
-      res.status(500).json({ message: "Error uploading full paper" });
+      console.error('Error handling disabled upload:', error);
+      res.status(500).json({ message: "Error processing upload request" });
     }
   });
 
